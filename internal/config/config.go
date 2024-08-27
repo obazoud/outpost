@@ -2,18 +2,28 @@ package config
 
 import (
 	"log"
+	"os"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
+const (
+	Namespace = "EventKit"
+)
+
 var (
-	Port int
+	Service  ServiceType
+	Port     int
+	Hostname string
 
 	RedisHost     string
 	RedisPort     int
 	RedisPassword string
 	RedisDatabase int
+
+	OpenTelemetry *OpenTelemetryConfig
 )
 
 var defaultConfig = map[string]any{
@@ -24,25 +34,53 @@ var defaultConfig = map[string]any{
 	"REDIS_DATABASE": 0,
 }
 
-func Parse(configFile string) error {
+func Parse(flags Flags) error {
+	var err error
+
+	Hostname, err = os.Hostname()
+	if err != nil {
+		return err
+	}
+
+	// Load .env file to environment variables
+	err = godotenv.Load()
+	if err != nil {
+		// Ignore error if file does not exist
+	}
+
+	// Parse service type from flag
+	Service, err = ServiceTypeFromString(flags.Service)
+	if err != nil {
+		return err
+	}
+
+	// Set default config values
 	for key, value := range defaultConfig {
 		viper.SetDefault(key, value)
 	}
 
-	if configFile != "" {
-		viper.SetConfigFile(configFile)
+	// Parse custom config file if provided
+	if flags.Config != "" {
+		viper.SetConfigFile(flags.Config)
 		if err := viper.ReadInConfig(); err != nil {
 			return err
 		}
 	}
 
+	// Bind environemnt variable to viper
 	viper.AutomaticEnv()
 
+	// Initialize config values
 	Port = mustInt("PORT")
 	RedisHost = viper.GetString("REDIS_HOST")
 	RedisPort = mustInt("REDIS_PORT")
 	RedisPassword = viper.GetString("REDIS_PASSWORD")
 	RedisDatabase = mustInt("REDIS_DATABASE")
+
+	OpenTelemetry, err = parseOpenTelemetryConfig()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

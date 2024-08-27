@@ -4,13 +4,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hookdeck/EventKit/internal/config"
 	"github.com/hookdeck/EventKit/internal/destination"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func NewRouter() http.Handler {
+func NewRouter(logger *otelzap.Logger) http.Handler {
 	r := gin.Default()
 
+	if config.OpenTelemetry != nil {
+		r.Use(otelgin.Middleware(config.Hostname))
+	}
+
 	r.GET("/healthz", func(c *gin.Context) {
+		logger.Ctx(c.Request.Context()).Info("health check")
 		c.Status(http.StatusOK)
 	})
 

@@ -1,4 +1,4 @@
-package flag
+package config
 
 import "flag"
 
@@ -8,7 +8,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&service, "service", "", "service (e.g. api, data, delivery). If empty, all services will run.")
+	flag.StringVar(&service, "service", "", "service (e.g. api, delivery, log). If empty, all services will run.")
 	flag.StringVar(&config, "config", "", "config file (e.g. .env, config.yaml)")
 }
 
@@ -17,7 +17,7 @@ type Flags struct {
 	Config  string // Config file path
 }
 
-func Parse() Flags {
+func ParseFlags() Flags {
 	flag.Parse()
 	return Flags{
 		Service: service,
