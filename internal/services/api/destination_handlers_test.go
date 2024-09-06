@@ -1,69 +1,110 @@
-package destination_test
+package api_test
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/hookdeck/EventKit/internal/destination"
-	"github.com/hookdeck/EventKit/internal/util/testutil"
+	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/EventKit/internal/redis"
+	api "github.com/hookdeck/EventKit/internal/services/api"
 	"github.com/stretchr/testify/assert"
 )
-
-var tenantID = uuid.New().String()
 
 func baseTenantPath(id string) string {
 	return "/" + id
 }
 
-func setupRouter(destinationHandlers *destination.DestinationHandlers) *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	r := gin.Default()
-	r.GET("/:tenantID/destinations", destinationHandlers.List)
-	r.POST("/:tenantID/destinations", destinationHandlers.Create)
-	r.GET("/:tenantID/destinations/:destinationID", destinationHandlers.Retrieve)
-	r.PATCH("/:tenantID/destinations/:destinationID", destinationHandlers.Update)
-	r.DELETE("/:tenantID/destinations/:destinationID", destinationHandlers.Delete)
-	return r
+func setupExistingTenant(t *testing.T, redisClient *redis.Client) string {
+	tenant := models.Tenant{
+		ID:        uuid.New().String(),
+		CreatedAt: time.Now(),
+	}
+	model := models.NewTenantModel()
+	err := model.Set(context.Background(), redisClient, tenant)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tenant.ID
 }
 
 func TestDestinationListHandler(t *testing.T) {
 	t.Parallel()
 
-	redisClient := testutil.CreateTestRedisClient(t)
-	logger := testutil.CreateTestLogger(t)
-	handlers := destination.NewHandlers(logger, redisClient)
-	router := setupRouter(handlers)
+	router, _, redisClient := setupTestRouter(t, "", "")
 
-	t.Run("should return 501", func(t *testing.T) {
+	t.Run("should return empty list", func(t *testing.T) {
 		t.Parallel()
+		tenantID := setupExistingTenant(t, redisClient)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("GET", baseTenantPath(tenantID)+"/destinations", nil)
 		router.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusNotImplemented, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.JSONEq(t, `[]`, w.Body.String())
+	})
+
+	t.Run("should return list with existing destinations", func(t *testing.T) {
+		t.Parallel()
+
+		// Arrange
+		tenantID := setupExistingTenant(t, redisClient)
+		inputDestination := models.Destination{
+			Type:       "webhooks",
+			Topics:     []string{"user.created", "user.updated"},
+			DisabledAt: nil,
+			TenantID:   tenantID,
+		}
+		destinationModel := models.NewDestinationModel()
+		ids := make([]string, 5)
+		timestamps := make([]time.Time, 5)
+		for i := 0; i < 5; i++ {
+			ids[i] = uuid.New().String()
+			timestamps[i] = time.Now()
+			inputDestination.ID = ids[i]
+			inputDestination.CreatedAt = timestamps[i]
+			destinationModel.Set(context.Background(), redisClient, inputDestination)
+		}
+
+		// Act
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", baseTenantPath(tenantID)+"/destinations", nil)
+		router.ServeHTTP(w, req)
+
+		// Assert
+		destinationResponse := []any{}
+		json.Unmarshal(w.Body.Bytes(), &destinationResponse)
+		fmt.Println(len(destinationResponse))
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, 5, len(destinationResponse))
+		for i, destinationJSON := range destinationResponse {
+			destination := destinationJSON.(map[string]any)
+			assert.Equal(t, ids[i], destination["id"])
+			assert.Equal(t, inputDestination.Type, destination["type"])
+			assertMarshalEqual(t, inputDestination.Topics, destination["topics"])
+			assert.Equal(t, timestamps[i].Format(time.RFC3339Nano), destination["created_at"])
+		}
 	})
 }
 
 func TestDestinationCreateHandler(t *testing.T) {
 	t.Parallel()
 
-	redisClient := testutil.CreateTestRedisClient(t)
-	logger := testutil.CreateTestLogger(t)
-	handlers := destination.NewHandlers(logger, redisClient)
-	router := setupRouter(handlers)
+	router, _, redisClient := setupTestRouter(t, "", "")
+	tenantID := setupExistingTenant(t, redisClient)
 
 	t.Run("should create", func(t *testing.T) {
 		t.Parallel()
 
 		w := httptest.NewRecorder()
 
-		exampleDestination := destination.CreateDestinationRequest{
+		exampleDestination := api.CreateDestinationRequest{
 			Type:   "webhooks",
 			Topics: []string{"user.created", "user.updated"},
 		}
@@ -85,11 +126,9 @@ func TestDestinationCreateHandler(t *testing.T) {
 func TestDestinationRetrieveHandler(t *testing.T) {
 	t.Parallel()
 
-	redisClient := testutil.CreateTestRedisClient(t)
-	logger := testutil.CreateTestLogger(t)
-	handlers := destination.NewHandlers(logger, redisClient)
-	model := destination.NewDestinationModel(redisClient)
-	router := setupRouter(handlers)
+	router, _, redisClient := setupTestRouter(t, "", "")
+	model := models.NewDestinationModel()
+	tenantID := setupExistingTenant(t, redisClient)
 
 	t.Run("should return 404 when there's no destination", func(t *testing.T) {
 		t.Parallel()
@@ -105,13 +144,14 @@ func TestDestinationRetrieveHandler(t *testing.T) {
 		t.Parallel()
 
 		// Setup test destination
-		exampleDestination := destination.Destination{
+		exampleDestination := models.Destination{
 			ID:        uuid.New().String(),
 			Type:      "webhooks",
 			Topics:    []string{"user.created", "user.updated"},
 			CreatedAt: time.Now(),
+			TenantID:  tenantID,
 		}
-		model.Set(context.Background(), exampleDestination)
+		model.Set(context.Background(), redisClient, exampleDestination)
 
 		// Test HTTP request
 		w := httptest.NewRecorder()
@@ -135,20 +175,19 @@ func TestDestinationRetrieveHandler(t *testing.T) {
 func TestDestinationUpdateHandler(t *testing.T) {
 	t.Parallel()
 
-	redisClient := testutil.CreateTestRedisClient(t)
-	logger := testutil.CreateTestLogger(t)
-	handlers := destination.NewHandlers(logger, redisClient)
-	model := destination.NewDestinationModel(redisClient)
-	router := setupRouter(handlers)
+	router, _, redisClient := setupTestRouter(t, "", "")
+	model := models.NewDestinationModel()
+	tenantID := setupExistingTenant(t, redisClient)
 
-	initialDestination := destination.Destination{
+	initialDestination := models.Destination{
 		ID:        uuid.New().String(),
 		Type:      "webhooks",
 		Topics:    []string{"user.created", "user.updated"},
 		CreatedAt: time.Now(),
+		TenantID:  tenantID,
 	}
 
-	updateDestinationRequest := destination.UpdateDestinationRequest{
+	updateDestinationRequest := api.UpdateDestinationRequest{
 		Type: "not-webhooks",
 	}
 	updateDestinationJSON, _ := json.Marshal(updateDestinationRequest)
@@ -177,7 +216,7 @@ func TestDestinationUpdateHandler(t *testing.T) {
 		t.Parallel()
 
 		// Setup initial destination
-		model.Set(context.Background(), initialDestination)
+		model.Set(context.Background(), redisClient, initialDestination)
 
 		// Test HTTP request
 		w := httptest.NewRecorder()
@@ -187,7 +226,7 @@ func TestDestinationUpdateHandler(t *testing.T) {
 		var destinationResponse map[string]any
 		json.Unmarshal(w.Body.Bytes(), &destinationResponse)
 
-		assert.Equal(t, http.StatusAccepted, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, initialDestination.ID, destinationResponse["id"])
 		assert.Equal(t, updateDestinationRequest.Type, destinationResponse["type"])
 		assertMarshalEqual(t, updateDestinationRequest.Topics, destinationResponse["topics"])
@@ -199,11 +238,11 @@ func TestDestinationUpdateHandler(t *testing.T) {
 }
 
 func TestDestinationDeleteHandler(t *testing.T) {
-	redisClient := testutil.CreateTestRedisClient(t)
-	logger := testutil.CreateTestLogger(t)
-	handlers := destination.NewHandlers(logger, redisClient)
-	model := destination.NewDestinationModel(redisClient)
-	router := setupRouter(handlers)
+	t.Parallel()
+
+	router, _, redisClient := setupTestRouter(t, "", "")
+	model := models.NewDestinationModel()
+	tenantID := setupExistingTenant(t, redisClient)
 
 	t.Run("should return 404 when there's no destination", func(t *testing.T) {
 		t.Parallel()
@@ -219,13 +258,14 @@ func TestDestinationDeleteHandler(t *testing.T) {
 		t.Parallel()
 
 		// Setup initial destination
-		newDestination := destination.Destination{
+		newDestination := models.Destination{
 			ID:        uuid.New().String(),
 			Type:      "webhooks",
 			Topics:    []string{"user.created", "user.updated"},
 			CreatedAt: time.Now(),
+			TenantID:  tenantID,
 		}
-		model.Set(context.Background(), newDestination)
+		model.Set(context.Background(), redisClient, newDestination)
 
 		// Test HTTP request
 		w := httptest.NewRecorder()

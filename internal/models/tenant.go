@@ -1,4 +1,4 @@
-package tenant
+package models
 
 import (
 	"context"
@@ -13,18 +13,14 @@ type Tenant struct {
 	CreatedAt time.Time `json:"created_at" redis:"created_at"`
 }
 
-type TenantModel struct {
-	redisClient *redis.Client
+type TenantModel struct{}
+
+func NewTenantModel() *TenantModel {
+	return &TenantModel{}
 }
 
-func NewTenantModel(redisClient *redis.Client) *TenantModel {
-	return &TenantModel{
-		redisClient: redisClient,
-	}
-}
-
-func (m *TenantModel) Get(c context.Context, id string) (*Tenant, error) {
-	hash, err := m.redisClient.HGetAll(c, redisTenantID(id)).Result()
+func (m *TenantModel) Get(ctx context.Context, cmdable redis.Cmdable, id string) (*Tenant, error) {
+	hash, err := cmdable.HGetAll(ctx, redisTenantID(id)).Result()
 	if err != nil {
 		return nil, err
 	}
@@ -38,25 +34,12 @@ func (m *TenantModel) Get(c context.Context, id string) (*Tenant, error) {
 	return tenant, nil
 }
 
-func (m *TenantModel) Set(c context.Context, tenant Tenant) error {
-	if err := m.redisClient.HSet(c, redisTenantID(tenant.ID), tenant).Err(); err != nil {
-		return err
-	}
-	return nil
+func (m *TenantModel) Set(ctx context.Context, cmdable redis.Cmdable, tenant Tenant) error {
+	return cmdable.HSet(ctx, redisTenantID(tenant.ID), tenant).Err()
 }
 
-func (m *TenantModel) Clear(c context.Context, id string) (*Tenant, error) {
-	tenant, err := m.Get(c, id)
-	if err != nil {
-		return nil, err
-	}
-	if tenant == nil {
-		return nil, nil
-	}
-	if err := m.redisClient.Del(c, redisTenantID(id)).Err(); err != nil {
-		return nil, err
-	}
-	return tenant, nil
+func (m *TenantModel) Clear(ctx context.Context, cmdable redis.Cmdable, id string) error {
+	return cmdable.Del(ctx, redisTenantID(id)).Err()
 }
 
 func (t *Tenant) parseRedisHash(hash map[string]string) error {

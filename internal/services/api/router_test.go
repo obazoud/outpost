@@ -5,35 +5,43 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/hookdeck/EventKit/internal/destination"
+	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/hookdeck/EventKit/internal/services/api"
-	"github.com/hookdeck/EventKit/internal/tenant"
 	"github.com/hookdeck/EventKit/internal/util/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
-func TestRouterWithAPIKey(t *testing.T) {
-	t.Parallel()
-
-	apiKey := "api_key"
-	jwtSecret := "jwt_secret"
-
+func setupTestRouter(t *testing.T, apiKey, jwtSecret string) (http.Handler, *otelzap.Logger, *redis.Client) {
 	logger := testutil.CreateTestLogger(t)
 	redisClient := testutil.CreateTestRedisClient(t)
-
+	gin.SetMode(gin.TestMode)
 	router := api.NewRouter(
 		api.RouterConfig{
 			Hostname:  "",
 			APIKey:    apiKey,
 			JWTSecret: jwtSecret,
 		},
-		tenant.NewHandlers(logger, redisClient, jwtSecret),
-		destination.NewHandlers(logger, redisClient),
+		logger,
+		redisClient,
+		models.NewTenantModel(),
+		models.NewDestinationModel(),
 	)
+	return router, logger, redisClient
+}
+
+func TestRouterWithAPIKey(t *testing.T) {
+	t.Parallel()
+
+	apiKey := "api_key"
+	jwtSecret := "jwt_secret"
+	router, _, _ := setupTestRouter(t, apiKey, jwtSecret)
 
 	tenantID := "tenantID"
-	validToken, err := tenant.JWT.New(jwtSecret, tenantID)
+	validToken, err := api.JWT.New(jwtSecret, tenantID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,21 +151,10 @@ func TestRouterWithoutAPIKey(t *testing.T) {
 	apiKey := ""
 	jwtSecret := "jwt_secret"
 
-	logger := testutil.CreateTestLogger(t)
-	redisClient := testutil.CreateTestRedisClient(t)
-
-	router := api.NewRouter(
-		api.RouterConfig{
-			Hostname:  "",
-			APIKey:    apiKey,
-			JWTSecret: jwtSecret,
-		},
-		tenant.NewHandlers(logger, redisClient, jwtSecret),
-		destination.NewHandlers(logger, redisClient),
-	)
+	router, _, _ := setupTestRouter(t, apiKey, jwtSecret)
 
 	tenantID := "tenantID"
-	validToken, err := tenant.JWT.New(jwtSecret, tenantID)
+	validToken, err := api.JWT.New(jwtSecret, tenantID)
 	if err != nil {
 		t.Fatal(err)
 	}
