@@ -1,53 +1,49 @@
 package redis
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"sync"
 
-	"github.com/hookdeck/EventKit/internal/config"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	r "github.com/redis/go-redis/v9"
 )
 
-var (
-	client *r.Client
-	once   sync.Once
-)
-
+// Reexport go-redis's Nil constant for DX purposes.
 const (
 	Nil = r.Nil
 )
 
-func InstrumentOpenTelemetry() error {
-	once.Do(initializeClient)
+type Client = r.Client
 
-	if config.OpenTelemetry == nil {
-		return errors.New("OpenTelemetry config is nil")
-	}
-	if config.OpenTelemetry.Traces != nil {
-		if err := redisotel.InstrumentTracing(client); err != nil {
-			return err
-		}
-	}
-	if config.OpenTelemetry.Metrics != nil {
-		if err := redisotel.InstrumentMetrics(client); err != nil {
-			return err
-		}
-	}
+var (
+	once                sync.Once
+	client              *r.Client
+	initializationError error
+)
 
+func New(ctx context.Context, config *RedisConfig) (*r.Client, error) {
+	once.Do(func() {
+		initializeClient(ctx, config)
+		initializationError = instrumentOpenTelemetry()
+	})
+	return client, initializationError
+}
+
+func instrumentOpenTelemetry() error {
+	if err := redisotel.InstrumentTracing(client); err != nil {
+		return err
+	}
+	if err := redisotel.InstrumentMetrics(client); err != nil {
+		return err
+	}
 	return nil
 }
 
-func Client() *r.Client {
-	once.Do(initializeClient)
-	return client
-}
-
-func initializeClient() {
+func initializeClient(_ context.Context, config *RedisConfig) {
 	client = r.NewClient(&r.Options{
-		Addr:     fmt.Sprintf("%s:%d", config.RedisHost, config.RedisPort),
-		Password: config.RedisPassword,
-		DB:       config.RedisDatabase,
+		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
+		Password: config.Password,
+		DB:       config.Database,
 	})
 }

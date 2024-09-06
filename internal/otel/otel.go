@@ -15,9 +15,9 @@ import (
 // TODO: Consider supporting the official OTEL configuration format.
 // https://opentelemetry.io/docs/collector/configuration/
 
-// setupOTelSDK bootstraps the OpenTelemetry pipeline.
+// SetupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
+func SetupOTelSDK(ctx context.Context, config *OpenTelemetryConfig) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -42,7 +42,7 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	otel.SetTextMapPropagator(prop)
 
 	// Set up trace provider.
-	tracerProvider, err := newTraceProvider(ctx)
+	tracerProvider, err := newTraceProvider(ctx, config)
 	if err != nil {
 		handleErr(err)
 		return
@@ -53,7 +53,7 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	}
 
 	// Set up meter provider.
-	meterProvider, err := newMeterProvider(ctx)
+	meterProvider, err := newMeterProvider(ctx, config)
 	if err != nil {
 		handleErr(err)
 		return
@@ -75,7 +75,7 @@ func SetupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	}
 
 	// Set up logger provider.
-	loggerProvider, err := newLoggerProvider(ctx)
+	loggerProvider, err := newLoggerProvider(ctx, config)
 	if err != nil {
 		handleErr(err)
 		return
