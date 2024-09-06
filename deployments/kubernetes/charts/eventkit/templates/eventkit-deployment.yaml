@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}-api"
+  labels:
+    app: eventkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventkit-api
+  template:
+    metadata:
+      labels:
+        app: eventkit-api
+    spec:
+      containers:
+        - name: "{{ .Chart.Name }}-api"
+          image: "{{ .Values.eventkit.image.repository }}:{{ .Values.eventkit.image.tag }}"
+          imagePullPolicy: {{ .Values.eventkit.image.pullPolicy }}
+          command: ["/bin/eventkit", "--service", "api"]
+          env:
+{{ include "eventkit.env" . | indent 12 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}-delivery"
+  labels:
+    app: eventkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventkit-delivery
+  template:
+    metadata:
+      labels:
+        app: eventkit-delivery
+    spec:
+      containers:
+        - name: "{{ .Chart.Name }}-delivery"
+          image: "{{ .Values.eventkit.image.repository }}:{{ .Values.eventkit.image.tag }}"
+          imagePullPolicy: {{ .Values.eventkit.image.pullPolicy }}
+          command: ["/bin/eventkit", "--service", "delivery"]
+          env:
+{{ include "eventkit.env" . | indent 12 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}-log"
+  labels:
+    app: eventkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventkit-log
+  template:
+    metadata:
+      labels:
+        app: eventkit-log
+    spec:
+      containers:
+        - name: "{{ .Chart.Name }}-log"
+          image: "{{ .Values.eventkit.image.repository }}:{{ .Values.eventkit.image.tag }}"
+          imagePullPolicy: {{ .Values.eventkit.image.pullPolicy }}
+          command: ["/bin/eventkit", "--service", "log"]
+          env:
+{{ include "eventkit.env" . | indent 12 }}
