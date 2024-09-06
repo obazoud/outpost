@@ -19,6 +19,7 @@ type Config struct {
 	Service  ServiceType
 	Port     int
 	Hostname string
+	APIKey   string
 
 	Redis         *redis.RedisConfig
 	OpenTelemetry *otel.OpenTelemetryConfig
@@ -80,7 +81,8 @@ func Parse(flags Flags) (*Config, error) {
 	config := &Config{
 		Hostname: hostname,
 		Service:  service,
-		Port:     mustInt(viper, "PORT"),
+		Port:     getPort(viper),
+		APIKey:   viper.GetString("API_KEY"),
 		Redis: &redis.RedisConfig{
 			Host:     viper.GetString("REDIS_HOST"),
 			Port:     mustInt(viper, "REDIS_PORT"),
@@ -99,4 +101,15 @@ func mustInt(viper *v.Viper, configName string) int {
 		log.Fatalf("%s = '%s' is not int", configName, viper.GetString(configName))
 	}
 	return i
+}
+
+func getPort(viper *v.Viper) int {
+	port := mustInt(viper, "PORT")
+	if viper.GetString("API_PORT") != "" {
+		apiPort, err := strconv.Atoi(viper.GetString("API_PORT"))
+		if err == nil {
+			port = apiPort
+		}
+	}
+	return port
 }
