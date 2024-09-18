@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -49,11 +50,16 @@ func (h *DestinationHandlers) Create(c *gin.Context) {
 		ID:         id,
 		Type:       json.Type,
 		Topics:     json.Topics,
+		Config:     json.Config,
 		CreatedAt:  time.Now(),
 		DisabledAt: nil,
 		TenantID:   c.Param("tenantID"),
 	}
 	if err := h.model.Set(c.Request.Context(), h.redisClient, destination); err != nil {
+		if strings.Contains(err.Error(), "validation failed") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		h.logger.Ctx(c.Request.Context()).Error("failed to set destination", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
@@ -102,9 +108,20 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 
 	// Update destination
-	destination.Type = json.Type
-	destination.Topics = json.Topics
+	if json.Type != "" {
+		destination.Type = json.Type
+	}
+	if json.Topics != nil {
+		destination.Topics = json.Topics
+	}
+	if json.Config != nil {
+		destination.Config = json.Config
+	}
 	if err := h.model.Set(c.Request.Context(), h.redisClient, *destination); err != nil {
+		if strings.Contains(err.Error(), "validation failed") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		logger.Error("failed to set destination", zap.Error(err))
 		c.Status(http.StatusInternalServerError)
 		return
@@ -137,11 +154,13 @@ func (h *DestinationHandlers) Delete(c *gin.Context) {
 // ===== Requests =====
 
 type CreateDestinationRequest struct {
-	Type   string   `json:"type" binding:"required"`
-	Topics []string `json:"topics" binding:"required"`
+	Type   string            `json:"type" binding:"required"`
+	Topics []string          `json:"topics" binding:"required"`
+	Config map[string]string `json:"config" binding:"required"`
 }
 
 type UpdateDestinationRequest struct {
-	Type   string   `json:"type" binding:"-"`
-	Topics []string `json:"topics" binding:"-"`
+	Type   string            `json:"type" binding:"-"`
+	Topics []string          `json:"topics" binding:"-"`
+	Config map[string]string `json:"config" binding:"-"`
 }
