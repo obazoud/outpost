@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hookdeck/EventKit/internal/redis"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
-	"go.uber.org/zap"
 	"gocloud.dev/pubsub"
 	_ "gocloud.dev/pubsub/mempubsub"
 )
@@ -23,67 +20,38 @@ type Event struct {
 	Data             map[string]interface{} `json:"data"`
 }
 
-type Ingestor struct {
-	logger      *otelzap.Logger
-	redisClient *redis.Client
-	topic       *pubsub.Topic
+func (e *Event) FromMessage(msg *pubsub.Message) error {
+	return json.Unmarshal(msg.Body, e)
 }
 
-func getDeliveryTopic() string {
-	return "mem://delivery"
-}
-
-func New(logger *otelzap.Logger, redisClient *redis.Client) *Ingestor {
-	return &Ingestor{
-		logger:      logger,
-		redisClient: redisClient,
-	}
-}
-
-func (i *Ingestor) OpenDeliveryTopic(ctx context.Context) (func(), error) {
-	topic, err := pubsub.OpenTopic(ctx, getDeliveryTopic())
+func (e *Event) ToMessage() (*pubsub.Message, error) {
+	data, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
 	}
-	i.topic = topic
-	return func() {
-		topic.Shutdown(ctx)
-	}, nil
+	return &pubsub.Message{Body: data}, nil
 }
 
-func (i *Ingestor) OpenSubscriptionDeliveryTopic(ctx context.Context) (*pubsub.Subscription, error) {
-	return pubsub.OpenSubscription(ctx, getDeliveryTopic())
+type Ingestor struct {
+	queue IngestQueue
 }
 
-func (i *Ingestor) Ingest(ctx context.Context, event Event) error {
-	marshaledEvent, err := json.Marshal(event)
+func New(config *IngestConfig) (*Ingestor, error) {
+	queue, err := NewQueue(config)
 	if err != nil {
-		i.logger.Ctx(ctx).Error("failed to marshal event", zap.Error(err))
-		return err
+		return nil, err
 	}
-	i.logger.Ctx(ctx).Info("ingest", zap.String("event", string(marshaledEvent)))
-
-	// Temporarily save the event in Redis for debugging purposes.
-	err = i.redisClient.Set(ctx, "event:"+event.ID, marshaledEvent, 0).Err()
-	if err != nil {
-		i.logger.Ctx(ctx).Error("failed to save event", zap.Error(err))
-		return err
-	}
-
-	err = i.publish(ctx, marshaledEvent)
-	if err != nil {
-		i.logger.Ctx(ctx).Error("failed to publish event", zap.Error(err))
-		return err
-	}
-	return nil
+	return &Ingestor{queue: queue}, nil
 }
 
-func (i *Ingestor) publish(ctx context.Context, messageBody []byte) error {
-	return i.topic.Send(ctx, &pubsub.Message{
-		Body: messageBody,
-	})
+func (i *Ingestor) Init(ctx context.Context) (func(), error) {
+	return i.queue.Init(ctx)
 }
 
-func (e *Event) FromMessage(msg *pubsub.Message) error {
-	return json.Unmarshal(msg.Body, e)
+func (i *Ingestor) Publish(ctx context.Context, event Event) error {
+	return i.queue.Publish(ctx, event)
+}
+
+func (i *Ingestor) Subscribe(ctx context.Context) (Subscription, error) {
+	return i.queue.Subscribe(ctx)
 }

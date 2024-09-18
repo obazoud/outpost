@@ -2,7 +2,6 @@ package delivery_test
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -12,19 +11,18 @@ import (
 	"github.com/hookdeck/EventKit/internal/ingest"
 	"github.com/hookdeck/EventKit/internal/services/delivery"
 	"github.com/hookdeck/EventKit/internal/util/testutil"
-	r "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"github.com/stretchr/testify/require"
 )
 
-func setupTestDeliveryService(t *testing.T, handler delivery.EventHandler) (*delivery.DeliveryService, error, *otelzap.Logger, *config.Config) {
+func setupTestDeliveryService(t *testing.T, handler delivery.EventHandler, ingestor *ingest.Ingestor) (*delivery.DeliveryService, error) {
 	logger := testutil.CreateTestLogger(t)
 	redisConfig := testutil.CreateTestRedisConfig(t)
 	config := config.Config{Redis: redisConfig}
 	wg := sync.WaitGroup{}
-	service, err := delivery.NewService(context.Background(), &wg, &config, logger, handler)
-	return service, err, logger, &config
+	service, err := delivery.NewService(context.Background(), &wg, &config, logger, ingestor, handler)
+	return service, err
 }
 
 func TestDeliveryService(t *testing.T) {
@@ -33,8 +31,14 @@ func TestDeliveryService(t *testing.T) {
 	t.Run("should run without error", func(t *testing.T) {
 		t.Parallel()
 
-		service, err, _, _ := setupTestDeliveryService(t, nil)
-		assert.Nil(t, err)
+		ingestor, err := ingest.New(&ingest.IngestConfig{InMemory: &ingest.InMemoryConfig{Name: testutil.RandomString(5)}})
+		require.Nil(t, err)
+		cleanup, err := ingestor.Init(context.Background())
+		require.Nil(t, err)
+		defer cleanup()
+
+		service, err := setupTestDeliveryService(t, nil, ingestor)
+		require.Nil(t, err)
 
 		errchan := make(chan error)
 		context, cancel := context.WithCancel(context.Background())
@@ -68,28 +72,23 @@ func TestDeliveryService(t *testing.T) {
 			Data:             map[string]interface{}{},
 		}
 
+		ingestor, err := ingest.New(&ingest.IngestConfig{InMemory: &ingest.InMemoryConfig{Name: testutil.RandomString(5)}})
+		require.Nil(t, err)
+		cleanup, err := ingestor.Init(context.Background())
+		require.Nil(t, err)
+		defer cleanup()
+
 		handler := new(MockEventHandler)
 		handler.On(
 			"Handle",
 			mock.MatchedBy(func(ctx context.Context) bool { return true }),
 			mock.MatchedBy(func(i ingest.Event) bool { return true }),
 		).Return(nil)
-		service, err, logger, config := setupTestDeliveryService(t, handler)
-		if err != nil {
-			t.Fatal(err)
-		}
+		service, err := setupTestDeliveryService(t, handler, ingestor)
+		require.Nil(t, err)
 
 		errchan := make(chan error)
 		ctx, cancel := context.WithCancel(context.Background())
-
-		redisClient := r.NewClient(&r.Options{
-			Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
-			Password: config.Redis.Password,
-			DB:       config.Redis.Database,
-		})
-		ingestor := ingest.New(logger, redisClient)
-		closeDeliveryTopic, err := ingestor.OpenDeliveryTopic(ctx)
-		defer closeDeliveryTopic()
 
 		go func() {
 			errchan <- service.Run(ctx)
@@ -101,7 +100,7 @@ func TestDeliveryService(t *testing.T) {
 		}()
 
 		// Act
-		ingestor.Ingest(ctx, event)
+		ingestor.Publish(ctx, event)
 
 		// Assert
 		// wait til service has stopped
