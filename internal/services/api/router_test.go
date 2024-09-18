@@ -1,12 +1,14 @@
 package api_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hookdeck/EventKit/internal/ingest"
 	"github.com/hookdeck/EventKit/internal/models"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/hookdeck/EventKit/internal/services/api"
@@ -16,9 +18,11 @@ import (
 )
 
 func setupTestRouter(t *testing.T, apiKey, jwtSecret string) (http.Handler, *otelzap.Logger, *redis.Client) {
+	gin.SetMode(gin.TestMode)
 	logger := testutil.CreateTestLogger(t)
 	redisClient := testutil.CreateTestRedisClient(t)
-	gin.SetMode(gin.TestMode)
+	ingestor := ingest.New(logger, redisClient)
+	ingestor.OpenDeliveryTopic(context.Background())
 	router := api.NewRouter(
 		api.RouterConfig{
 			Hostname:  "",
@@ -29,6 +33,7 @@ func setupTestRouter(t *testing.T, apiKey, jwtSecret string) (http.Handler, *ote
 		redisClient,
 		models.NewTenantModel(),
 		models.NewDestinationModel(),
+		ingestor,
 	)
 	return router, logger, redisClient
 }

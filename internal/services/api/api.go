@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hookdeck/EventKit/internal/config"
+	"github.com/hookdeck/EventKit/internal/ingest"
 	"github.com/hookdeck/EventKit/internal/models"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
@@ -28,6 +29,9 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		return nil, err
 	}
 
+	ingestor := ingest.New(logger, redisClient)
+	closeDeliveryTopic, err := ingestor.OpenDeliveryTopic(ctx)
+
 	router := NewRouter(
 		RouterConfig{
 			Hostname:  cfg.Hostname,
@@ -38,6 +42,7 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		redisClient,
 		models.NewTenantModel(),
 		models.NewDestinationModel(),
+		ingestor,
 	)
 
 	service := &APIService{}
@@ -58,6 +63,7 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 			fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
 		}
 		logger.Ctx(ctx).Info("http server shutted down")
+		closeDeliveryTopic()
 	}()
 
 	return service, nil
