@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"gocloud.dev/pubsub"
-	_ "gocloud.dev/pubsub/mempubsub"
+	"github.com/hookdeck/EventKit/internal/mqs"
 )
 
 type Event struct {
@@ -20,38 +19,83 @@ type Event struct {
 	Data             map[string]interface{} `json:"data"`
 }
 
-func (e *Event) FromMessage(msg *pubsub.Message) error {
+var _ mqs.IncomingMessage = &Event{}
+
+func (e *Event) FromMessage(msg *mqs.Message) error {
 	return json.Unmarshal(msg.Body, e)
 }
 
-func (e *Event) ToMessage() (*pubsub.Message, error) {
+func (e *Event) ToMessage() (*mqs.Message, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
 	}
-	return &pubsub.Message{Body: data}, nil
+	return &mqs.Message{Body: data}, nil
+}
+
+type DeliveryInfra interface {
+	DeclareInfrastructure(ctx context.Context) error
 }
 
 type Ingestor struct {
-	queue IngestQueue
+	queueConfig *mqs.QueueConfig
+	queue       mqs.Queue
+	infra       DeliveryInfra
 }
 
-func New(config *IngestConfig) (*Ingestor, error) {
-	queue, err := NewQueue(config)
-	if err != nil {
-		return nil, err
+type IngestorOption struct {
+	QueueConfig *mqs.QueueConfig
+}
+
+func WithQueue(queueConfig *mqs.QueueConfig) func(opts *IngestorOption) {
+	return func(opts *IngestorOption) {
+		opts.QueueConfig = queueConfig
 	}
-	return &Ingestor{queue: queue}, nil
+}
+
+func New(opts ...func(opts *IngestorOption)) *Ingestor {
+	options := &IngestorOption{}
+	for _, opt := range opts {
+		opt(options)
+	}
+	queueConfig := options.QueueConfig
+	queue := mqs.NewQueue(queueConfig)
+
+	// infra
+	var infra DeliveryInfra
+	if queueConfig == nil {
+	} else if queueConfig.AWSSQS != nil {
+		infra = NewDeliveryAWSInfra(queueConfig.AWSSQS)
+	} else if queueConfig.AzureServiceBus != nil {
+		// ...
+	} else if queueConfig.GCPPubSub != nil {
+		// ...
+	} else if queueConfig.RabbitMQ != nil {
+		infra = NewDeliveryRabbitMQInfra(queueConfig.RabbitMQ)
+	}
+
+	return &Ingestor{
+		queueConfig: queueConfig,
+		queue:       queue,
+		infra:       infra,
+	}
 }
 
 func (i *Ingestor) Init(ctx context.Context) (func(), error) {
+	if i.infra != nil {
+		err := i.infra.DeclareInfrastructure(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return i.queue.Init(ctx)
 }
 
 func (i *Ingestor) Publish(ctx context.Context, event Event) error {
-	return i.queue.Publish(ctx, event)
+	return i.queue.Publish(ctx, &event)
 }
 
-func (i *Ingestor) Subscribe(ctx context.Context) (Subscription, error) {
+func (i *Ingestor) Subscribe(ctx context.Context) (mqs.Subscription, error) {
 	return i.queue.Subscribe(ctx)
 }

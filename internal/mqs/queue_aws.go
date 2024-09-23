@@ -1,17 +1,14 @@
-package ingest
+package mqs
 
 import (
 	"context"
 	"errors"
-	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/smithy-go"
 	"github.com/spf13/viper"
 	"gocloud.dev/pubsub"
 	"gocloud.dev/pubsub/awssnssqs"
@@ -23,24 +20,24 @@ type AWSSQSConfig struct {
 	Endpoint                  string // optional - dev-focused
 	Region                    string
 	ServiceAccountCredentials string
-	PublishTopic              string
+	Topic                     string
 }
 
-func (c *IngestConfig) parseAWSSQSConfig(viper *viper.Viper) {
-	if !viper.IsSet("AWS_SQS_SERVICE_ACCOUNT_CREDS") {
+func (c *QueueConfig) parseAWSSQSConfig(viper *viper.Viper, prefix string) {
+	if !viper.IsSet(prefix + "_AWS_SQS_SERVICE_ACCOUNT_CREDS") {
 		return
 	}
 
 	config := &AWSSQSConfig{}
-	config.Endpoint = viper.GetString("AWS_SQS_ENDPOINT")
-	config.Region = viper.GetString("AWS_SQS_REGION")
-	config.ServiceAccountCredentials = viper.GetString("AWS_SQS_SERVICE_ACCOUNT_CREDS")
-	config.PublishTopic = viper.GetString("AWS_SQS_PUBLISH_TOPIC")
+	config.Endpoint = viper.GetString(prefix + "_AWS_SQS_ENDPOINT")
+	config.Region = viper.GetString(prefix + "_AWS_SQS_REGION")
+	config.ServiceAccountCredentials = viper.GetString(prefix + "_AWS_SQS_SERVICE_ACCOUNT_CREDS")
+	config.Topic = viper.GetString(prefix + "_AWS_SQS_TOPIC")
 
 	c.AWSSQS = config
 }
 
-func (c *IngestConfig) validateAWSSQSConfig() error {
+func (c *QueueConfig) validateAWSSQSConfig() error {
 	if c.AWSSQS == nil {
 		return nil
 	}
@@ -58,14 +55,14 @@ func (c *IngestConfig) validateAWSSQSConfig() error {
 		return errors.New("AWS SQS Region is not set")
 	}
 
-	if c.AWSSQS.PublishTopic == "" {
-		return errors.New("AWS SQS Publish Topic is not set")
+	if c.AWSSQS.Topic == "" {
+		return errors.New("AWS SQS Topic is not set")
 	}
 
 	return nil
 }
 
-func (c *AWSSQSConfig) toCredentials() (*credentials.StaticCredentialsProvider, error) {
+func (c *AWSSQSConfig) ToCredentials() (*credentials.StaticCredentialsProvider, error) {
 	creds := strings.Split(c.ServiceAccountCredentials, ":")
 	if len(creds) != 3 {
 		return nil, errors.New("Invalid AWS Service Account Credentials")
@@ -74,7 +71,7 @@ func (c *AWSSQSConfig) toCredentials() (*credentials.StaticCredentialsProvider, 
 	return &awsCreds, nil
 }
 
-// ============================== Queue ==============================
+// // ============================== Queue ==============================
 
 type AWSQueue struct {
 	sqsQueueURL string
@@ -83,29 +80,36 @@ type AWSQueue struct {
 	topic       *pubsub.Topic
 }
 
-var _ IngestQueue = &AWSQueue{}
+var _ Queue = &AWSQueue{}
 
 func NewAWSQueue(config *AWSSQSConfig) *AWSQueue {
 	return &AWSQueue{config: config}
 }
 
 func (q *AWSQueue) Init(ctx context.Context) (func(), error) {
-	err := q.init(ctx)
+	err := q.InitSDK(ctx)
 	if err != nil {
 		return nil, err
 	}
+	queue, err := q.sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
+		QueueName: aws.String(q.config.Topic),
+	})
+	if err != nil {
+		return nil, err
+	}
+	q.sqsQueueURL = *queue.QueueUrl
 	q.topic = awssnssqs.OpenSQSTopicV2(ctx, q.sqsClient, q.sqsQueueURL, nil)
 	return func() {
 		q.topic.Shutdown(ctx)
 	}, nil
 }
 
-func (q *AWSQueue) Publish(ctx context.Context, event Event) error {
-	msg, err := event.ToMessage()
+func (q *AWSQueue) Publish(ctx context.Context, incomingMessage IncomingMessage) error {
+	msg, err := incomingMessage.ToMessage()
 	if err != nil {
 		return err
 	}
-	return q.topic.Send(ctx, msg)
+	return q.topic.Send(ctx, &pubsub.Message{Body: msg.Body})
 }
 
 func (q *AWSQueue) Subscribe(ctx context.Context) (Subscription, error) {
@@ -113,8 +117,8 @@ func (q *AWSQueue) Subscribe(ctx context.Context) (Subscription, error) {
 	return wrappedSubscription(subscription)
 }
 
-func (q *AWSQueue) init(ctx context.Context) error {
-	creds, err := q.config.toCredentials()
+func (q *AWSQueue) InitSDK(ctx context.Context) error {
+	creds, err := q.config.ToCredentials()
 	if err != nil {
 		return err
 	}
@@ -134,37 +138,5 @@ func (q *AWSQueue) init(ctx context.Context) error {
 	})
 	q.sqsClient = sqsClient
 
-	queueURL, err := ensureQueue(ctx, sqsClient, q.config.PublishTopic)
-	if err != nil {
-		return err
-	}
-	q.sqsQueueURL = queueURL
-
 	return nil
-}
-
-func ensureQueue(ctx context.Context, sqsClient *sqs.Client, queueName string) (string, error) {
-	queue, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
-		QueueName: aws.String(queueName),
-	})
-	if err != nil {
-		var apiErr smithy.APIError
-		if errors.As(err, &apiErr) {
-			switch apiErr.(type) {
-			case *types.QueueDoesNotExist:
-				log.Println("Queue does not exist, creating...")
-				createdQueue, err := sqsClient.CreateQueue(ctx, &sqs.CreateQueueInput{
-					QueueName: aws.String(queueName),
-				})
-				if err != nil {
-					return "", err
-				}
-				return *createdQueue.QueueUrl, nil
-			default:
-				return "", err
-			}
-		}
-		return "", err
-	}
-	return *queue.QueueUrl, nil
 }

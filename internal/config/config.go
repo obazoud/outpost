@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/hookdeck/EventKit/internal/ingest"
+	"github.com/hookdeck/EventKit/internal/mqs"
 	"github.com/hookdeck/EventKit/internal/otel"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/joho/godotenv"
@@ -24,17 +24,19 @@ type Config struct {
 	JWTSecret        string
 	EncryptionSecret string
 
-	Redis         *redis.RedisConfig
-	OpenTelemetry *otel.OpenTelemetryConfig
-	Ingest        *ingest.IngestConfig
+	Redis               *redis.RedisConfig
+	OpenTelemetry       *otel.OpenTelemetryConfig
+	DeliveryQueueConfig *mqs.QueueConfig
 }
 
 var defaultConfig = map[string]any{
-	"PORT":           3333,
-	"REDIS_HOST":     "127.0.0.1",
-	"REDIS_PORT":     6379,
-	"REDIS_PASSWORD": "",
-	"REDIS_DATABASE": 0,
+	"PORT":                       3333,
+	"REDIS_HOST":                 "127.0.0.1",
+	"REDIS_PORT":                 6379,
+	"REDIS_PASSWORD":             "",
+	"REDIS_DATABASE":             0,
+	"DELIVERY_RABBITMQ_EXCHANGE": "eventkit",
+	"DELIVERY_RABBITMQ_QUEUE":    "eventkit.delivery",
 }
 
 func Parse(flags Flags) (*Config, error) {
@@ -81,7 +83,7 @@ func Parse(flags Flags) (*Config, error) {
 		return nil, err
 	}
 
-	ingestConfig, err := ingest.ParseIngestConfig(viper)
+	deliveryQueueConfig, err := mqs.ParseQueueConfig(viper, "DELIVERY")
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +102,8 @@ func Parse(flags Flags) (*Config, error) {
 			Password: viper.GetString("REDIS_PASSWORD"),
 			Database: mustInt(viper, "REDIS_DATABASE"),
 		},
-		OpenTelemetry: openTelemetry,
-		Ingest:        ingestConfig,
+		OpenTelemetry:       openTelemetry,
+		DeliveryQueueConfig: deliveryQueueConfig,
 	}
 
 	return config, nil

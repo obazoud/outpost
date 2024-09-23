@@ -1,9 +1,9 @@
-package ingest_test
+package mqs_test
 
 import (
 	"testing"
 
-	"github.com/hookdeck/EventKit/internal/ingest"
+	"github.com/hookdeck/EventKit/internal/mqs"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,23 +14,23 @@ func TestConfig_Validate(t *testing.T) {
 
 	t.Run("should validate without config", func(t *testing.T) {
 		t.Parallel()
-		config := ingest.IngestConfig{}
+		config := mqs.QueueConfig{}
 		err := config.Validate()
-		assert.Nil(t, err, "IngestConfig should be valid without any config")
+		assert.Nil(t, err, "QueueConfig should be valid without any config")
 	})
 
 	t.Run("should validate multiple configs", func(t *testing.T) {
 		t.Parallel()
-		config := ingest.IngestConfig{
-			AWSSQS: &ingest.AWSSQSConfig{
+		config := mqs.QueueConfig{
+			AWSSQS: &mqs.AWSSQSConfig{
 				ServiceAccountCredentials: "test:test:",
-				PublishTopic:              "topic",
+				Topic:                     "topic",
 				Region:                    "eu-central-1",
 			},
-			RabbitMQ: &ingest.RabbitMQConfig{
-				ServerURL:       "url",
-				PublishExchange: "exchange",
-				PublishQueue:    "queue",
+			RabbitMQ: &mqs.RabbitMQConfig{
+				ServerURL: "url",
+				Exchange:  "exchange",
+				Queue:     "queue",
 			},
 		}
 		err := config.Validate()
@@ -42,10 +42,10 @@ func TestConfig_Validate(t *testing.T) {
 
 	t.Run("should validate AWS SQS config", func(t *testing.T) {
 		t.Parallel()
-		config := ingest.IngestConfig{
-			AWSSQS: &ingest.AWSSQSConfig{
+		config := mqs.QueueConfig{
+			AWSSQS: &mqs.AWSSQSConfig{
 				ServiceAccountCredentials: "",
-				PublishTopic:              "topic",
+				Topic:                     "topic",
 			},
 		}
 		err := config.Validate()
@@ -54,15 +54,15 @@ func TestConfig_Validate(t *testing.T) {
 
 	t.Run("should validate RabbitMQ config", func(t *testing.T) {
 		t.Parallel()
-		config := ingest.IngestConfig{
-			RabbitMQ: &ingest.RabbitMQConfig{
-				ServerURL:       "amqp://guest:guest@localhost:5672",
-				PublishExchange: "",
-				PublishQueue:    "queue",
+		config := mqs.QueueConfig{
+			RabbitMQ: &mqs.RabbitMQConfig{
+				ServerURL: "amqp://guest:guest@localhost:5672",
+				Exchange:  "",
+				Queue:     "queue",
 			},
 		}
 		err := config.Validate()
-		assert.ErrorContains(t, err, "RabbitMQ Publish Exchange is not set")
+		assert.ErrorContains(t, err, "RabbitMQ Exchange is not set")
 	})
 }
 
@@ -71,7 +71,7 @@ func TestConfig_Parse(t *testing.T) {
 
 	t.Run("should parse empty config without error", func(t *testing.T) {
 		v := viper.New()
-		config, err := ingest.ParseIngestConfig(v)
+		config, err := mqs.ParseQueueConfig(v, "DELIVERY")
 		assert.Nil(t, err, "should not return error")
 		assert.NotNil(t, config, "should return config")
 		assert.Nil(t, config.AWSSQS)
@@ -86,31 +86,31 @@ func TestConfig_Parse_AWSSQS(t *testing.T) {
 
 	t.Run("should parse", func(t *testing.T) {
 		v := viper.New()
-		v.Set("AWS_SQS_SERVICE_ACCOUNT_CREDS", "test:test:")
-		v.Set("AWS_SQS_PUBLISH_TOPIC", "publish")
-		v.Set("AWS_SQS_REGION", "eu-central-1")
-		config, err := ingest.ParseIngestConfig(v)
+		v.Set("DELIVERY_AWS_SQS_SERVICE_ACCOUNT_CREDS", "test:test:")
+		v.Set("DELIVERY_AWS_SQS_REGION", "eu-central-1")
+		v.Set("DELIVERY_AWS_SQS_TOPIC", "delivery")
+		config, err := mqs.ParseQueueConfig(v, "DELIVERY")
 		require.Nil(t, err, "should parse without error")
 		assert.Equal(t, config.AWSSQS.ServiceAccountCredentials, "test:test:")
-		assert.Equal(t, config.AWSSQS.PublishTopic, "publish")
+		assert.Equal(t, config.AWSSQS.Topic, "delivery")
 		assert.Equal(t, config.AWSSQS.Region, "eu-central-1")
 	})
 
 	t.Run("should validate required config.topic", func(t *testing.T) {
 		v := viper.New()
-		v.Set("AWS_SQS_SERVICE_ACCOUNT_CREDS", "test:test:")
-		v.Set("AWS_SQS_REGION", "eu-central-1")
-		config, err := ingest.ParseIngestConfig(v)
+		v.Set("DELIVERY_AWS_SQS_SERVICE_ACCOUNT_CREDS", "test:test:")
+		v.Set("DELIVERY_AWS_SQS_REGION", "eu-central-1")
+		config, err := mqs.ParseQueueConfig(v, "DELIVERY")
 		assert.Nil(t, config, "should return nil config")
-		assert.ErrorContains(t, err, "AWS SQS Publish Topic is not set")
+		assert.ErrorContains(t, err, "AWS SQS Topic is not set")
 	})
 
 	t.Run("should validate credentails", func(t *testing.T) {
 		v := viper.New()
-		v.Set("AWS_SQS_SERVICE_ACCOUNT_CREDS", "invalid")
-		v.Set("AWS_SQS_PUBLISH_TOPIC", "publish")
-		v.Set("AWS_SQS_REGION", "eu-central-1")
-		config, err := ingest.ParseIngestConfig(v)
+		v.Set("DELIVERY_AWS_SQS_SERVICE_ACCOUNT_CREDS", "invalid")
+		v.Set("DELIVERY_AWS_SQS_REGION", "eu-central-1")
+		v.Set("DELIVERY_AWS_SQS_TOPIC", "delivery")
+		config, err := mqs.ParseQueueConfig(v, "DELIVERY")
 		assert.Nil(t, config, "should return nil config")
 		assert.ErrorContains(t, err, "Invalid AWS Service Account Credentials")
 	})
@@ -121,23 +121,13 @@ func TestConfig_Parse_RabbitMQ(t *testing.T) {
 
 	t.Run("should parse", func(t *testing.T) {
 		v := viper.New()
-		v.Set("RABBITMQ_SERVER_URL", "amqp://guest:guest@localhost:5672")
-		v.Set("RABBITMQ_PUBLISH_EXCHANGE", "exchange")
-		v.Set("RABBITMQ_PUBLISH_QUEUE", "queue")
-		config, err := ingest.ParseIngestConfig(v)
+		v.Set("DELIVERY_RABBITMQ_SERVER_URL", "amqp://guest:guest@localhost:5672")
+		v.Set("DELIVERY_RABBITMQ_EXCHANGE", "exchange")
+		v.Set("DELIVERY_RABBITMQ_QUEUE", "queue")
+		config, err := mqs.ParseQueueConfig(v, "DELIVERY")
 		require.Nil(t, err, "should parse without error")
 		assert.Equal(t, config.RabbitMQ.ServerURL, "amqp://guest:guest@localhost:5672")
-		assert.Equal(t, config.RabbitMQ.PublishExchange, "exchange")
-		assert.Equal(t, config.RabbitMQ.PublishQueue, "queue")
-	})
-
-	t.Run("should use default value", func(t *testing.T) {
-		v := viper.New()
-		v.Set("RABBITMQ_SERVER_URL", "amqp://guest:guest@localhost:5672")
-		config, err := ingest.ParseIngestConfig(v)
-		require.Nil(t, err, "should not return error")
-		assert.Equal(t, config.RabbitMQ.ServerURL, "amqp://guest:guest@localhost:5672")
-		assert.Equal(t, config.RabbitMQ.PublishExchange, ingest.DefaultRabbitMQPublishExchange)
-		assert.Equal(t, config.RabbitMQ.PublishQueue, ingest.DefaultRabbitMQPublishQueue)
+		assert.Equal(t, config.RabbitMQ.Exchange, "exchange")
+		assert.Equal(t, config.RabbitMQ.Queue, "queue")
 	})
 }
