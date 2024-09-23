@@ -11,18 +11,27 @@ import (
 	"github.com/hookdeck/EventKit/internal/config"
 	"github.com/hookdeck/EventKit/internal/deliverymq"
 	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/EventKit/internal/publishmq"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
 type APIService struct {
-	server *http.Server
-	logger *otelzap.Logger
+	server     *http.Server
+	logger     *otelzap.Logger
+	publishMQ  *publishmq.PublishMQ
+	deliveryMQ *deliverymq.DeliveryMQ
 }
 
-func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, logger *otelzap.Logger, deliveryMQ *deliverymq.DeliveryMQ) (*APIService, error) {
+func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, logger *otelzap.Logger) (*APIService, error) {
 	wg.Add(1)
+
+	deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.DeliveryQueueConfig))
+	cleanupDeliveryMQ, err := deliveryMQ.Init(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	redisClient, err := redis.New(ctx, cfg.Redis)
 	if err != nil {
@@ -50,11 +59,14 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: router,
 	}
+	service.publishMQ = publishmq.New(publishmq.WithQueue(cfg.PublishQueueConfig))
+	service.deliveryMQ = deliveryMQ
 
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		logger.Ctx(ctx).Info("shutting down api service")
+		logger.Ctx(ctx).Info("shutting down", zap.String("service", "api"))
+		cleanupDeliveryMQ()
 		// make a new context for Shutdown
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -62,6 +74,7 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 			fmt.Fprintf(os.Stderr, "error shutting down http server: %s\n", err)
 		}
 		logger.Ctx(ctx).Info("http server shutted down")
+		logger.Ctx(ctx).Info("service shutdown", zap.String("service", "api"))
 	}()
 
 	return service, nil
@@ -69,10 +82,25 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 
 func (s *APIService) Run(ctx context.Context) error {
 	s.logger.Ctx(ctx).Info("start service", zap.String("service", "api"))
+
+	// Start HTTP server
 	go func() {
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.logger.Ctx(ctx).Error(fmt.Sprintf("error listening and serving: %s\n", err), zap.Error(err))
 		}
 	}()
+
+	// Subscribe to PublishMQ
+	if s.publishMQ != nil {
+		subscription, err := s.publishMQ.Subscribe(ctx)
+		if err != nil {
+			// TODO: handle error
+			return err
+		}
+		go func() {
+			s.SubscribePublishMQ(ctx, subscription)
+		}()
+	}
+
 	return nil
 }
