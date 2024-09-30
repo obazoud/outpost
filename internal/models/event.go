@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hookdeck/EventKit/internal/destinationadapter/adapters"
 	"github.com/hookdeck/EventKit/internal/mqs"
 )
@@ -43,5 +44,33 @@ func (e *Event) ToAdapterEvent() *adapters.Event {
 		Time:             e.Time,
 		Metadata:         e.Metadata,
 		Data:             e.Data,
+	}
+}
+
+type DeliveryEvent struct {
+	ID          string
+	Event       Event
+	Destination Destination
+}
+
+var _ mqs.IncomingMessage = &DeliveryEvent{}
+
+func (e *DeliveryEvent) FromMessage(msg *mqs.Message) error {
+	return json.Unmarshal(msg.Body, e)
+}
+
+func (e *DeliveryEvent) ToMessage() (*mqs.Message, error) {
+	data, err := json.Marshal(e)
+	if err != nil {
+		return nil, err
+	}
+	return &mqs.Message{Body: data}, nil
+}
+
+func NewDeliveryEvent(event Event, destination Destination) DeliveryEvent {
+	return DeliveryEvent{
+		ID:          uuid.New().String(),
+		Event:       event,
+		Destination: destination,
 	}
 }

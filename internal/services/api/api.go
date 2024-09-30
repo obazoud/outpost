@@ -18,10 +18,12 @@ import (
 )
 
 type APIService struct {
-	server     *http.Server
-	logger     *otelzap.Logger
-	publishMQ  *publishmq.PublishMQ
-	deliveryMQ *deliverymq.DeliveryMQ
+	redisClient      *redis.Client
+	server           *http.Server
+	logger           *otelzap.Logger
+	destinationModel *models.DestinationModel
+	publishMQ        *publishmq.PublishMQ
+	deliveryMQ       *deliverymq.DeliveryMQ
 }
 
 func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, logger *otelzap.Logger) (*APIService, error) {
@@ -38,6 +40,9 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		return nil, err
 	}
 
+	destinationModel := models.NewDestinationModel(
+		models.DestinationModelWithCipher(models.NewAESCipher(cfg.EncryptionSecret)),
+	)
 	router := NewRouter(
 		RouterConfig{
 			Hostname:  cfg.Hostname,
@@ -47,18 +52,18 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		logger,
 		redisClient,
 		models.NewTenantModel(),
-		models.NewDestinationModel(
-			models.DestinationModelWithCipher(models.NewAESCipher(cfg.EncryptionSecret)),
-		),
+		destinationModel,
 		deliveryMQ,
 	)
 
 	service := &APIService{}
 	service.logger = logger
+	service.redisClient = redisClient
 	service.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: router,
 	}
+	service.destinationModel = destinationModel
 	service.publishMQ = publishmq.New(publishmq.WithQueue(cfg.PublishQueueConfig))
 	service.deliveryMQ = deliveryMQ
 

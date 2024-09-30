@@ -17,14 +17,14 @@ type DeliveryService struct {
 	Logger       *otelzap.Logger
 	RedisClient  *redis.Client
 	DeliveryMQ   *deliverymq.DeliveryMQ
-	EventHandler EventHandler
+	EventHandler deliverymq.EventHandler
 }
 
 func NewService(ctx context.Context,
 	wg *sync.WaitGroup,
 	cfg *config.Config,
 	logger *otelzap.Logger,
-	handler EventHandler, // accept an EventHandler interface for testing purposes
+	handler deliverymq.EventHandler, // accept an EventHandler interface for testing purposes
 ) (*DeliveryService, error) {
 	wg.Add(1)
 
@@ -40,13 +40,10 @@ func NewService(ctx context.Context,
 	}
 
 	if handler == nil {
-		handler = &eventHandler{
-			logger:      logger,
-			redisClient: redisClient,
-			destinationModel: models.NewDestinationModel(
-				models.DestinationModelWithCipher(models.NewAESCipher(cfg.EncryptionSecret)),
-			),
-		}
+		destinationModel := models.NewDestinationModel(
+			models.DestinationModelWithCipher(models.NewAESCipher(cfg.EncryptionSecret)),
+		)
+		handler = deliverymq.NewEventHandler(logger, redisClient, destinationModel)
 	}
 
 	service := &DeliveryService{
@@ -88,8 +85,8 @@ func (s *DeliveryService) Run(ctx context.Context) error {
 			logger.Error("failed to receive message", zap.Error(err))
 			break
 		}
-		event := models.Event{}
-		err = event.FromMessage(msg)
+		deliveryEvent := models.DeliveryEvent{}
+		err = deliveryEvent.FromMessage(msg)
 		if err != nil {
 			logger.Error("failed to parse message", zap.Error(err))
 			msg.Nack()
@@ -99,8 +96,8 @@ func (s *DeliveryService) Run(ctx context.Context) error {
 		// Do work based on the message.
 		// TODO: use goroutine to process messages concurrently.
 		// ref: https://gocloud.dev/howto/pubsub/subscribe/#receiving
-		logger.Info("received event", zap.String("event", string(event.ID)))
-		err = s.EventHandler.Handle(ctx, event)
+		logger.Info("received delivery event", zap.String("delivery_event.event", string(deliveryEvent.Event.ID)))
+		err = s.EventHandler.Handle(ctx, deliveryEvent)
 		if err != nil {
 			logger.Error("failed to handle message", zap.Error(err))
 			msg.Nack()
