@@ -20,7 +20,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAPIServicePublishMQConsumer(t *testing.T) {
+func TestIntegrationAPIService_PublishMQConsumer(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
 	t.Parallel()
 
 	// ===== Arrange =====
@@ -57,9 +61,10 @@ func TestAPIServicePublishMQConsumer(t *testing.T) {
 	defer cancel()
 	apiService, err := api.NewService(ctx, wg,
 		&config.Config{
-			Redis:               redisConfig,
-			PublishQueueConfig:  &publishQueueConfig,
-			DeliveryQueueConfig: &deliveryQueueConfig,
+			Redis:                 redisConfig,
+			PublishQueueConfig:    &publishQueueConfig,
+			DeliveryQueueConfig:   &deliveryQueueConfig,
+			PublishMaxConcurrency: 1,
 		},
 		testutil.CreateTestLogger(t),
 	)

@@ -1,4 +1,4 @@
-package delivery_test
+package delivery
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hookdeck/EventKit/internal/consumer"
 	"github.com/hookdeck/EventKit/internal/deliverymq"
 	"github.com/hookdeck/EventKit/internal/models"
 	"github.com/hookdeck/EventKit/internal/mqs"
-	"github.com/hookdeck/EventKit/internal/services/delivery"
 	"github.com/hookdeck/EventKit/internal/util/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,16 +17,19 @@ import (
 )
 
 func setupTestDeliveryService(t *testing.T,
-	handler deliverymq.EventHandler,
+	handler consumer.MessageHandler,
 	deliveryMQ *deliverymq.DeliveryMQ,
-) *delivery.DeliveryService {
+) *DeliveryService {
 	logger := testutil.CreateTestLogger(t)
 	redisClient := testutil.CreateTestRedisClient(t)
-	service := &delivery.DeliveryService{
-		Logger:       logger,
-		RedisClient:  redisClient,
-		EventHandler: handler,
-		DeliveryMQ:   deliveryMQ,
+	service := &DeliveryService{
+		Logger:      logger,
+		RedisClient: redisClient,
+		Handler:     handler,
+		DeliveryMQ:  deliveryMQ,
+		consumerOptions: &consumerOptions{
+			concurreny: 1,
+		},
 	}
 	return service
 }
@@ -45,15 +48,11 @@ func TestDeliveryService(t *testing.T) {
 		service := setupTestDeliveryService(t, nil, deliveryMQ)
 
 		errchan := make(chan error)
-		context, cancel := context.WithCancel(context.Background())
+		context, cancel := context.WithTimeout(context.Background(), time.Second/10)
+		defer cancel()
 
 		go func() {
 			errchan <- service.Run(context)
-		}()
-
-		go func() {
-			time.Sleep(time.Second / 10)
-			cancel()
 		}()
 
 		err = <-errchan
@@ -74,7 +73,7 @@ func TestDeliveryService(t *testing.T) {
 		handler.On(
 			"Handle",
 			mock.MatchedBy(func(ctx context.Context) bool { return true }),
-			mock.MatchedBy(func(i models.DeliveryEvent) bool { return true }),
+			mock.MatchedBy(func(i *mqs.Message) bool { return true }),
 		).Return(nil)
 		service := setupTestDeliveryService(t, handler, deliveryMQ)
 
@@ -102,11 +101,15 @@ func TestDeliveryService(t *testing.T) {
 		handler.AssertCalled(t, "Handle",
 			mock.MatchedBy(func(ctx context.Context) bool { return true }),
 			mock.MatchedBy(func(i interface{}) bool {
-				e, ok := i.(models.DeliveryEvent)
+				e, ok := i.(*mqs.Message)
 				if !ok {
 					return false
 				}
-				return expectedID == e.Event.ID
+				event := models.DeliveryEvent{}
+				if err := event.FromMessage(e); err != nil {
+					return false
+				}
+				return expectedID == event.Event.ID
 			}),
 		)
 	})
@@ -116,9 +119,9 @@ type MockEventHandler struct {
 	mock.Mock
 }
 
-var _ deliverymq.EventHandler = (*MockEventHandler)(nil)
+var _ consumer.MessageHandler = (*MockEventHandler)(nil)
 
-func (h *MockEventHandler) Handle(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
-	args := h.Called(ctx, deliveryEvent)
+func (h *MockEventHandler) Handle(ctx context.Context, msg *mqs.Message) error {
+	args := h.Called(ctx, msg)
 	return args.Error(0)
 }
