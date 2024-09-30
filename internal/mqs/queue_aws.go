@@ -76,6 +76,7 @@ func (c *AWSSQSConfig) ToCredentials() (*credentials.StaticCredentialsProvider, 
 
 type AWSQueue struct {
 	once        *sync.Once
+	base        *wrappedBaseQueue
 	sqsQueueURL string
 	sqsClient   *sqs.Client
 	config      *AWSSQSConfig
@@ -86,7 +87,7 @@ var _ Queue = &AWSQueue{}
 
 func NewAWSQueue(config *AWSSQSConfig) *AWSQueue {
 	var once sync.Once
-	return &AWSQueue{config: config, once: &once}
+	return &AWSQueue{config: config, once: &once, base: newWrappedBaseQueue()}
 }
 
 func (q *AWSQueue) Init(ctx context.Context) (func(), error) {
@@ -104,11 +105,7 @@ func (q *AWSQueue) Init(ctx context.Context) (func(), error) {
 }
 
 func (q *AWSQueue) Publish(ctx context.Context, incomingMessage IncomingMessage) error {
-	msg, err := incomingMessage.ToMessage()
-	if err != nil {
-		return err
-	}
-	return q.topic.Send(ctx, &pubsub.Message{Body: msg.Body})
+	return q.base.Publish(ctx, q.topic, incomingMessage)
 }
 
 func (q *AWSQueue) Subscribe(ctx context.Context) (Subscription, error) {
@@ -120,7 +117,7 @@ func (q *AWSQueue) Subscribe(ctx context.Context) (Subscription, error) {
 		return nil, err
 	}
 	subscription := awssnssqs.OpenSubscriptionV2(ctx, q.sqsClient, q.sqsQueueURL, nil)
-	return wrappedSubscription(subscription)
+	return q.base.Subscribe(ctx, subscription)
 }
 
 func (q *AWSQueue) InitSDK(ctx context.Context) error {

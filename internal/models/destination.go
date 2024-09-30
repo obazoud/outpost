@@ -5,12 +5,14 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
+	"log"
 	"slices"
 	"sort"
 	"time"
 
 	"github.com/hookdeck/EventKit/internal/destinationadapter"
 	"github.com/hookdeck/EventKit/internal/redis"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type Destination struct {
@@ -111,6 +113,8 @@ const MAX_DESTINATIONS_PER_TENANT = 100
 // in case the flow doesn't require the destination values (DELETE /:tenantID)
 // NOTE: this method requires its own client as it uses an internal pipeline.
 func (m *DestinationModel) List(c context.Context, client *redis.Client, tenantID string) ([]Destination, error) {
+	span := trace.SpanFromContext(c)
+	log.Println("List", span)
 	keys, _, err := client.Scan(c, 0, redisDestinationID("*", tenantID), MAX_DESTINATIONS_PER_TENANT).Result()
 	if err != nil {
 		return nil, err

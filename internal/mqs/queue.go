@@ -3,7 +3,10 @@ package mqs
 import (
 	"context"
 	"errors"
+	"sync"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 	"gocloud.dev/pubsub"
 	_ "gocloud.dev/pubsub/mempubsub"
 )
@@ -72,6 +75,7 @@ func (q *UnimplementedQueue) Subscribe(ctx context.Context) (Subscription, error
 // ============================== In-memory Queue ==============================
 
 type InMemoryQueue struct {
+	base      *wrappedBaseQueue
 	topicName string
 	topic     *pubsub.Topic
 }
@@ -88,11 +92,7 @@ func (q *InMemoryQueue) Init(ctx context.Context) (func(), error) {
 }
 
 func (q *InMemoryQueue) Publish(ctx context.Context, incomingMessage IncomingMessage) error {
-	msg, err := incomingMessage.ToMessage()
-	if err != nil {
-		return err
-	}
-	return q.topic.Send(ctx, &pubsub.Message{Body: msg.Body})
+	return q.base.Publish(ctx, q.topic, incomingMessage)
 }
 
 func (q *InMemoryQueue) Subscribe(ctx context.Context) (Subscription, error) {
@@ -100,7 +100,7 @@ func (q *InMemoryQueue) Subscribe(ctx context.Context) (Subscription, error) {
 	if err != nil {
 		return nil, err
 	}
-	return wrappedSubscription(subscription)
+	return q.base.Subscribe(ctx, subscription)
 }
 
 func NewInMemoryQueue(config *InMemoryConfig) *InMemoryQueue {
@@ -109,6 +109,7 @@ func NewInMemoryQueue(config *InMemoryConfig) *InMemoryQueue {
 		name = config.Name
 	}
 	return &InMemoryQueue{
+		base:      newWrappedBaseQueue(),
 		topicName: "mem://queue" + name,
 	}
 }
@@ -138,4 +139,42 @@ func (s *WrappedSubscription) Shutdown(ctx context.Context) error {
 
 func wrappedSubscription(subscription *pubsub.Subscription) (Subscription, error) {
 	return &WrappedSubscription{subscription: subscription}, nil
+}
+
+// ============================== Base Queue Impl ==============================
+
+type wrappedBaseQueue struct {
+	once   *sync.Once
+	tracer trace.Tracer
+}
+
+func newWrappedBaseQueue() *wrappedBaseQueue {
+	var once sync.Once
+	return &wrappedBaseQueue{once: &once}
+}
+
+func (q *wrappedBaseQueue) initTracer() {
+	q.tracer = otel.GetTracerProvider().Tracer("github.com/hookdeck/EventKit/internal/mqs")
+}
+
+func (q *wrappedBaseQueue) Publish(ctx context.Context, topic *pubsub.Topic, incomingMessage IncomingMessage) error {
+	q.once.Do(q.initTracer)
+	ctx, span := q.tracer.Start(ctx, "Queue.Publish")
+	defer span.End()
+
+	msg, err := incomingMessage.ToMessage()
+	if err != nil {
+		span.RecordError(err)
+		return err
+	}
+	err = topic.Send(ctx, &pubsub.Message{Body: msg.Body})
+	if err != nil {
+		span.RecordError(err)
+		return err
+	}
+	return err
+}
+
+func (q *wrappedBaseQueue) Subscribe(ctx context.Context, subscription *pubsub.Subscription) (Subscription, error) {
+	return wrappedSubscription(subscription)
 }

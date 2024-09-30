@@ -75,7 +75,10 @@ func (s *DeliveryService) Run(ctx context.Context) error {
 		return err
 	}
 
-	csm := consumer.New(subscription, s.Handler, consumer.WithConcurrency(s.consumerOptions.concurreny))
+	csm := consumer.New(subscription, s.Handler,
+		consumer.WithConcurrency(s.consumerOptions.concurreny),
+		consumer.WithName("deliverymq"),
+	)
 	if err := csm.Run(ctx); !errors.Is(err, ctx.Err()) {
 		return err
 	}

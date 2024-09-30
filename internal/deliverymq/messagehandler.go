@@ -41,7 +41,7 @@ func (h *messageHandler) Handle(ctx context.Context, msg *mqs.Message) error {
 		msg.Nack()
 		return err
 	}
-	err = h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), func() error {
+	err = h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), func(ctx context.Context) error {
 		return h.doHandle(ctx, deliveryEvent)
 	})
 	if err != nil {

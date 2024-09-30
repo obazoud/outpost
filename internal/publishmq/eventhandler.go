@@ -40,7 +40,7 @@ func NewEventHandler(logger *otelzap.Logger, redisClient *redis.Client, delivery
 var _ EventHandler = (*eventHandler)(nil)
 
 func (h *eventHandler) Handle(ctx context.Context, event *models.Event) error {
-	return h.idempotence.Exec(ctx, idempotencyKeyFromEvent(event), func() error {
+	return h.idempotence.Exec(ctx, idempotencyKeyFromEvent(event), func(ctx context.Context) error {
 		return h.doHandle(ctx, event)
 	})
 }

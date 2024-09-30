@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/hookdeck/EventKit/internal/redis"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -18,12 +20,13 @@ const (
 var ErrConflict = errors.New("conflict")
 
 type Idempotence interface {
-	Exec(ctx context.Context, key string, exec func() error) error
+	Exec(ctx context.Context, key string, exec func(context.Context) error) error
 }
 
 type IdempotenceImpl struct {
 	redisClient *redis.Client
 	options     IdempotenceImplOptions
+	tracer      trace.Tracer
 }
 
 type IdempotenceImplOptions struct {
@@ -56,12 +59,13 @@ func New(redisClient *redis.Client, opts ...func(opts *IdempotenceImplOptions)) 
 	return &IdempotenceImpl{
 		redisClient: redisClient,
 		options:     *options,
+		tracer:      otel.GetTracerProvider().Tracer("github.com/hookdeck/EventKit/internal/idempotence"),
 	}
 }
 
 var _ Idempotence = (*IdempotenceImpl)(nil)
 
-func (i *IdempotenceImpl) Exec(ctx context.Context, key string, exec func() error) error {
+func (i *IdempotenceImpl) Exec(ctx context.Context, key string, exec func(context.Context) error) error {
 	isIdempotent, err := i.checkIdempotency(ctx, key)
 	if err != nil {
 		return err
@@ -100,13 +104,21 @@ func (i *IdempotenceImpl) Exec(ctx context.Context, key string, exec func() erro
 		return errors.New("unknown idempotency status")
 	}
 
-	err = exec()
+	execCtx, span := i.tracer.Start(ctx, "Idempotence.Exec")
+	err = exec(execCtx)
 	if err != nil {
 		clearErr := i.clearIdempotency(ctx, key)
 		if clearErr != nil {
-			return errors.Join(err, clearErr)
+			finalErr := errors.Join(err, clearErr)
+			span.RecordError(finalErr)
+			span.End()
+			return finalErr
 		}
+		span.RecordError(err)
+		span.End()
 		return err
+	} else {
+		span.End()
 	}
 
 	err = i.markProcessedIdempotency(ctx, key)

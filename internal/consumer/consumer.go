@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hookdeck/EventKit/internal/mqs"
+	"go.opentelemetry.io/otel"
 )
 
 type Consumer interface {
@@ -16,7 +17,14 @@ type MessageHandler interface {
 }
 
 type consumerImplOptions struct {
+	name        string
 	concurrency int
+}
+
+func WithName(name string) func(*consumerImplOptions) {
+	return func(c *consumerImplOptions) {
+		c.name = name
+	}
 }
 
 func WithConcurrency(concurrency int) func(*consumerImplOptions) {
@@ -27,6 +35,7 @@ func WithConcurrency(concurrency int) func(*consumerImplOptions) {
 
 func New(subscription mqs.Subscription, handler MessageHandler, opts ...func(*consumerImplOptions)) Consumer {
 	options := &consumerImplOptions{
+		name:        "",
 		concurrency: 1,
 	}
 	for _, opt := range opts {
@@ -50,6 +59,9 @@ var _ Consumer = &consumerImpl{}
 func (c *consumerImpl) Run(ctx context.Context) error {
 	defer c.subscription.Shutdown(ctx)
 
+	tracerProvider := otel.GetTracerProvider()
+	tracer := tracerProvider.Tracer("github.com/hookdeck/EventKit/internal/consumer")
+
 	var subscriptionErr error
 
 	sem := make(chan struct{}, c.concurrency)
@@ -70,12 +82,13 @@ recvLoop:
 		go func() {
 			defer func() { <-sem }() // Release the semaphore.
 
-			childCtx, cancel := context.WithCancel(ctx)
-			defer cancel()
+			handlerCtx, span := tracer.Start(context.Background(), c.actionWithName("Consumer.Handle"))
+			defer span.End()
 
-			err = c.handler.Handle(childCtx, msg)
+			err = c.handler.Handle(handlerCtx, msg)
 			// TODO: error handling?
 			if err != nil {
+				span.RecordError(err)
 				log.Printf("consumer handler error: %v", err)
 			}
 		}()
@@ -88,4 +101,11 @@ recvLoop:
 	}
 
 	return subscriptionErr
+}
+
+func (c *consumerImpl) actionWithName(action string) string {
+	if c.name == "" {
+		return action
+	}
+	return c.name + "." + action
 }

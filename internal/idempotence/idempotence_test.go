@@ -16,9 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupCountExec(_ *testing.T, ctx context.Context, timeout time.Duration, ex func() error) (exec func() error, countexec func(count *int), cleanup func()) {
+func setupCountExec(_ *testing.T, ctx context.Context, timeout time.Duration, ex func() error) (exec func(context.Context) error, countexec func(count *int), cleanup func()) {
 	execchan := make(chan struct{})
-	exec = func() error {
+	exec = func(_ context.Context) error {
 		time.Sleep(timeout)
 		execchan <- struct{}{}
 		return ex()
@@ -229,7 +229,7 @@ func TestIntegrationIdempotence_WithUnackedFailures(t *testing.T) {
 			}
 			mockMsg := MockMsg{}
 			mockMsg.FromMessage(msg)
-			err = i.Exec(ctx, mockMsg.ID, func() error {
+			err = i.Exec(ctx, mockMsg.ID, func(context.Context) error {
 				msgs = append(msgs, mockMsg)
 				if len(msgs) < 3 {
 					log.Println("exec: failed")
@@ -296,7 +296,7 @@ func TestIntegrationIdempotence_WithConcurrentHandlerAndSuccess(t *testing.T) {
 			}
 			mockMsg := MockMsg{}
 			mockMsg.FromMessage(msg)
-			err = i.Exec(ctx, mockMsg.ID, func() error {
+			err = i.Exec(ctx, mockMsg.ID, func(context.Context) error {
 				start := time.Now()
 				time.Sleep(2 * time.Second)
 				end := time.Now()
@@ -384,7 +384,7 @@ func TestIntegrationIdempotence_WithConcurrentHandlerAndFailedExecution(t *testi
 			}
 			mockMsg := MockMsg{}
 			mockMsg.FromMessage(msg)
-			err = i.Exec(ctx, mockMsg.ID, func() error {
+			err = i.Exec(ctx, mockMsg.ID, func(context.Context) error {
 				start := time.Now()
 				time.Sleep(2 * time.Second)
 				end := time.Now()

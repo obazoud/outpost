@@ -51,6 +51,7 @@ func (c *QueueConfig) validateRabbitMQConfig() error {
 // // ============================== Queue ==============================
 
 type RabbitMQQueue struct {
+	base   *wrappedBaseQueue
 	once   *sync.Once
 	conn   *amqp091.Connection
 	config *RabbitMQConfig
@@ -75,11 +76,7 @@ func (q *RabbitMQQueue) Init(ctx context.Context) (func(), error) {
 }
 
 func (q *RabbitMQQueue) Publish(ctx context.Context, incomingMessage IncomingMessage) error {
-	msg, err := incomingMessage.ToMessage()
-	if err != nil {
-		return err
-	}
-	return q.topic.Send(ctx, &pubsub.Message{Body: msg.Body})
+	return q.base.Publish(ctx, q.topic, incomingMessage)
 }
 
 func (q *RabbitMQQueue) Subscribe(ctx context.Context) (Subscription, error) {
@@ -91,7 +88,7 @@ func (q *RabbitMQQueue) Subscribe(ctx context.Context) (Subscription, error) {
 		return nil, err
 	}
 	subscription := rabbitpubsub.OpenSubscription(q.conn, q.config.Queue, nil)
-	return wrappedSubscription(subscription)
+	return q.base.Subscribe(ctx, subscription)
 }
 
 func (q *RabbitMQQueue) InitConn() error {
@@ -105,5 +102,5 @@ func (q *RabbitMQQueue) InitConn() error {
 
 func NewRabbitMQQueue(config *RabbitMQConfig) *RabbitMQQueue {
 	var once sync.Once
-	return &RabbitMQQueue{config: config, once: &once}
+	return &RabbitMQQueue{config: config, once: &once, base: newWrappedBaseQueue()}
 }
