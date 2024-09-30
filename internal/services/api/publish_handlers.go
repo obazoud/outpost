@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/hookdeck/EventKit/internal/publishmq"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -43,9 +41,6 @@ func (h *PublishHandlers) Ingest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	span := trace.SpanFromContext(c.Request.Context())
-	log.Println("ingest", span, span.SpanContext())
 
 	event := publishedEvent.toEvent()
 	err := h.eventHandler.Handle(c.Request.Context(), &event)
