@@ -2,59 +2,190 @@ package log
 
 import (
 	"context"
-	"os"
+	"errors"
+	"log"
 	"sync"
 	"time"
 
+	"github.com/hookdeck/EventKit/internal/clickhouse"
 	"github.com/hookdeck/EventKit/internal/config"
+	"github.com/hookdeck/EventKit/internal/consumer"
+	"github.com/hookdeck/EventKit/internal/logmq"
+	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/EventKit/internal/mqs"
 	"github.com/hookdeck/EventKit/internal/redis"
+	"github.com/mikestefanello/batcher"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
-type LogService struct {
-	logger      *otelzap.Logger
-	redisClient *redis.Client
+type consumerOptions struct {
+	concurreny int
 }
 
-func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, logger *otelzap.Logger) (*LogService, error) {
+type LogService struct {
+	consumerOptions *consumerOptions
+	logger          *otelzap.Logger
+	redisClient     *redis.Client
+	logMQ           *logmq.LogMQ
+	handler         consumer.MessageHandler
+}
+
+func NewService(ctx context.Context,
+	wg *sync.WaitGroup,
+	cfg *config.Config,
+	logger *otelzap.Logger,
+	handler consumer.MessageHandler,
+) (*LogService, error) {
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		<-ctx.Done()
-		logger.Ctx(ctx).Info("service shutdown", zap.String("service", "log"))
-	}()
 
 	redisClient, err := redis.New(ctx, cfg.Redis)
 	if err != nil {
 		return nil, err
 	}
 
+	chDB, err := clickhouse.New()
+	if err != nil {
+		return nil, err
+	}
+
+	var eventBatcher *batcher.Batcher[*models.Event]
+	var deliveryBatcher *batcher.Batcher[*models.Delivery]
+	if handler == nil {
+		batcher, err := makeBatcher(ctx, logger, chDB, models.NewEventModel(), models.NewDeliveryModel())
+		if err != nil {
+			return nil, err
+		}
+
+		handler = logmq.NewMessageHandler(logger, &handlerBatcherImpl{batcher: batcher})
+	}
+
 	service := &LogService{}
 	service.logger = logger
 	service.redisClient = redisClient
+	service.logMQ = logmq.New(logmq.WithQueue(cfg.LogQueueConfig))
+	service.consumerOptions = &consumerOptions{
+		concurreny: cfg.DeliveryMaxConcurrency,
+	}
+	service.handler = handler
+
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
+		if eventBatcher != nil {
+			eventBatcher.Shutdown()
+		}
+		if deliveryBatcher != nil {
+			deliveryBatcher.Shutdown()
+		}
+		logger.Ctx(ctx).Info("service shutdown", zap.String("service", "log"))
+	}()
 
 	return service, nil
 }
 
 func (s *LogService) Run(ctx context.Context) error {
-	s.logger.Ctx(ctx).Info("start service", zap.String("service", "log"))
+	logger := s.logger.Ctx(ctx)
+	logger.Info("start service", zap.String("service", "log"))
 
-	if os.Getenv("DISABLED") == "true" {
-		s.logger.Ctx(ctx).Info("service is disabled", zap.String("service", "log"))
-		return nil
+	subscription, err := s.logMQ.Subscribe(ctx)
+	if err != nil {
+		logger.Error("failed to susbcribe to log events", zap.Error(err))
+		return err
 	}
 
-	for range time.Tick(time.Second * 1) {
-		keys, err := s.redisClient.Keys(ctx, "destination:*").Result()
-		if err != nil {
-			s.logger.Ctx(ctx).Error("error",
-				zap.Error(err),
-			)
-			continue
-		}
-		s.logger.Ctx(ctx).Info("destination count", zap.Int("count", len(keys)))
+	csm := consumer.New(subscription, s.handler,
+		consumer.WithConcurrency(s.consumerOptions.concurreny),
+		consumer.WithName("logmq"),
+	)
+	if err := csm.Run(ctx); !errors.Is(err, ctx.Err()) {
+		return err
 	}
+	return nil
+}
 
+func makeBatcher(ctx context.Context, logger *otelzap.Logger, chDB clickhouse.DB, eventModel *models.EventModel, deliveryModel *models.DeliveryModel) (*batcher.Batcher[*mqs.Message], error) {
+	b, err := batcher.NewBatcher(batcher.Config[*mqs.Message]{
+		GroupCountThreshold: 2,
+		ItemCountThreshold:  100,
+		DelayThreshold:      5 * time.Second,
+		NumGoroutines:       1,
+		Processor: func(_ string, msgs []*mqs.Message) {
+			logger.Ctx(ctx).Info("log batcher processor", zap.Int("msgs", len(msgs)))
+
+			nackAll := func() {
+				for _, msg := range msgs {
+					msg.Nack()
+				}
+			}
+
+			deliveryEvents := make([]*models.DeliveryEvent, 0, len(msgs))
+			for _, msg := range msgs {
+				deliveryEvent := models.DeliveryEvent{}
+				if err := deliveryEvent.FromMessage(msg); err != nil {
+					// TODO: handle error
+					log.Println("deliveryEvent.FromMessage err", err)
+					nackAll() // TODO: handle individual nack
+					return
+				}
+				deliveryEvents = append(deliveryEvents, &deliveryEvent)
+			}
+
+			// Deduplicate events by event.ID
+			uniqueEvents := make([]*models.Event, 0, len(deliveryEvents))
+			seenEvents := make(map[string]struct{})
+			for _, deliveryEvent := range deliveryEvents {
+				event := deliveryEvent.Event
+				if _, exists := seenEvents[event.ID]; !exists {
+					seenEvents[event.ID] = struct{}{}
+					uniqueEvents = append(uniqueEvents, &event)
+				}
+			}
+
+			err := eventModel.InsertMany(ctx, chDB, uniqueEvents)
+			if err != nil {
+				// TODO: error handle
+				log.Println("eventModel.InsertMany err", err)
+				nackAll()
+				return
+			}
+
+			// Deduplicate deliveries by delivery.ID
+			uniqueDeliveries := make([]*models.Delivery, 0, len(deliveryEvents))
+			seenDeliveries := make(map[string]struct{})
+			for _, deliveryEvent := range deliveryEvents {
+				delivery := deliveryEvent.Delivery
+				if _, exists := seenDeliveries[delivery.ID]; !exists {
+					seenDeliveries[delivery.ID] = struct{}{}
+					uniqueDeliveries = append(uniqueDeliveries, delivery)
+				}
+			}
+
+			err = deliveryModel.InsertMany(ctx, chDB, uniqueDeliveries)
+			if err != nil {
+				// TODO: error handle
+				log.Println("deliveryModel.InsertMany err", err)
+				nackAll()
+				return
+			}
+
+			for _, msg := range msgs {
+				msg.Ack()
+			}
+		},
+	})
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return b, nil
+}
+
+type handlerBatcherImpl struct {
+	batcher *batcher.Batcher[*mqs.Message]
+}
+
+func (b *handlerBatcherImpl) Add(ctx context.Context, msg *mqs.Message) error {
+	b.batcher.Add("", msg)
 	return nil
 }
