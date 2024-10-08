@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"sort"
 	"time"
 
 	"github.com/hookdeck/EventKit/internal/destinationadapter"
@@ -24,174 +23,64 @@ type Destination struct {
 	TenantID    string      `json:"-" redis:"-"`
 }
 
-type DestinationModel struct {
-	cipher Cipher
-}
-
-type DestinationModelOptions struct {
-	Cipher Cipher
-}
-
-func DestinationModelWithCipher(cipher Cipher) func(opts *DestinationModelOptions) {
-	return func(opts *DestinationModelOptions) {
-		opts.Cipher = cipher
-	}
-}
-
-func NewDestinationModel(opts ...func(opts *DestinationModelOptions)) *DestinationModel {
-	options := &DestinationModelOptions{}
-
-	for _, opt := range opts {
-		opt(options)
-	}
-
-	if options.Cipher == nil {
-		options.Cipher = NewAESCipher("")
-	}
-
-	return &DestinationModel{
-		cipher: options.Cipher,
-	}
-}
-
-func (m *DestinationModel) Get(c context.Context, cmdable redis.Cmdable, id, tenantID string) (*Destination, error) {
-	cmd := cmdable.HGetAll(c, redisDestinationID(id, tenantID))
-	return m.parse(c, tenantID, cmd)
-}
-
-func (m *DestinationModel) Set(ctx context.Context, cmdable redis.Cmdable, destination Destination) error {
-	err := destination.Validate(ctx)
-	if err != nil {
-		return fmt.Errorf("validation failed: %w", err)
-	}
-	key := redisDestinationID(destination.ID, destination.TenantID)
-	_, err = cmdable.Pipelined(ctx, func(r redis.Pipeliner) error {
-		credentialsBytes, err := destination.Credentials.MarshalBinary()
-		if err != nil {
-			return err
-		}
-		encryptedCredentials, err := m.cipher.Encrypt(credentialsBytes)
-		if err != nil {
-			return err
-		}
-
-		r.HSet(ctx, key, "id", destination.ID)
-		r.HSet(ctx, key, "type", destination.Type)
-		r.HSet(ctx, key, "topics", &destination.Topics)
-		r.HSet(ctx, key, "config", &destination.Config)
-		r.HSet(ctx, key, "credentials", encryptedCredentials)
-		r.HSet(ctx, key, "created_at", destination.CreatedAt)
-		if destination.DisabledAt != nil {
-			r.HSet(ctx, key, "disabled_at", destination.DisabledAt)
-		}
-		return nil
-	})
-	return err
-}
-
-func (m *DestinationModel) Clear(c context.Context, cmdable redis.Cmdable, id, tenantID string) error {
-	return cmdable.Del(c, redisDestinationID(id, tenantID)).Err()
-}
-
-func (m *DestinationModel) ClearMany(c context.Context, cmdable redis.Cmdable, tenantID string, ids ...string) (int64, error) {
-	if len(ids) == 0 {
-		return 0, nil
-	}
-	keys := make([]string, len(ids))
-	for i, id := range ids {
-		keys[i] = redisDestinationID(id, tenantID)
-	}
-	return cmdable.Del(c, keys...).Result()
-}
-
-// TODO: get this from config
-const MAX_DESTINATIONS_PER_TENANT = 100
-
-// TODO: consider splitting this into two methods, one for getting keys and one for getting values
-// in case the flow doesn't require the destination values (DELETE /:tenantID)
-// NOTE: this method requires its own client as it uses an internal pipeline.
-func (m *DestinationModel) List(c context.Context, client *redis.Client, tenantID string) ([]Destination, error) {
-	keys, _, err := client.Scan(c, 0, redisDestinationID("*", tenantID), MAX_DESTINATIONS_PER_TENANT).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	pipe := client.Pipeline()
-	cmds := make([]*redis.MapStringStringCmd, len(keys))
-	for i, key := range keys {
-		cmds[i] = pipe.HGetAll(c, key)
-	}
-	_, err = pipe.Exec(c)
-	if err != nil {
-		return nil, err
-	}
-
-	destinations := make([]Destination, len(keys))
-	for i, cmd := range cmds {
-		destination, err := m.parse(c, tenantID, cmd)
-		if err != nil {
-			return []Destination{}, err
-		}
-		destinations[i] = *destination
-	}
-
-	sort.Slice(destinations, func(i, j int) bool {
-		return destinations[i].CreatedAt.Before(destinations[j].CreatedAt)
-	})
-
-	return destinations, nil
-}
-
-func FilterTopics(destinations []Destination, topic string) []Destination {
-	if topic == "" {
-		return destinations
-	}
-
-	filteredDestinations := []Destination{}
-
-	for _, destination := range destinations {
-		if destination.Topics[0] == "*" || slices.Contains(destination.Topics, topic) {
-			filteredDestinations = append(filteredDestinations, destination)
-		}
-	}
-
-	return filteredDestinations
-}
-
-func (m *DestinationModel) parse(_ context.Context, tenantID string, cmd *redis.MapStringStringCmd) (*Destination, error) {
+func (d *Destination) parseRedisHash(cmd *redis.MapStringStringCmd, cipher Cipher) error {
 	hash, err := cmd.Result()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(hash) == 0 {
-		return nil, nil
+		return redis.Nil
 	}
-	destination := &Destination{}
-	destination.TenantID = tenantID
-	if err = cmd.Scan(destination); err != nil {
-		return nil, err
+	if err = cmd.Scan(d); err != nil {
+		return err
 	}
-	err = destination.Topics.UnmarshalBinary([]byte(hash["topics"]))
+	err = d.Topics.UnmarshalBinary([]byte(hash["topics"]))
 	if err != nil {
-		return nil, fmt.Errorf("invalid topics: %w", err)
+		return fmt.Errorf("invalid topics: %w", err)
 	}
-	err = destination.Config.UnmarshalBinary([]byte(hash["config"]))
+	err = d.Config.UnmarshalBinary([]byte(hash["config"]))
 	if err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
+		return fmt.Errorf("invalid config: %w", err)
 	}
-	credentialsBytes, err := m.cipher.Decrypt([]byte(hash["credentials"]))
+	credentialsBytes, err := cipher.Decrypt([]byte(hash["credentials"]))
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials: %w", err)
+		return fmt.Errorf("invalid credentials: %w", err)
 	}
-	err = destination.Credentials.UnmarshalBinary(credentialsBytes)
+	err = d.Credentials.UnmarshalBinary(credentialsBytes)
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials: %w", err)
+		return fmt.Errorf("invalid credentials: %w", err)
 	}
-	return destination, nil
+	return nil
 }
 
-func redisDestinationID(destinationID, tenantID string) string {
-	return fmt.Sprintf("tenant:%s:destination:%s", tenantID, destinationID)
+func (d *Destination) Validate(ctx context.Context) error {
+	adapter, err := destinationadapter.NewAdapater(d.Type)
+	if err != nil {
+		return err
+	}
+	return adapter.Validate(ctx, destinationadapter.Destination{
+		ID:          d.ID,
+		Type:        d.Type,
+		Config:      d.Config,
+		Credentials: d.Credentials,
+	})
+}
+
+func (d *Destination) Publish(ctx context.Context, event *Event) error {
+	adapter, err := destinationadapter.NewAdapater(d.Type)
+	if err != nil {
+		return err
+	}
+	return adapter.Publish(
+		ctx,
+		destinationadapter.Destination{
+			ID:          d.ID,
+			Type:        d.Type,
+			Config:      d.Config,
+			Credentials: d.Credentials,
+		},
+		event.ToAdapterEvent(),
+	)
 }
 
 // ============================== Types ==============================
@@ -235,34 +124,20 @@ func (c *Credentials) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
 }
 
-// ============================== Destination ==============================
+// ============================== Helpers ==============================
 
-func (d *Destination) Validate(ctx context.Context) error {
-	adapter, err := destinationadapter.NewAdapater(d.Type)
-	if err != nil {
-		return err
+func FilterTopics(destinations []Destination, topic string) []Destination {
+	if topic == "" {
+		return destinations
 	}
-	return adapter.Validate(ctx, destinationadapter.Destination{
-		ID:          d.ID,
-		Type:        d.Type,
-		Config:      d.Config,
-		Credentials: d.Credentials,
-	})
-}
 
-func (d *Destination) Publish(ctx context.Context, event *Event) error {
-	adapter, err := destinationadapter.NewAdapater(d.Type)
-	if err != nil {
-		return err
+	filteredDestinations := []Destination{}
+
+	for _, destination := range destinations {
+		if destination.Topics[0] == "*" || slices.Contains(destination.Topics, topic) {
+			filteredDestinations = append(filteredDestinations, destination)
+		}
 	}
-	return adapter.Publish(
-		ctx,
-		destinationadapter.Destination{
-			ID:          d.ID,
-			Type:        d.Type,
-			Config:      d.Config,
-			Credentials: d.Credentials,
-		},
-		event.ToAdapterEvent(),
-	)
+
+	return filteredDestinations
 }
