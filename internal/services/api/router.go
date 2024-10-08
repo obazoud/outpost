@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/EventKit/internal/deliverymq"
 	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/EventKit/internal/portal"
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -27,7 +28,11 @@ func NewRouter(
 	r := gin.Default()
 	r.Use(otelgin.Middleware(cfg.Hostname))
 
-	r.GET("/healthz", func(c *gin.Context) {
+	portal.AddRoutes(r)
+
+	apiRouter := r.Group("/api/v1")
+
+	apiRouter.GET("/healthz", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
 
@@ -36,10 +41,10 @@ func NewRouter(
 	publishHandlers := NewPublishHandlers(logger, redisClient, deliveryMQ, metadataRepo)
 
 	// Admin router is a router group with the API key auth mechanism.
-	adminRouter := r.Group("/", APIKeyAuthMiddleware(cfg.APIKey))
+	adminRouter := apiRouter.Group("/", APIKeyAuthMiddleware(cfg.APIKey))
 
 	adminRouter.PUT("/:tenantID", tenantHandlers.Upsert)
-	adminRouter.GET("/:tenantID/portal", tenantHandlers.RetrievePortal)
+	adminRouter.GET("/:tenantID/portal", RequireTenantMiddleware(logger, metadataRepo), tenantHandlers.RetrievePortal)
 
 	// Tenant router is a router group that accepts either
 	// - a tenant's JWT token OR
@@ -48,7 +53,7 @@ func NewRouter(
 	// If the EventKit service deployment isn't configured with an API key, then
 	// it's assumed that the service runs in a secure environment
 	// and the JWT check is NOT necessary either.
-	tenantRouter := r.Group("/",
+	tenantRouter := apiRouter.Group("/",
 		APIKeyOrTenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret),
 		RequireTenantMiddleware(logger, metadataRepo),
 	)
