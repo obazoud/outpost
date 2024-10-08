@@ -132,85 +132,51 @@ func TestMetadataRepo_DestinationCRUD(t *testing.T) {
 	})
 }
 
-func TestMetadataRepo_DeleteManyDestination(t *testing.T) {
+func TestMetadataRepo_ListDestinationEmpty(t *testing.T) {
 	t.Parallel()
 
 	redisClient := testutil.CreateTestRedisClient(t)
 	metadataRepo := models.NewMetadataRepo(redisClient, models.NewAESCipher("secret"))
 
-	t.Run("delete many", func(t *testing.T) {
-		tenantID := uuid.New().String()
-		ids := make([]string, 5)
-		for i := 0; i < 5; i++ {
-			ids[i] = uuid.New().String()
-			metadataRepo.UpsertDestination(context.Background(), models.Destination{
-				ID:          ids[i],
-				Type:        "webhooks",
-				Topics:      []string{"user.created", "user.updated"},
-				Config:      map[string]string{"url": "https://example.com"},
-				Credentials: map[string]string{},
-				CreatedAt:   time.Now(),
-				DisabledAt:  nil,
-				TenantID:    tenantID,
-			})
-		}
-
-		count, err := metadataRepo.DeleteManyDestination(context.Background(), tenantID, ids...)
-		require.Nil(t, err)
-		assert.Equal(t, int64(5), count)
-
-		for _, id := range ids {
-			actual, err := metadataRepo.RetrieveDestination(context.Background(), tenantID, id)
-			require.Nil(t, err)
-			require.Nil(t, actual)
-		}
-	})
+	destinations, err := metadataRepo.ListDestinationByTenant(context.Background(), uuid.New().String())
+	require.Nil(t, err)
+	assert.Empty(t, destinations)
 }
 
-func TestMetadataRepo_ListDestination(t *testing.T) {
+func TestMetadataRepo_DeleteTenantAndAssociatedDestinations(t *testing.T) {
 	t.Parallel()
-
 	redisClient := testutil.CreateTestRedisClient(t)
 	metadataRepo := models.NewMetadataRepo(redisClient, models.NewAESCipher("secret"))
-
-	t.Run("returns empty", func(t *testing.T) {
-		t.Parallel()
-		destinations, err := metadataRepo.ListDestinationByTenant(context.Background(), uuid.New().String())
-		require.Nil(t, err)
-		assert.Empty(t, destinations)
-	})
-
-	t.Run("returns list", func(t *testing.T) {
-		tenantID := uuid.New().String()
-		inputDestination := models.Destination{
-			Type:        "webhooks",
-			Topics:      []string{"user.created", "user.updated"},
-			Config:      map[string]string{"url": "https://example.com"},
-			Credentials: map[string]string{},
-			DisabledAt:  nil,
-			TenantID:    tenantID,
-		}
-
-		ids := make([]string, 5)
-		for i := 0; i < 5; i++ {
-			ids[i] = uuid.New().String()
-			inputDestination.ID = ids[i]
-			inputDestination.CreatedAt = time.Now()
-			metadataRepo.UpsertDestination(context.Background(), inputDestination)
-		}
-
-		destinations, err := metadataRepo.ListDestinationByTenant(context.Background(), tenantID)
-		require.Nil(t, err)
-		require.Len(t, destinations, 5)
-		for index, destination := range destinations {
-			assert.Equal(t, ids[index], destination.ID)
-			assert.Equal(t, inputDestination.Type, destination.Type)
-			assert.Equal(t, inputDestination.Topics, destination.Topics)
-			assert.Equal(t, inputDestination.Config, destination.Config)
-			assert.Equal(t, inputDestination.Credentials, destination.Credentials)
-			assert.Equal(t, inputDestination.TenantID, destination.TenantID)
-		}
-	})
+	tenant := models.Tenant{
+		ID:        uuid.New().String(),
+		CreatedAt: time.Now(),
+	}
+	// Arrange
+	require.Nil(t, metadataRepo.UpsertTenant(context.Background(), tenant))
+	destinationIDs := []string{uuid.New().String(), uuid.New().String(), uuid.New().String()}
+	require.Nil(t, metadataRepo.UpsertDestination(context.Background(), mockDestinationFactory.Any(
+		mockDestinationFactory.WithID(destinationIDs[0]),
+		mockDestinationFactory.WithTenantID(tenant.ID),
+	)))
+	require.Nil(t, metadataRepo.UpsertDestination(context.Background(), mockDestinationFactory.Any(
+		mockDestinationFactory.WithID(destinationIDs[1]),
+		mockDestinationFactory.WithTenantID(tenant.ID),
+	)))
+	require.Nil(t, metadataRepo.UpsertDestination(context.Background(), mockDestinationFactory.Any(
+		mockDestinationFactory.WithID(destinationIDs[2]),
+		mockDestinationFactory.WithTenantID(tenant.ID),
+	)))
+	require.Equal(t, int64(1), redisClient.Exists(context.Background(), "tenant:"+tenant.ID).Val())
+	require.Equal(t, int64(1), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[0]).Val())
+	require.Equal(t, int64(1), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[1]).Val())
+	require.Equal(t, int64(1), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[2]).Val())
+	// Act
+	require.Nil(t, metadataRepo.DeleteTenant(context.Background(), tenant.ID))
+	// Assert
+	assert.Equal(t, int64(0), redisClient.Exists(context.Background(), "tenant:"+tenant.ID).Val())
+	assert.Equal(t, int64(0), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[0]).Val())
+	assert.Equal(t, int64(0), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[1]).Val())
+	assert.Equal(t, int64(0), redisClient.Exists(context.Background(), "tenant:"+tenant.ID+":destination:"+destinationIDs[2]).Val())
 }
 
 func TestMetadataRepo_DestinationCredentialsEncryption(t *testing.T) {
@@ -261,4 +227,170 @@ func assertEqualDestination(t *testing.T, expected, actual models.Destination) {
 	assert.Equal(t, expected.Credentials, actual.Credentials)
 	assert.True(t, cmp.Equal(expected.CreatedAt, actual.CreatedAt))
 	assert.True(t, cmp.Equal(expected.DisabledAt, actual.DisabledAt))
+}
+
+func TestMetadataRepo_MatchEvent(t *testing.T) {
+	t.Parallel()
+
+	// Arrange
+	var err error
+	redisClient := testutil.CreateTestRedisClient(t)
+	metadataRepo := models.NewMetadataRepo(redisClient, models.NewAESCipher("secret"))
+
+	tenant := models.Tenant{
+		ID:        uuid.New().String(),
+		CreatedAt: time.Now(),
+	}
+
+	err = metadataRepo.UpsertTenant(context.Background(), tenant)
+	require.Nil(t, err)
+
+	ids := []string{
+		uuid.New().String(),
+		uuid.New().String(),
+		uuid.New().String(),
+		uuid.New().String(),
+		uuid.New().String(),
+	}
+
+	err = metadataRepo.UpsertDestination(context.Background(),
+		mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[0]),
+			mockDestinationFactory.WithTenantID(tenant.ID),
+			mockDestinationFactory.WithTopics([]string{"*"}),
+		),
+	)
+	require.Nil(t, err)
+	err = metadataRepo.UpsertDestination(context.Background(),
+		mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[1]),
+			mockDestinationFactory.WithTenantID(tenant.ID),
+			mockDestinationFactory.WithTopics([]string{"user.created", "user.updated"}),
+		),
+	)
+	require.Nil(t, err)
+	err = metadataRepo.UpsertDestination(context.Background(),
+		mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[2]),
+			mockDestinationFactory.WithTenantID(tenant.ID),
+			mockDestinationFactory.WithTopics([]string{"user.created"}),
+		),
+	)
+	require.Nil(t, err)
+	err = metadataRepo.UpsertDestination(context.Background(),
+		mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[3]),
+			mockDestinationFactory.WithTenantID(tenant.ID),
+			mockDestinationFactory.WithTopics([]string{"user.updated"}),
+		),
+	)
+	require.Nil(t, err)
+
+	// Delete destination to test if destination is cleaned up properly
+	err = metadataRepo.UpsertDestination(context.Background(),
+		mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[4]),
+			mockDestinationFactory.WithTenantID(tenant.ID),
+			mockDestinationFactory.WithTopics([]string{"*"}),
+		),
+	)
+	require.Nil(t, err)
+	err = metadataRepo.DeleteDestination(context.Background(), tenant.ID, ids[4])
+	require.Nil(t, err)
+
+	// Act
+	event := models.Event{
+		ID:       uuid.New().String(),
+		Topic:    "user.created",
+		Time:     time.Now(),
+		TenantID: tenant.ID,
+		Metadata: map[string]string{},
+		Data:     map[string]interface{}{},
+	}
+	matchedDestinationSummaryList, err := metadataRepo.MatchEvent(context.Background(), event)
+	require.Nil(t, err)
+
+	// Assert
+	require.Len(t, matchedDestinationSummaryList, 3)
+	for _, summary := range matchedDestinationSummaryList {
+		require.Contains(t, []string{ids[0], ids[1], ids[2]}, summary.ID)
+	}
+}
+
+type multiDestinationSuite struct {
+	ctx          context.Context
+	redisClient  *redis.Client
+	metadataRepo models.MetadataRepo
+	tenant       models.Tenant
+	destinations []models.Destination
+}
+
+func (suite *multiDestinationSuite) SetupTest(t *testing.T) {
+	suite.ctx = context.Background()
+	suite.redisClient = testutil.CreateTestRedisClient(t)
+	suite.metadataRepo = models.NewMetadataRepo(suite.redisClient, models.NewAESCipher("secret"))
+	suite.destinations = make([]models.Destination, 5)
+	suite.tenant = models.Tenant{
+		ID:        uuid.New().String(),
+		CreatedAt: time.Now(),
+	}
+	err := suite.metadataRepo.UpsertTenant(suite.ctx, suite.tenant)
+	require.Nil(t, err)
+
+	ids := make([]string, 5)
+	for i := 0; i < 5; i++ {
+		ids[i] = uuid.New().String()
+		suite.destinations[i] = mockDestinationFactory.Any(
+			mockDestinationFactory.WithID(ids[i]),
+			mockDestinationFactory.WithTenantID(suite.tenant.ID),
+		)
+		err = suite.metadataRepo.UpsertDestination(suite.ctx, suite.destinations[i])
+		require.Nil(t, err)
+	}
+}
+
+func TestMultiDestinationSuite_ListDestinationByTenant(t *testing.T) {
+	t.Parallel()
+	suite := multiDestinationSuite{}
+	suite.SetupTest(t)
+
+	destinations, err := suite.metadataRepo.ListDestinationByTenant(suite.ctx, suite.tenant.ID)
+	require.Nil(t, err)
+	require.Len(t, destinations, 5)
+	for index, destination := range destinations {
+		require.Equal(t, suite.destinations[index].ID, destination.ID)
+	}
+}
+
+func TestMultiDestinationSuite_UpdateDestination(t *testing.T) {
+	t.Parallel()
+	suite := multiDestinationSuite{}
+	suite.SetupTest(t)
+
+	updatedIndex := 2
+	updatedTopics := []string{"user.created"}
+	updatedDestination := suite.destinations[updatedIndex]
+	updatedDestination.Topics = updatedTopics
+	err := suite.metadataRepo.UpsertDestination(suite.ctx, updatedDestination)
+	require.Nil(t, err)
+
+	actual, err := suite.metadataRepo.RetrieveDestination(suite.ctx, updatedDestination.TenantID, updatedDestination.ID)
+	require.Nil(t, err)
+	assert.Equal(t, updatedDestination.Topics, actual.Topics)
+
+	destinations, err := suite.metadataRepo.ListDestinationByTenant(suite.ctx, suite.tenant.ID)
+	require.Nil(t, err)
+	assert.Len(t, destinations, 5)
+
+	destinationSummaryList, err := suite.metadataRepo.ListDestinationSummaryByTenant(suite.ctx, suite.tenant.ID)
+	require.Nil(t, err)
+	require.Len(t, destinationSummaryList, 5)
+	foundMatchingDestination := false
+	for _, destinationSummary := range destinationSummaryList {
+		if destinationSummary.ID == updatedDestination.ID {
+			foundMatchingDestination = true
+			assert.Equal(t, updatedDestination.Topics, destinationSummary.Topics)
+		}
+	}
+	assert.True(t, foundMatchingDestination, "Unable to find destination in destination summary list")
 }

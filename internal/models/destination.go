@@ -5,7 +5,6 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/hookdeck/EventKit/internal/destinationadapter"
@@ -83,6 +82,29 @@ func (d *Destination) Publish(ctx context.Context, event *Event) error {
 	)
 }
 
+type DestinationSummary struct {
+	ID     string  `json:"id"`
+	Topics Strings `json:"topics"`
+}
+
+var _ encoding.BinaryMarshaler = &DestinationSummary{}
+var _ encoding.BinaryUnmarshaler = &DestinationSummary{}
+
+func (ds *DestinationSummary) MarshalBinary() ([]byte, error) {
+	return json.Marshal(ds)
+}
+
+func (ds *DestinationSummary) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, ds)
+}
+
+func (d *Destination) ToSummary() *DestinationSummary {
+	return &DestinationSummary{
+		ID:     d.ID,
+		Topics: d.Topics,
+	}
+}
+
 // ============================== Types ==============================
 
 type Strings []string
@@ -122,22 +144,4 @@ func (c *Credentials) MarshalBinary() ([]byte, error) {
 
 func (c *Credentials) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
-}
-
-// ============================== Helpers ==============================
-
-func FilterTopics(destinations []Destination, topic string) []Destination {
-	if topic == "" {
-		return destinations
-	}
-
-	filteredDestinations := []Destination{}
-
-	for _, destination := range destinations {
-		if destination.Topics[0] == "*" || slices.Contains(destination.Topics, topic) {
-			filteredDestinations = append(filteredDestinations, destination)
-		}
-	}
-
-	return filteredDestinations
 }
