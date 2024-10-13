@@ -2,10 +2,11 @@ package eventtracer
 
 import (
 	"context"
+	"time"
 
+	"github.com/hookdeck/EventKit/internal/emetrics"
 	"github.com/hookdeck/EventKit/internal/models"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -16,6 +17,7 @@ type EventTracer interface {
 }
 
 type eventTracerImpl struct {
+	emeter emetrics.EventKitMetrics
 	tracer trace.Tracer
 }
 
@@ -23,16 +25,20 @@ var _ EventTracer = &eventTracerImpl{}
 
 func NewEventTracer() EventTracer {
 	traceProvider := otel.GetTracerProvider()
+	emeter, _ := emetrics.New()
 
 	return &eventTracerImpl{
+		emeter: emeter,
 		tracer: traceProvider.Tracer("github.com/hookdeck/EventKit/internal/eventtracer"),
 	}
 }
 
-func (t *eventTracerImpl) Receive(_ context.Context, event *models.Event) (context.Context, trace.Span) {
-	ctx, span := t.tracer.Start(context.Background(), "EventTracer.Receive")
-	span.SetAttributes(attribute.String("eventkit.event_id", event.ID))
+func (t *eventTracerImpl) Receive(ctx context.Context, event *models.Event) (context.Context, trace.Span) {
+	t.emeter.EventPublished(ctx, event)
 
+	ctx, span := t.tracer.Start(context.Background(), "EventTracer.Receive")
+
+	event.Metadata["received_time"] = time.Now().Format(time.RFC3339Nano)
 	event.Metadata["trace_id"] = span.SpanContext().TraceID().String()
 	event.Metadata["span_id"] = span.SpanContext().SpanID().String()
 
@@ -41,9 +47,6 @@ func (t *eventTracerImpl) Receive(_ context.Context, event *models.Event) (conte
 
 func (t *eventTracerImpl) StartDelivery(_ context.Context, deliveryEvent *models.DeliveryEvent) (context.Context, trace.Span) {
 	ctx, span := t.tracer.Start(t.getRemoteEventSpanContext(&deliveryEvent.Event), "EventTracer.StartDelivery")
-	span.SetAttributes(attribute.String("eventkit.delivery_event_id", deliveryEvent.ID))
-	span.SetAttributes(attribute.String("eventkit.event_id", deliveryEvent.Event.ID))
-	span.SetAttributes(attribute.String("eventkit.destination_id", deliveryEvent.DestinationID))
 
 	deliveryEvent.Metadata["trace_id"] = span.SpanContext().TraceID().String()
 	deliveryEvent.Metadata["span_id"] = span.SpanContext().SpanID().String()
@@ -51,12 +54,33 @@ func (t *eventTracerImpl) StartDelivery(_ context.Context, deliveryEvent *models
 	return ctx, span
 }
 
+type DeliverSpan struct {
+	trace.Span
+	emeter        emetrics.EventKitMetrics
+	deliveryEvent *models.DeliveryEvent
+	err           error
+}
+
+func (d *DeliverSpan) RecordError(err error, options ...trace.EventOption) {
+	d.err = err
+	d.Span.RecordError(err, options...)
+}
+
+func (d *DeliverSpan) End(options ...trace.SpanEndOption) {
+	startTime, err := time.Parse(time.RFC3339Nano, d.deliveryEvent.Event.Metadata["received_time"])
+	d.emeter.EventDelivered(context.Background(), d.deliveryEvent, d.err == nil)
+	if err == nil {
+		d.emeter.DeliveryLatency(context.Background(),
+			time.Since(startTime),
+			emetrics.DeliveryLatencyOpts{Type: "TODO"})
+	}
+	d.Span.End(options...)
+}
+
 func (t *eventTracerImpl) Deliver(_ context.Context, deliveryEvent *models.DeliveryEvent) (context.Context, trace.Span) {
 	ctx, span := t.tracer.Start(t.getRemoteDeliveryEventSpanContext(deliveryEvent), "EventTracer.Deliver")
-	span.SetAttributes(attribute.String("eventkit.delivery_event_id", deliveryEvent.ID))
-	span.SetAttributes(attribute.String("eventkit.event_id", deliveryEvent.Event.ID))
-	span.SetAttributes(attribute.String("eventkit.destination_id", deliveryEvent.DestinationID))
-	return ctx, span
+	deliverySpan := &DeliverSpan{Span: span, emeter: t.emeter, deliveryEvent: deliveryEvent}
+	return ctx, deliverySpan
 }
 
 func (t *eventTracerImpl) getRemoteEventSpanContext(event *models.Event) context.Context {
