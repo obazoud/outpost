@@ -11,6 +11,7 @@ import (
 	"github.com/hookdeck/EventKit/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 type EventHandler interface {
@@ -18,7 +19,7 @@ type EventHandler interface {
 }
 
 type eventHandler struct {
-	tracer      eventtracer.EventTracer
+	eventTracer eventtracer.EventTracer
 	logger      *otelzap.Logger
 	idempotence idempotence.Idempotence
 	deliveryMQ  *deliverymq.DeliveryMQ
@@ -30,9 +31,9 @@ func NewEventHandler(
 	redisClient *redis.Client,
 	deliveryMQ *deliverymq.DeliveryMQ,
 	entityStore models.EntityStore,
+	eventTracer eventtracer.EventTracer,
 ) EventHandler {
-	return &eventHandler{
-		tracer: eventtracer.NewEventTracer(),
+	eventHandler := &eventHandler{
 		logger: logger,
 		idempotence: idempotence.New(redisClient,
 			idempotence.WithTimeout(5*time.Second),
@@ -40,7 +41,9 @@ func NewEventHandler(
 		),
 		deliveryMQ:  deliveryMQ,
 		entityStore: entityStore,
+		eventTracer: eventTracer,
 	}
+	return eventHandler
 }
 
 var _ EventHandler = (*eventHandler)(nil)
@@ -54,7 +57,7 @@ func (h *eventHandler) Handle(ctx context.Context, event *models.Event) error {
 func (h *eventHandler) doHandle(ctx context.Context, event *models.Event) error {
 	h.logger.Info("received event", zap.Any("event", event))
 
-	_, span := h.tracer.Receive(ctx, event)
+	_, span := h.eventTracer.Receive(ctx, event)
 	defer span.End()
 
 	matchedDestinations, err := h.entityStore.MatchEvent(ctx, *event)
@@ -62,20 +65,28 @@ func (h *eventHandler) doHandle(ctx context.Context, event *models.Event) error 
 		return err
 	}
 
-	// TODO: Consider handling via goroutine for better performance? Maybe GoCloud PubSub already support this natively?
-	// TODO: Consider how batch publishing work
+	var g errgroup.Group
 	for _, destinationSummary := range matchedDestinations {
-		deliveryEvent := models.NewDeliveryEvent(*event, destinationSummary.ID)
-		_, deliverySpan := h.tracer.StartDelivery(ctx, &deliveryEvent)
-		err := h.deliveryMQ.Publish(ctx, deliveryEvent)
-		if err != nil {
-			span.RecordError(err)
-			deliverySpan.RecordError(err)
-			deliverySpan.End()
-			return err
-		}
-		deliverySpan.End()
+		g.Go(func() error {
+			return h.enqueueDeliveryEvent(ctx, models.NewDeliveryEvent(*event, destinationSummary.ID))
+		})
 	}
+	if err := g.Wait(); err != nil {
+		span.RecordError(err)
+		return err
+	}
+	return nil
+}
+
+func (h *eventHandler) enqueueDeliveryEvent(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
+	_, deliverySpan := h.eventTracer.StartDelivery(ctx, &deliveryEvent)
+	err := h.deliveryMQ.Publish(ctx, deliveryEvent)
+	if err != nil {
+		deliverySpan.RecordError(err)
+		deliverySpan.End()
+		return err
+	}
+	deliverySpan.End()
 	return nil
 }
 
