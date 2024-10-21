@@ -13,6 +13,7 @@ import (
 	"github.com/hookdeck/EventKit/internal/destinationadapter/adapters"
 	"github.com/hookdeck/EventKit/internal/destinationadapter/adapters/webhook"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebhookDestination_Validate(t *testing.T) {
@@ -58,6 +59,68 @@ func TestWebhookDestination_Validate(t *testing.T) {
 	})
 }
 
+type webhookDestinationSuite struct {
+	timeoutSecond *int
+	ctx           context.Context
+	server        http.Server
+	webhookURL    string
+	errchan       chan error
+	handler       func(w http.ResponseWriter, r *http.Request)
+	teardown      func()
+}
+
+func (suite *webhookDestinationSuite) SetupTest(t *testing.T) {
+	teardownFuncs := []func(){}
+	if suite.ctx == nil {
+		var timeout time.Duration
+		if suite.timeoutSecond == nil {
+			timeout = 1 * time.Second
+		} else {
+			timeout = time.Duration(*suite.timeoutSecond) * time.Second
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		suite.ctx = ctx
+		teardownFuncs = append(teardownFuncs, cancel)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if suite.handler == nil {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			suite.handler(w, r)
+		}
+	}))
+	suite.server = http.Server{
+		Addr:    randomPort(),
+		Handler: mux,
+	}
+	suite.webhookURL = "http://localhost" + suite.server.Addr + "/webhook"
+
+	suite.errchan = make(chan error)
+	go func() {
+		if err := suite.server.ListenAndServe(); err != http.ErrServerClosed {
+			suite.errchan <- err
+		} else {
+			suite.errchan <- nil
+		}
+	}()
+	go func() {
+		<-suite.ctx.Done()
+		suite.server.Shutdown(context.Background())
+	}()
+
+	suite.teardown = func() {
+		for _, teardown := range teardownFuncs {
+			teardown()
+		}
+	}
+}
+
+func (suite *webhookDestinationSuite) TeardownTest(t *testing.T) {
+	suite.teardown()
+}
+
 func TestWebhookDestination_Publish(t *testing.T) {
 	t.Parallel()
 
@@ -85,65 +148,49 @@ func TestWebhookDestination_Publish(t *testing.T) {
 	t.Run("should send webhook request", func(t *testing.T) {
 		t.Parallel()
 
-		// Set up test server to receive webhook
+		// Arrange
+		suite := &webhookDestinationSuite{}
 		var request *http.Request
 		var body []byte
-		mux := http.NewServeMux()
-		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		suite.handler = func(w http.ResponseWriter, r *http.Request) {
 			request = r
 			var err error
 			body, err = io.ReadAll(request.Body)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 			w.WriteHeader(http.StatusOK)
-		}))
-		server := &http.Server{
-			Addr:    randomPort(),
-			Handler: mux,
 		}
-		serverURL := "http://localhost" + server.Addr + "/webhook"
+		suite.SetupTest(t)
+		defer suite.TeardownTest(t)
 
-		errchan := make(chan error)
-		go func() {
-			if err := server.ListenAndServe(); err != http.ErrServerClosed {
-				errchan <- err
-			} else {
-				errchan <- nil
-			}
-		}()
-
-		go func() {
-			time.Sleep(time.Second / 2)
-			server.Shutdown(context.Background())
-		}()
-
+		// Act
 		finalDestination := destination
-		finalDestination.Config["url"] = serverURL
-
-		err := webhookDestination.Publish(context.Background(), finalDestination, &adapters.Event{
+		finalDestination.Config["url"] = suite.webhookURL
+		require.NoError(t, webhookDestination.Publish(context.Background(), finalDestination, &adapters.Event{
 			ID:               uuid.New().String(),
 			TenantID:         uuid.New().String(),
 			DestinationID:    uuid.New().String(),
 			Topic:            "test",
 			EligibleForRetry: true,
 			Time:             time.Now(),
-			Metadata:         map[string]string{},
+			Metadata: map[string]string{
+				"my_metadata":      "metadatavalue",
+				"another_metadata": "anothermetadatavalue",
+			},
 			Data: map[string]interface{}{
 				"mykey": "myvalue",
 			},
-		})
+		}))
+		require.NoError(t, <-suite.errchan)
 
-		err = <-errchan
-		if err != nil {
-			t.Fatal(err)
-		}
-
+		// Assert
 		assert.NotNil(t, request)
 		assert.Equal(t, "POST", request.Method)
 		assert.Equal(t, "/webhook", request.URL.Path)
 		assert.Equal(t, "application/json", request.Header.Get("Content-Type"))
 		assert.Equal(t, `{"mykey":"myvalue"}`, string(body), "webhook request body doesn't match expectation")
+		// metadata
+		assert.Equal(t, "metadatavalue", request.Header.Get("x-eventkit-my_metadata"))
+		assert.Equal(t, "anothermetadatavalue", request.Header.Get("x-eventkit-another_metadata"))
 	})
 }
 
