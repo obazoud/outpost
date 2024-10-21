@@ -2,14 +2,18 @@ package models
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"github.com/hookdeck/EventKit/internal/clickhouse"
 )
 
 type LogStore interface {
-	ListEvent(ctx context.Context) ([]*Event, error)
-	InsertManyEvent(ctx context.Context, events []*Event) error
-	InsertManyDelivery(ctx context.Context, deliveries []*Delivery) error
+	ListEvent(context.Context, ListEventRequest) ([]*Event, string, error)
+	RetrieveEvent(ctx context.Context, tenantID, eventID string) (*Event, error)
+	ListDelivery(ctx context.Context, request ListDeliveryRequest) ([]*Delivery, error)
+	InsertManyEvent(context.Context, []*Event) error
+	InsertManyDelivery(context.Context, []*Delivery) error
 }
 
 type logStoreImpl struct {
@@ -22,19 +26,57 @@ func NewLogStore(chDB clickhouse.DB) LogStore {
 	return &logStoreImpl{chDB: chDB}
 }
 
-func (s *logStoreImpl) ListEvent(ctx context.Context) ([]*Event, error) {
-	rows, err := s.chDB.Query(ctx, `
-		SELECT
-			id,
-			tenant_id,
-			destination_id,
-			time,
-			topic,
-			data
-		FROM eventkit.events
-	`)
+type ListEventRequest struct {
+	TenantID string
+	Cursor   string
+	Limit    int
+}
+
+func (s *logStoreImpl) ListEvent(ctx context.Context, request ListEventRequest) ([]*Event, string, error) {
+	var (
+		query     string
+		queryOpts []any
+	)
+
+	var cursor string
+	if cursorTime, err := time.Parse(time.RFC3339, request.Cursor); err == nil {
+		cursor = cursorTime.Format("2006-01-02T15:04:05") // RFC3339 without timezone
+	}
+
+	if cursor == "" {
+		query = `
+			SELECT
+				id,
+				tenant_id,
+				destination_id,
+				time,
+				topic,
+				data
+			FROM eventkit.events
+			WHERE tenant_id = ?
+			ORDER BY time DESC
+			LIMIT ?
+		`
+		queryOpts = []any{request.TenantID, request.Limit}
+	} else {
+		query = `
+			SELECT
+				id,
+				tenant_id,
+				destination_id,
+				time,
+				topic,
+				data
+			FROM eventkit.events
+			WHERE tenant_id = ? AND time < ?
+			ORDER BY time DESC
+			LIMIT ?
+		`
+		queryOpts = []any{request.TenantID, cursor, request.Limit}
+	}
+	rows, err := s.chDB.Query(ctx, query, queryOpts...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -49,17 +91,91 @@ func (s *logStoreImpl) ListEvent(ctx context.Context) ([]*Event, error) {
 			&event.Topic,
 			&event.Data,
 		); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		events = append(events, event)
 	}
+	var nextCursor string
+	if len(events) > 0 {
+		log.Println("format", events[len(events)-1].Time, events[len(events)-1].Time.Format(time.RFC3339))
+		nextCursor = events[len(events)-1].Time.Format(time.RFC3339)
+	}
 
-	return events, nil
+	return events, nextCursor, nil
+}
+
+func (s *logStoreImpl) RetrieveEvent(ctx context.Context, tenantID, eventID string) (*Event, error) {
+	rows, err := s.chDB.Query(ctx,
+		"SELECT id, tenant_id, destination_id, time, topic, data FROM eventkit.events WHERE tenant_id = ? AND id = ?",
+		tenantID, eventID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return nil, nil
+	}
+
+	event := &Event{}
+	if err := rows.Scan(
+		&event.ID,
+		&event.TenantID,
+		&event.DestinationID,
+		&event.Time,
+		&event.Topic,
+		&event.Data,
+	); err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+
+type ListDeliveryRequest struct {
+	EventID string
+}
+
+func (s *logStoreImpl) ListDelivery(ctx context.Context, request ListDeliveryRequest) ([]*Delivery, error) {
+	query := `
+		SELECT
+			id,
+			event_id,
+			destination_id,
+			status,
+			time
+		FROM eventkit.deliveries
+		WHERE event_id = ?
+		ORDER BY time DESC
+	`
+	rows, err := s.chDB.Query(ctx, query, request.EventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var deliveries []*Delivery
+	for rows.Next() {
+		delivery := &Delivery{}
+		if err := rows.Scan(
+			&delivery.ID,
+			&delivery.EventID,
+			&delivery.DestinationID,
+			&delivery.Status,
+			&delivery.Time,
+		); err != nil {
+			return nil, err
+		}
+		deliveries = append(deliveries, delivery)
+	}
+
+	return deliveries, nil
 }
 
 func (s *logStoreImpl) InsertManyEvent(ctx context.Context, events []*Event) error {
 	batch, err := s.chDB.PrepareBatch(ctx,
-		"INSERT INTO eventkit.events (id, tenant_id, destination_id, time, topic, data) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO eventkit.events (id, tenant_id, destination_id, time, topic, metadata, data) VALUES (?, ?, ?, ?, ?, ?)",
 	)
 	if err != nil {
 		return err
@@ -72,6 +188,7 @@ func (s *logStoreImpl) InsertManyEvent(ctx context.Context, events []*Event) err
 			&event.DestinationID,
 			&event.Time,
 			&event.Topic,
+			&event.Metadata,
 			&event.Data,
 		); err != nil {
 			return err
