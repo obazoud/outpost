@@ -50,15 +50,20 @@ func (h *messageHandler) Handle(ctx context.Context, msg *mqs.Message) error {
 	deliveryEvent := models.DeliveryEvent{}
 	err := deliveryEvent.FromMessage(msg)
 	if err != nil {
+		// TODO: question - should we ack this instead?
+		// Since we can't parse the message, we won't be able to handle it when retrying later either.
 		msg.Nack()
 		return err
 	}
-	err = h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), func(ctx context.Context) error {
+	idempotenceHandler := func(ctx context.Context) error {
 		return h.doHandle(ctx, deliveryEvent)
-	})
-	if err != nil {
-		msg.Nack()
-		return err
+	}
+	if err := h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), idempotenceHandler); err != nil {
+		// if not publish error OR event is eligible for retry --> nack && retry
+		if _, isPublishErr := err.(*models.DestinationPublishError); !isPublishErr || deliveryEvent.Event.EligibleForRetry {
+			msg.Nack()
+			return err
+		}
 	}
 	msg.Ack()
 	return nil
@@ -70,6 +75,8 @@ func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.Deli
 	logger := h.logger.Ctx(ctx)
 	logger.Info("deliverymq handler", zap.String("delivery_event", deliveryEvent.ID))
 	destination, err := h.entityStore.RetrieveDestination(ctx, deliveryEvent.Event.TenantID, deliveryEvent.DestinationID)
+	// TODO: handle destination not found
+	// Question: what to do if destination is not found? Nack for later retry?
 	if err != nil {
 		logger.Error("failed to retrieve destination", zap.Error(err))
 		span.RecordError(err)
