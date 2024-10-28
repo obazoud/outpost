@@ -24,6 +24,7 @@ import (
 type RetryDeliveryMQSuite struct {
 	ctx              context.Context
 	mqConfig         *mqs.QueueConfig
+	retryMaxCount    int
 	webhookCallCount int
 	exporter         *tracetest.InMemoryExporter
 	redisClient      *redis.Client
@@ -62,7 +63,7 @@ func (s *RetryDeliveryMQSuite) SetupTest(t *testing.T) {
 	if s.entityStore == nil {
 		s.entityStore = models.NewEntityStore(s.redisClient, models.NewAESCipher(""))
 	}
-	logMQ := logmq.New()
+	logMQ := logmq.New(logmq.WithQueue(&mqs.QueueConfig{InMemory: &mqs.InMemoryConfig{Name: testutil.RandomString(5)}}))
 	cleanupLogMQ, err := logMQ.Init(s.ctx)
 	require.NoError(t, err)
 	teardownFuncs = append(teardownFuncs, cleanupLogMQ)
@@ -81,6 +82,7 @@ func (s *RetryDeliveryMQSuite) SetupTest(t *testing.T) {
 		testutil.NewMockEventTracer(s.exporter),
 		retryScheduler,
 		&backoff.ConstantBackoff{Interval: 1 * time.Second},
+		s.retryMaxCount,
 	)
 
 	go func() {
@@ -155,9 +157,10 @@ func TestDeliveryMQRetry_EligibleForRetryFalse(t *testing.T) {
 	}
 	logStore := &mockLogStore{}
 	suite := &RetryDeliveryMQSuite{
-		ctx:      ctx,
-		mqConfig: queueConfig,
-		logStore: logStore,
+		ctx:           ctx,
+		mqConfig:      queueConfig,
+		logStore:      logStore,
+		retryMaxCount: 10,
 	}
 	suite.SetupTest(t)
 	defer suite.TeardownTest(t)
@@ -200,9 +203,10 @@ func TestDeliveryMQRetry_EligibleForRetryTrue(t *testing.T) {
 	}
 	logStore := &mockLogStore{}
 	suite := &RetryDeliveryMQSuite{
-		ctx:      context.Background(),
-		mqConfig: queueConfig,
-		logStore: logStore,
+		ctx:           context.Background(),
+		mqConfig:      queueConfig,
+		logStore:      logStore,
+		retryMaxCount: 10,
 	}
 	suite.SetupTest(t)
 	defer suite.TeardownTest(t)
@@ -249,11 +253,12 @@ func TestDeliveryMQRetry_SystemError(t *testing.T) {
 	entityStore := newMockEntityStore(models.NewEntityStore(redisClient, models.NewAESCipher("")))
 	logStore := &mockLogStore{}
 	suite := &RetryDeliveryMQSuite{
-		ctx:         ctx,
-		mqConfig:    queueConfig,
-		redisClient: redisClient,
-		entityStore: entityStore,
-		logStore:    logStore,
+		ctx:           ctx,
+		mqConfig:      queueConfig,
+		redisClient:   redisClient,
+		entityStore:   entityStore,
+		logStore:      logStore,
+		retryMaxCount: 10,
 	}
 	suite.SetupTest(t)
 	defer suite.TeardownTest(t)
@@ -283,6 +288,52 @@ func TestDeliveryMQRetry_SystemError(t *testing.T) {
 		deliverSpans = append(deliverSpans, span)
 	}
 	assert.Greater(t, len(deliverSpans), 1, "expected delivery to be retried")
+}
+
+func TestDeliveryMQRetry_RetryMaxCount(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // should be enough for more than 3 attempts
+	defer cancel()
+
+	queueConfig := &mqs.QueueConfig{
+		InMemory: &mqs.InMemoryConfig{Name: testutil.RandomString(5)},
+	}
+	logStore := &mockLogStore{}
+	suite := &RetryDeliveryMQSuite{
+		ctx:           context.Background(),
+		mqConfig:      queueConfig,
+		logStore:      logStore,
+		retryMaxCount: 2,
+	}
+	suite.SetupTest(t)
+	defer suite.TeardownTest(t)
+
+	// Act
+	event := testutil.EventFactory.Any(
+		testutil.EventFactory.WithTenantID(suite.tenant.ID),
+		testutil.EventFactory.WithDestinationID(suite.destination.ID),
+		testutil.EventFactory.WithEligibleForRetry(true),
+	)
+	logStore.registerEvent(&event)
+	deliveryEvent := models.DeliveryEvent{
+		ID:            uuid.New().String(),
+		Event:         event,
+		DestinationID: suite.destination.ID,
+	}
+	require.NoError(t, suite.deliveryMQ.Publish(ctx, deliveryEvent))
+
+	// Assert
+	<-ctx.Done()
+	spans := suite.exporter.GetSpans()
+	var deliverSpans tracetest.SpanStubs
+	for _, span := range spans {
+		if span.Name != "Deliver" {
+			continue
+		}
+		deliverSpans = append(deliverSpans, span)
+	}
+	assert.Len(t, deliverSpans, 3) // 1 initial attempt + 2 retries
 }
 
 type mockEntityStore struct {
