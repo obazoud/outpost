@@ -15,12 +15,14 @@ import (
 type DestinationHandlers struct {
 	logger      *otelzap.Logger
 	entityStore models.EntityStore
+	topics      []string
 }
 
-func NewDestinationHandlers(logger *otelzap.Logger, entityStore models.EntityStore) *DestinationHandlers {
+func NewDestinationHandlers(logger *otelzap.Logger, entityStore models.EntityStore, topics []string) *DestinationHandlers {
 	return &DestinationHandlers{
 		logger:      logger,
 		entityStore: entityStore,
+		topics:      topics,
 	}
 }
 
@@ -51,6 +53,10 @@ func (h *DestinationHandlers) Create(c *gin.Context) {
 		CreatedAt:   time.Now(),
 		DisabledAt:  nil,
 		TenantID:    c.Param("tenantID"),
+	}
+	if err := destination.ValidateTopics(h.topics); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	if err := h.entityStore.UpsertDestination(c.Request.Context(), destination); err != nil {
 		if strings.Contains(err.Error(), "validation failed") {
@@ -109,6 +115,10 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 	if json.Topics != nil {
 		destination.Topics = json.Topics
+		if err := destination.ValidateTopics(h.topics); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 	if json.Config != nil {
 		destination.Config = json.Config
@@ -154,14 +164,14 @@ func (h *DestinationHandlers) Delete(c *gin.Context) {
 
 type CreateDestinationRequest struct {
 	Type        string            `json:"type" binding:"required"`
-	Topics      []string          `json:"topics" binding:"required"`
+	Topics      models.Topics     `json:"topics" binding:"required"`
 	Config      map[string]string `json:"config" binding:"required"`
 	Credentials map[string]string `json:"credentials" binding:"required"`
 }
 
 type UpdateDestinationRequest struct {
 	Type        string            `json:"type" binding:"-"`
-	Topics      []string          `json:"topics" binding:"-"`
+	Topics      models.Topics     `json:"topics" binding:"-"`
 	Config      map[string]string `json:"config" binding:"-"`
 	Credentials map[string]string `json:"credentials" binding:"-"`
 }

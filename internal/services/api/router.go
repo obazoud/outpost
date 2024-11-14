@@ -18,6 +18,7 @@ type RouterConfig struct {
 	APIKey         string
 	JWTSecret      string
 	PortalProxyURL string
+	Topics         []string
 }
 
 func NewRouter(
@@ -44,9 +45,10 @@ func NewRouter(
 	})
 
 	tenantHandlers := NewTenantHandlers(logger, cfg.JWTSecret, entityStore)
-	destinationHandlers := NewDestinationHandlers(logger, entityStore)
+	destinationHandlers := NewDestinationHandlers(logger, entityStore, cfg.Topics)
 	publishHandlers := NewPublishHandlers(logger, publishmqEventHandler)
 	logHandlers := NewLogHandlers(logger, logStore)
+	topicHandlers := NewTopicHandlers(logger, cfg.Topics)
 
 	// Admin router is a router group with the API key auth mechanism.
 	adminRouter := apiRouter.Group("/", APIKeyAuthMiddleware(cfg.APIKey))
@@ -80,6 +82,8 @@ func NewRouter(
 	tenantRouter.GET("/:tenantID/events/:eventID/deliveries", logHandlers.ListDeliveryByEvent)
 
 	adminRouter.POST("/publish", publishHandlers.Ingest)
+
+	adminRouter.GET("/topics", topicHandlers.List)
 
 	return r
 }
