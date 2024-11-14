@@ -1,9 +1,7 @@
 package api
 
 import (
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/EventKit/internal/deliverymq"
@@ -16,9 +14,10 @@ import (
 )
 
 type RouterConfig struct {
-	Hostname  string
-	APIKey    string
-	JWTSecret string
+	Hostname       string
+	APIKey         string
+	JWTSecret      string
+	PortalProxyURL string
 }
 
 func NewRouter(
@@ -34,14 +33,14 @@ func NewRouter(
 	r.Use(otelgin.Middleware(cfg.Hostname))
 	r.Use(MetricsMiddleware())
 
-	portal.AddRoutes(r)
+	portal.AddRoutes(r, portal.PortalConfig{
+		ProxyURL: cfg.PortalProxyURL,
+	})
 
 	apiRouter := r.Group("/api/v1")
 
 	apiRouter.GET("/healthz", func(c *gin.Context) {
-		log.Println("/healthz")
-		time.Sleep(1 * time.Second)
-		c.Status(http.StatusOK)
+		c.String(http.StatusOK, "OK")
 	})
 
 	tenantHandlers := NewTenantHandlers(logger, cfg.JWTSecret, entityStore)

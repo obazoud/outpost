@@ -1,0 +1,60 @@
+name: "outpost-uptrace"
+services:
+  uptrace_clickhouse:
+    image: clickhouse/clickhouse-server:24.7
+    restart: on-failure
+    environment:
+      CLICKHOUSE_DB: uptrace
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    volumes:
+      - ch_data2:/var/lib/clickhouse
+    ports:
+      # - "8123:8123"
+      - "9001:9000"
+
+  uptrace_postgres:
+    image: postgres:15-alpine
+    restart: on-failure
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER: uptrace
+      POSTGRES_PASSWORD: uptrace
+      POSTGRES_DB: uptrace
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uptrace -d uptrace"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    volumes:
+      - "pg_data3:/var/lib/postgresql/data/pgdata"
+    ports:
+      - "5432:5432"
+
+  uptrace:
+    image: "uptrace/uptrace:1.7.6"
+    #image: 'uptrace/uptrace-dev:latest'
+    restart: on-failure
+    volumes:
+      - ./uptrace.yml:/etc/uptrace/uptrace.yml
+    environment:
+      UPTRACE_CH_ADDR: "localhost:9001"
+    #  - DEBUG=2
+    ports:
+      - "14317:14317"
+      - "14318:14318"
+    depends_on:
+      - uptrace_clickhouse
+      - uptrace_postgres
+
+volumes:
+  ch_data2:
+  pg_data3:
+
+networks:
+  default:
+    name: outpost
+    external: true
