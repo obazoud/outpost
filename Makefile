@@ -12,7 +12,7 @@ up/outpost:
 	docker-compose -f build/dev/compose.yml --env-file .env up -d
 
 down/outpost:
-	docker-compose -f build/dev/compose.yml down
+	docker-compose -f build/dev/compose.yml --env-file .env down
 
 up/mqs:
 	docker-compose -f build/dev/mqs/compose.yml up -d
