@@ -1,0 +1,14 @@
+:root {
+  --surface-colors-surface-neutrals-background: #fafaf8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surface Colors - Dark Mode */
+    --surface-colors-surface-neutrals-background: #171717;
+  }
+}
+
+body {
+  background: var(--surface-colors-surface-neutrals-background);
+}

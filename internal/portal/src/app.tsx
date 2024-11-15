@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DestinationList from "./scenes/DestinationsList/DestinationList";
 import { SWRConfig } from "swr";
 
+import "./global.css";
+
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);

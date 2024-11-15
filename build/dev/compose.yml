@@ -44,7 +44,10 @@ services:
       dockerfile: ./build/dev/portal/Dockerfile
     volumes:
       - ../../internal/portal:/app
-      - /app/node_modules
+      - portal_node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npx vite dev --host" 
 
   redis:
     image: redis:7.4-alpine
@@ -89,6 +92,8 @@ volumes:
   redis:
     driver: local
   clickhouse:
+    driver: local
+  portal_node_modules:
     driver: local
 
 networks:
