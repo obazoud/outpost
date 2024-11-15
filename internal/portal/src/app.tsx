@@ -1,16 +1,36 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import DestinationList from "./scenes/DestinationsList/DestinationList";
+import { SWRConfig } from "swr";
 
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);
 
+  console.log(tenant, token);
+
   return (
-    <div>
-      <p>EventKit Portal</p>
-      <p>Token: {token}</p>
-      <p>Tenant:</p>
-      <pre>{JSON.stringify(tenant ?? {}, null, 2)}</pre>
-    </div>
+    <SWRConfig
+      value={{
+        fetcher: (path: string) =>
+          fetch(`http://localhost:3333/api/v1/${tenant?.id}/${path}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }).then((res) => res.json()),
+      }}
+    >
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" Component={DestinationList} />
+          <Route path="/new" element={<div>New Destination</div>} />
+          <Route
+            path="/:destination_id"
+            element={<div>Specific Destination</div>}
+          />
+        </Routes>
+      </BrowserRouter>
+    </SWRConfig>
   );
 }
 

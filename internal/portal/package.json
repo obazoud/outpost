@@ -1,12 +1,14 @@
 {
-  "name": "eventkit-portal",
+  "name": "outpost-portal",
   "scripts": {
     "dev": "vite",
     "build": "vite build"
   },
   "dependencies": {
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "swr": "^2.2.5"
   },
   "devDependencies": {
     "@tsconfig/vite-react": "^3.0.2",
