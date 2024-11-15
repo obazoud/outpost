@@ -9,11 +9,15 @@ export function App() {
 
   console.log(tenant, token);
 
+  if (!tenant) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <SWRConfig
       value={{
         fetcher: (path: string) =>
-          fetch(`http://localhost:3333/api/v1/${tenant?.id}/${path}`, {
+          fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },

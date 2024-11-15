@@ -2,8 +2,7 @@ import useSWR from "swr";
 
 interface Destination {
   id: string;
-  name: string;
-  url: string;
+  type: string;
 }
 
 const DestinationList: React.FC = () => {
@@ -18,8 +17,12 @@ const DestinationList: React.FC = () => {
       <ul>
         {destinations.map((destination) => (
           <li key={destination.id}>
-            <a href={destination.url} target="_blank" rel="noopener noreferrer">
-              {destination.name}
+            <a
+              href={`/${destination.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {destination.type} – {destination.id}
             </a>
           </li>
         ))}
