@@ -14,6 +14,7 @@ const DestinationList: React.FC = () => {
 
   return (
     <div className="destination-list">
+
       <ul>
         {destinations.map((destination) => (
           <li key={destination.id}>

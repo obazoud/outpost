@@ -47,6 +47,7 @@ services:
       - portal_node_modules:/app/node_modules
     environment:
       - NODE_ENV=development
+    env_file: ../../.env
     command: sh -c "npm install && npx vite dev --host" 
 
   redis:

@@ -1,0 +1,117 @@
+$BASE_FONT_SIZE: 16px !default;
+$BASE_GRID_MULTIPLIER: 4px !default;
+
+$RADIUS_S: 4px !default;
+$RADIUS_M: 6px !default;
+
+// Surface Colors
+$COLORS_SURFACE_BACKGROUND_LIGHT: #FAFAF8 !default;
+$COLORS_SURFACE_BACKGROUND_DARK: #1a1a1a !default;
+$COLORS_SURFACE_NEUTRAL_LIGHT: #ffffff !default;
+$COLORS_SURFACE_NEUTRAL_DARK: #333333 !default;
+$COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT: #f5f5f5 !default;
+$COLORS_SURFACE_NEUTRAL_VARIANT_DARK: #404040 !default;
+
+// Container Colors
+$COLORS_CONTAINER_SUCCESS_LIGHT: #e5f2ec !default;
+$COLORS_CONTAINER_SUCCESS_DARK: #1a332b !default;
+$COLORS_CONTAINER_NEUTRAL_LIGHT: #ebebeb !default;
+$COLORS_CONTAINER_NEUTRAL_DARK: #404040 !default;
+$COLORS_CONTAINER_ERROR_LIGHT: #fafaf8 !default;
+$COLORS_CONTAINER_ERROR_DARK: #331a1a !default;
+
+// On Surface Colors
+$COLORS_ON_SURFACE_PRIMARY_LIGHT: #141412 !default;
+$COLORS_ON_SURFACE_PRIMARY_DARK: #e6e6e6 !default;
+$COLORS_ON_SURFACE_SECONDARY_LIGHT: #7a7a7a !default;
+$COLORS_ON_SURFACE_SECONDARY_DARK: #999999 !default;
+$COLORS_ON_SURFACE_ERROR_LIGHT: #fae9e7 !default;
+$COLORS_ON_SURFACE_ERROR_DARK: #4d1a14 !default;
+
+// On Container Colors
+$COLORS_ON_CONTAINER_SUCCESS_LIGHT: #006633 !default;
+$COLORS_ON_CONTAINER_SUCCESS_DARK: #00cc66 !default;
+$COLORS_ON_CONTAINER_MUTED_LIGHT: #141412 !default;
+$COLORS_ON_CONTAINER_MUTED_DARK: #e6e6e6 !default;
+$COLORS_ON_CONTAINER_ERROR_LIGHT: #cc2314 !default;
+$COLORS_ON_CONTAINER_ERROR_DARK: #ff4d4d !default;
+
+// Outline Colors
+$COLORS_OUTLINE_NEUTRAL_LIGHT: #ebebeb !default;
+$COLORS_OUTLINE_NEUTRAL_DARK: #404040 !default;
+$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT: #cce6d9 !default;
+$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK: #264d3d !default;
+$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT: #f5d3d0 !default;
+$COLORS_OUTLINE_CONTAINER_ERROR_DARK: #4d2626 !default;
+
+// Data Visualization Colors
+$COLORS_DATAVIZ_SUCCESS_LIGHT: #66b38c !default;
+$COLORS_DATAVIZ_SUCCESS_DARK: #33664d !default;
+$COLORS_DATAVIZ_ERROR_LIGHT: #cc2314 !default;
+$COLORS_DATAVIZ_ERROR_DARK: #ff4d4d !default;
+$COLORS_DATAVIZ_INFO_LIGHT: #99b8f5 !default;
+$COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
+
+:root {
+  --base-font-size: #{$BASE_FONT_SIZE};
+  --base-grid-multiplier: #{$BASE_GRID_MULTIPLIER};
+
+  --radius-s: #{$RADIUS_S};
+  --radius-m: #{$RADIUS_M};
+
+  --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_LIGHT};
+  --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_LIGHT};
+  --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT};
+
+  --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_LIGHT};
+  --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_LIGHT};
+  --colors-container-error: #{$COLORS_CONTAINER_ERROR_LIGHT};
+
+  --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_LIGHT};
+  --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_LIGHT};
+  --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_LIGHT};
+
+  --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_LIGHT};
+  --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_LIGHT};
+  --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_LIGHT};
+
+  --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
+
+  --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT};
+  --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT};
+
+  --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_LIGHT};
+  --colors-dataviz-error: #{$COLORS_DATAVIZ_ERROR_LIGHT};
+  --colors-dataviz-info: #{$COLORS_DATAVIZ_INFO_LIGHT};
+
+  body[data-theme="dark"] {
+    --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_DARK};
+    --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_DARK};
+    --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_DARK};
+
+    --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_DARK};
+    --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_DARK};
+    --colors-container-error: #{$COLORS_CONTAINER_ERROR_DARK};
+
+    --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_DARK};
+    --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_DARK};
+    --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_DARK};
+
+    --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_DARK};
+    --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_DARK};
+    --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_DARK};
+
+    --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_DARK};
+
+    --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK};
+    --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_DARK};
+
+    --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_DARK};
+    --colors-dataviz-error: #{$COLORS_DATAVIZ_ERROR_DARK};
+    --colors-dataviz-info: #{$COLORS_DATAVIZ_INFO_DARK};
+  }
+}
+
+body {
+  background: var(--colors-surface-background);
+}

@@ -3,40 +3,47 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DestinationList from "./scenes/DestinationsList/DestinationList";
 import { SWRConfig } from "swr";
 
-import "./global.css";
+import "./global.scss";
 
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);
-
-  console.log(tenant, token);
 
   if (!tenant) {
     return <div>Loading...</div>;
   }
 
   return (
-    <SWRConfig
-      value={{
-        fetcher: (path: string) =>
-          fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }).then((res) => res.json()),
-      }}
-    >
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" Component={DestinationList} />
-          <Route path="/new" element={<div>New Destination</div>} />
-          <Route
-            path="/:destination_id"
-            element={<div>Specific Destination</div>}
-          />
-        </Routes>
-      </BrowserRouter>
-    </SWRConfig>
+    <>
+      {LOGO ? LOGO.indexOf("http") === 0 ? (
+        <img src={LOGO} alt={ORGANIZATION_NAME} />
+      ) : (
+        <div dangerouslySetInnerHTML={{ __html: LOGO }} />
+      ): null}
+      <h1>{ORGANIZATION_NAME}</h1>
+
+      <SWRConfig
+        value={{
+          fetcher: (path: string) =>
+            fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }).then((res) => res.json()),
+        }}
+      >
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" Component={DestinationList} />
+            <Route path="/new" element={<div>New Destination</div>} />
+            <Route
+              path="/:destination_id"
+              element={<div>Specific Destination</div>}
+            />
+          </Routes>
+        </BrowserRouter>
+      </SWRConfig>
+    </>
   );
 }
 
