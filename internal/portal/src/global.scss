@@ -1,4 +1,4 @@
-$BASE_FONT_SIZE: 16px !default;
+$BASE_FONT_SIZE: 14px !default;
 $BASE_GRID_MULTIPLIER: 4px !default;
 
 $RADIUS_S: 4px !default;
@@ -112,6 +112,210 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
   }
 }
 
+html {
+  font-size: var(--base-font-size); // 16px from your variables
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--colors-surface-background);
+  font-size: 1rem;
+}
+/* Font size variables */
+$font-size-3xl: 1.75rem;  /* 28px */
+$font-size-2xl: 1.5rem;   /* 24px */
+$font-size-xl: 1.25rem;   /* 20px */
+$font-size-l: 1rem;       /* 16px */
+$font-size-m: 0.875rem;   /* 14px */
+$font-size-s: 0.8125rem;  /* 13px */
+$font-size-xs: 0.75rem;   /* 12px */
+
+/* Line height variables */
+$line-height-3xl: 2.25rem; /* 36px */
+$line-height-2xl: 2rem;    /* 32px */
+$line-height-xl: 1.75rem;  /* 28px */
+$line-height-l: 1.5rem;    /* 24px */
+$line-height-m: 1.25rem;   /* 20px */
+$line-height-s: 1.25rem;   /* 20px */
+$line-height-xs: 1.25rem;   /* 20px */
+
+/* Title styles */
+.title-3xl {
+  font-size: $font-size-3xl;
+  line-height: $line-height-3xl;
+  font-weight: 600;
+}
+
+.title-2xl {
+  font-size: $font-size-2xl;
+  line-height: $line-height-2xl;
+  font-weight: 600;
+}
+
+.title-xl {
+  font-size: $font-size-xl;
+  line-height: $line-height-xl;
+  font-weight: 600;
+}
+
+.title-l {
+  font-size: $font-size-l;
+  line-height: $line-height-l;
+  font-weight: 600;
+}
+
+.title-m {
+  font-size: $font-size-m;
+  line-height: $line-height-m;
+  font-weight: 600;
+}
+
+.title-s {
+  font-size: $font-size-s;
+  line-height: $line-height-s;
+  font-weight: 600;
+}
+
+.title-xs {
+  font-size: $font-size-xs;
+  line-height: $line-height-xs;
+  font-weight: 600;
+}
+
+/* Subtitle styles */
+.subtitle-3xl {
+  font-size: $font-size-3xl;
+  line-height: $line-height-3xl;
+  font-weight: 500;
+}
+
+.subtitle-2xl {
+  font-size: $font-size-2xl;
+  line-height: $line-height-2xl;
+  font-weight: 500;
+}
+
+.subtitle-xl {
+  font-size: $font-size-xl;
+  line-height: $line-height-xl;
+  font-weight: 500;
+}
+
+.subtitle-l {
+  font-size: $font-size-l;
+  line-height: $line-height-l;
+  font-weight: 500;
+}
+
+.subtitle-m {
+  font-size: $font-size-m;
+  line-height: $line-height-m;
+  font-weight: 500;
+}
+
+.subtitle-s {
+  font-size: $font-size-s;
+  line-height: $line-height-s;
+  font-weight: 500;
+}
+
+.subtitle-xs {
+  font-size: $font-size-xs;
+  line-height: $line-height-xs;
+  font-weight: 500;
+}
+
+/* Body styles */
+.body-3xl {
+  font-size: $font-size-3xl;
+  line-height: $line-height-3xl;
+  font-weight: 400;
+}
+
+.body-2xl {
+  font-size: $font-size-2xl;
+  line-height: $line-height-2xl;
+  font-weight: 400;
+}
+
+.body-xl {
+  font-size: $font-size-xl;
+  line-height: $line-height-xl;
+  font-weight: 400;
+}
+
+.body-l {
+  font-size: $font-size-l;
+  line-height: $line-height-l;
+  font-weight: 400;
+}
+
+.body-m {
+  font-size: $font-size-m;
+  line-height: $line-height-m;
+  font-weight: 400;
+}
+
+.body-s {
+  font-size: $font-size-s;
+  line-height: $line-height-s;
+  font-weight: 400;
+}
+
+.body-xs {
+  font-size: $font-size-xs;
+  line-height: $line-height-xs;
+  font-weight: 400;
+}
+
+/* Mono styles */
+.mono-3xl {
+  font-size: $font-size-3xl;
+  line-height: $line-height-3xl;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-2xl {
+  font-size: $font-size-2xl;
+  line-height: $line-height-2xl;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-xl {
+  font-size: $font-size-xl;
+  line-height: $line-height-xl;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-l {
+  font-size: $font-size-l;
+  line-height: $line-height-l;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-m {
+  font-size: $font-size-m;
+  line-height: $line-height-m;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-s {
+  font-size: $font-size-s;
+  line-height: $line-height-s;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.mono-xs {
+  font-size: $font-size-xs;
+  line-height: $line-height-xs;
+  font-weight: 400;
+  font-family: "JetBrains Mono", monospace;
 }

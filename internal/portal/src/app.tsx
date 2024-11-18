@@ -20,8 +20,7 @@ export function App() {
       ) : (
         <div dangerouslySetInnerHTML={{ __html: LOGO }} />
       ): null}
-      <h1>{ORGANIZATION_NAME}</h1>
-
+      <h1 className="title-l">{ORGANIZATION_NAME}</h1>
       <SWRConfig
         value={{
           fetcher: (path: string) =>
@@ -32,7 +31,10 @@ export function App() {
             }).then((res) => res.json()),
         }}
       >
-        <BrowserRouter>
+        <BrowserRouter future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}>
           <Routes>
             <Route path="/" Component={DestinationList} />
             <Route path="/new" element={<div>New Destination</div>} />
