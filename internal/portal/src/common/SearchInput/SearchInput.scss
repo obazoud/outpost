@@ -1,0 +1,42 @@
+.search_input_container {
+  position: relative;
+}
+
+.search_input {
+  padding-right: var(--spacing-8);
+  padding-left: var(--spacing-9);
+  min-width: 368px;
+}
+
+.search_input_icon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: var(--spacing-2);
+  fill: var(--colors-on-surface-secondary-variant);
+}
+
+.search_input_clear {
+  position: absolute;
+  right: var(--spacing-2);
+  top: var(--spacing-2);
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0; // Remove extra vertical space
+  display: flex; // Center the SVG
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+
+  svg {
+    fill: var(--colors-on-surface-neutral);
+    
+  }
+
+  &:hover {
+    svg {
+      fill: var(--colors-on-surface-secondary);
+    }
+  }
+} 

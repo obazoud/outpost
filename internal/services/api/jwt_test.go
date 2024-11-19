@@ -49,7 +49,7 @@ func TestJWT(t *testing.T) {
 			"iss": "not-outpost",
 			"sub": tenantID,
 			"iat": now.Unix(),
-			"exp": now.Add(time.Hour).Unix(),
+			"exp": now.Add(24 * time.Hour).Unix(),
 		})
 		token, err := jwtToken.SignedString([]byte(jwtKey))
 		if err != nil {
@@ -67,7 +67,7 @@ func TestJWT(t *testing.T) {
 			"iss": issuer,
 			"sub": "different_tenantID",
 			"iat": now.Unix(),
-			"exp": now.Add(time.Hour).Unix(),
+			"exp": now.Add(24 * time.Hour).Unix(),
 		})
 		token, err := jwtToken.SignedString([]byte(jwtKey))
 		if err != nil {
@@ -85,7 +85,7 @@ func TestJWT(t *testing.T) {
 			"iss": issuer,
 			"sub": tenantID,
 			"iat": now.Add(-2 * time.Hour).Unix(),
-			"exp": now.Add(-time.Hour).Unix(),
+			"exp": now.Add(-24 * time.Hour).Unix(),
 		})
 		token, err := jwtToken.SignedString([]byte(jwtKey))
 		if err != nil {

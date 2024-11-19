@@ -1,16 +1,20 @@
-$BASE_FONT_SIZE: 14px !default;
+$BASE_FONT_SIZE: 16px !default;
 $BASE_GRID_MULTIPLIER: 4px !default;
 
 $RADIUS_S: 4px !default;
 $RADIUS_M: 6px !default;
 
 // Surface Colors
-$COLORS_SURFACE_BACKGROUND_LIGHT: #FAFAF8 !default;
+$COLORS_SURFACE_BACKGROUND_LIGHT: #fafaf8 !default;
 $COLORS_SURFACE_BACKGROUND_DARK: #1a1a1a !default;
 $COLORS_SURFACE_NEUTRAL_LIGHT: #ffffff !default;
 $COLORS_SURFACE_NEUTRAL_DARK: #333333 !default;
 $COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT: #f5f5f5 !default;
 $COLORS_SURFACE_NEUTRAL_VARIANT_DARK: #404040 !default;
+$COLORS_SURFACE_PRIMARY_LIGHT: #0044cc !default;
+$COLORS_SURFACE_PRIMARY_DARK: #0044cc !default;
+$COLORS_SURFACE_PRIMARY_HOVER_LIGHT: #0036a3 !default;
+$COLORS_SURFACE_PRIMARY_HOVER_DARK: #0036a3 !default;
 
 // Container Colors
 $COLORS_CONTAINER_SUCCESS_LIGHT: #e5f2ec !default;
@@ -21,12 +25,15 @@ $COLORS_CONTAINER_ERROR_LIGHT: #fafaf8 !default;
 $COLORS_CONTAINER_ERROR_DARK: #331a1a !default;
 
 // On Surface Colors
-$COLORS_ON_SURFACE_PRIMARY_LIGHT: #141412 !default;
-$COLORS_ON_SURFACE_PRIMARY_DARK: #e6e6e6 !default;
+$COLORS_ON_SURFACE_NEUTRAL_LIGHT: #141412 !default;
+$COLORS_ON_SURFACE_NEUTRAL_DARK: #e6e6e6 !default;
 $COLORS_ON_SURFACE_SECONDARY_LIGHT: #7a7a7a !default;
 $COLORS_ON_SURFACE_SECONDARY_DARK: #999999 !default;
+$COLORS_ON_SURFACE_SECONDARY_VARIANT: #525252 !default;
 $COLORS_ON_SURFACE_ERROR_LIGHT: #fae9e7 !default;
 $COLORS_ON_SURFACE_ERROR_DARK: #4d1a14 !default;
+$COLORS_ON_SURFACE_PRIMARY_LIGHT: #ffffff !default;
+$COLORS_ON_SURFACE_PRIMARY_DARK: #ffffff !default;
 
 // On Container Colors
 $COLORS_ON_CONTAINER_SUCCESS_LIGHT: #006633 !default;
@@ -38,11 +45,14 @@ $COLORS_ON_CONTAINER_ERROR_DARK: #ff4d4d !default;
 
 // Outline Colors
 $COLORS_OUTLINE_NEUTRAL_LIGHT: #ebebeb !default;
+$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT: #d6d6d6 !default;
 $COLORS_OUTLINE_NEUTRAL_DARK: #404040 !default;
 $COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT: #cce6d9 !default;
 $COLORS_OUTLINE_CONTAINER_SUCCESS_DARK: #264d3d !default;
 $COLORS_OUTLINE_CONTAINER_ERROR_LIGHT: #f5d3d0 !default;
 $COLORS_OUTLINE_CONTAINER_ERROR_DARK: #4d2626 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS: #668fe0 !default;
+$COLORS_OUTLINE_PRIMARY_HOVER: #002eb8 !default;
 
 // Data Visualization Colors
 $COLORS_DATAVIZ_SUCCESS_LIGHT: #66b38c !default;
@@ -59,23 +69,48 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
   --radius-s: #{$RADIUS_S};
   --radius-m: #{$RADIUS_M};
 
+  --font-size-3xl: 1.75rem; /* 28px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-l: 1rem; /* 16px */
+  --font-size-m: 0.875rem; /* 14px */
+  --font-size-s: 0.8125rem; /* 13px */
+  --font-size-xs: 0.75rem; /* 12px */
+
+  --line-height-3xl: 2.25rem; /* 36px */
+  --line-height-2xl: 2rem; /* 32px */
+  --line-height-xl: 1.75rem; /* 28px */
+  --line-height-l: 1.5rem; /* 24px */
+  --line-height-m: 1.25rem; /* 20px */
+  --line-height-s: 1.25rem; /* 20px */
+  --line-height-xs: 1.25rem; /* 20px */
+
+  --shadow-elevation-1: 0px 1px 0px 0px rgba(0, 0, 0, 0.02);
+  --shadow-elevation-2: 0px -1px 0px 0px rgba(0, 0, 0, 0.2) inset,
+    0px 1px 0px 0px rgba(0, 0, 0, 0.08);
+
   --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_LIGHT};
   --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_LIGHT};
   --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT};
+  --colors-surface-primary: #{$COLORS_SURFACE_PRIMARY_LIGHT};
+  --colors-surface-primary-hover: #{$COLORS_SURFACE_PRIMARY_HOVER_LIGHT};
 
   --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_LIGHT};
   --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_LIGHT};
   --colors-container-error: #{$COLORS_CONTAINER_ERROR_LIGHT};
 
-  --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_LIGHT};
+  --colors-on-surface-neutral: #{$COLORS_ON_SURFACE_NEUTRAL_LIGHT};
   --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_LIGHT};
+  --colors-on-surface-secondary-variant: #{$COLORS_ON_SURFACE_SECONDARY_VARIANT};
   --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_LIGHT};
+  --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_LIGHT};
 
   --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_LIGHT};
   --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_LIGHT};
   --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_LIGHT};
 
   --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
+  --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT};
 
   --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT};
   --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT};
@@ -88,20 +123,25 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
     --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_DARK};
     --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_DARK};
     --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_DARK};
+    --colors-surface-primary: #{$COLORS_SURFACE_PRIMARY_DARK};
+    --colors-surface-primary-hover: #{$COLORS_SURFACE_PRIMARY_HOVER_DARK};
 
     --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_DARK};
     --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_DARK};
     --colors-container-error: #{$COLORS_CONTAINER_ERROR_DARK};
 
-    --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_DARK};
+    --colors-on-surface-neutral: #{$COLORS_ON_SURFACE_NEUTRAL_DARK};
     --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_DARK};
     --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_DARK};
+    --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_DARK};
 
     --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_DARK};
     --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_DARK};
     --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_DARK};
 
     --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_DARK};
+    --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_DARK};
+    --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS};
 
     --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK};
     --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_DARK};
@@ -118,204 +158,233 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+
+  &:focus-visible {
+    outline: 2px solid var(--colors-outline-primary-focus);
+  }
+}
+
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 0;
+  margin: 0;
   background: var(--colors-surface-background);
   font-size: 1rem;
 }
-/* Font size variables */
-$font-size-3xl: 1.75rem;  /* 28px */
-$font-size-2xl: 1.5rem;   /* 24px */
-$font-size-xl: 1.25rem;   /* 20px */
-$font-size-l: 1rem;       /* 16px */
-$font-size-m: 0.875rem;   /* 14px */
-$font-size-s: 0.8125rem;  /* 13px */
-$font-size-xs: 0.75rem;   /* 12px */
 
-/* Line height variables */
-$line-height-3xl: 2.25rem; /* 36px */
-$line-height-2xl: 2rem;    /* 32px */
-$line-height-xl: 1.75rem;  /* 28px */
-$line-height-l: 1.5rem;    /* 24px */
-$line-height-m: 1.25rem;   /* 20px */
-$line-height-s: 1.25rem;   /* 20px */
-$line-height-xs: 1.25rem;   /* 20px */
+@mixin generate-spacing-variables {
+  @for $i from 1 through 12 {
+    --spacing-#{$i}: #{$i * $BASE_GRID_MULTIPLIER};
+  }
+}
+
+:root {
+  --spacing-1--5: calc(var(--spacing-1) * 1.5);
+  @include generate-spacing-variables;
+}
 
 /* Title styles */
 .title-3xl {
-  font-size: $font-size-3xl;
-  line-height: $line-height-3xl;
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
   font-weight: 600;
 }
 
 .title-2xl {
-  font-size: $font-size-2xl;
-  line-height: $line-height-2xl;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
   font-weight: 600;
 }
 
 .title-xl {
-  font-size: $font-size-xl;
-  line-height: $line-height-xl;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
   font-weight: 600;
 }
 
 .title-l {
-  font-size: $font-size-l;
-  line-height: $line-height-l;
+  font-size: var(--font-size-l);
+  line-height: var(--line-height-l);
   font-weight: 600;
 }
 
 .title-m {
-  font-size: $font-size-m;
-  line-height: $line-height-m;
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
   font-weight: 600;
 }
 
 .title-s {
-  font-size: $font-size-s;
-  line-height: $line-height-s;
+  font-size: var(--font-size-s);
+  line-height: var(--line-height-s);
   font-weight: 600;
 }
 
 .title-xs {
-  font-size: $font-size-xs;
-  line-height: $line-height-xs;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
   font-weight: 600;
 }
 
 /* Subtitle styles */
 .subtitle-3xl {
-  font-size: $font-size-3xl;
-  line-height: $line-height-3xl;
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
   font-weight: 500;
 }
 
 .subtitle-2xl {
-  font-size: $font-size-2xl;
-  line-height: $line-height-2xl;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
   font-weight: 500;
 }
 
 .subtitle-xl {
-  font-size: $font-size-xl;
-  line-height: $line-height-xl;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
   font-weight: 500;
 }
 
 .subtitle-l {
-  font-size: $font-size-l;
-  line-height: $line-height-l;
+  font-size: var(--font-size-l);
+  line-height: var(--line-height-l);
   font-weight: 500;
 }
 
 .subtitle-m {
-  font-size: $font-size-m;
-  line-height: $line-height-m;
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
   font-weight: 500;
 }
 
 .subtitle-s {
-  font-size: $font-size-s;
-  line-height: $line-height-s;
+  font-size: var(--font-size-s);
+  line-height: var(--line-height-s);
   font-weight: 500;
 }
 
 .subtitle-xs {
-  font-size: $font-size-xs;
-  line-height: $line-height-xs;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
   font-weight: 500;
 }
 
 /* Body styles */
 .body-3xl {
-  font-size: $font-size-3xl;
-  line-height: $line-height-3xl;
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
   font-weight: 400;
 }
 
 .body-2xl {
-  font-size: $font-size-2xl;
-  line-height: $line-height-2xl;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
   font-weight: 400;
 }
 
 .body-xl {
-  font-size: $font-size-xl;
-  line-height: $line-height-xl;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
   font-weight: 400;
 }
 
 .body-l {
-  font-size: $font-size-l;
-  line-height: $line-height-l;
+  font-size: var(--font-size-l);
+  line-height: var(--line-height-l);
   font-weight: 400;
 }
 
 .body-m {
-  font-size: $font-size-m;
-  line-height: $line-height-m;
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
   font-weight: 400;
 }
 
 .body-s {
-  font-size: $font-size-s;
-  line-height: $line-height-s;
+  font-size: var(--font-size-s);
+  line-height: var(--line-height-s);
   font-weight: 400;
 }
 
 .body-xs {
-  font-size: $font-size-xs;
-  line-height: $line-height-xs;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
   font-weight: 400;
 }
 
 /* Mono styles */
 .mono-3xl {
-  font-size: $font-size-3xl;
-  line-height: $line-height-3xl;
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-2xl {
-  font-size: $font-size-2xl;
-  line-height: $line-height-2xl;
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-xl {
-  font-size: $font-size-xl;
-  line-height: $line-height-xl;
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-l {
-  font-size: $font-size-l;
-  line-height: $line-height-l;
+  font-size: var(--font-size-l);
+  line-height: var(--line-height-l);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-m {
-  font-size: $font-size-m;
-  line-height: $line-height-m;
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-s {
-  font-size: $font-size-s;
-  line-height: $line-height-s;
+  font-size: var(--font-size-s);
+  line-height: var(--line-height-s);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
 }
 
 .mono-xs {
-  font-size: $font-size-xs;
-  line-height: $line-height-xs;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
   font-weight: 400;
   font-family: "JetBrains Mono", monospace;
+}
+
+input,
+textarea {
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--colors-outline-neutral);
+  padding: calc(var(--spacing-1--5) - 1px) var(--spacing-3);
+  font-family: inherit;
+  background: var(--colors-surface-neutral);
+  color: var(--colors-on-surface-neutral);
+
+  &:hover {
+    border-color: var(--colors-outline-neutral-hover);
+  }
+
+  &:focus {
+    outline: 1px solid var(--colors-outline-primary-focus);
+    border-color: var(--colors-outline-primary-focus);
+  }
+
+  &::placeholder {
+    color: var(--colors-on-surface-secondary);
+  }
 }
