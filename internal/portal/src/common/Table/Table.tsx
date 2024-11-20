@@ -59,7 +59,13 @@ const Table: React.FC<TableProps> = ({ columns, rows }) => {
                     width: `${columns[index]?.relativeWidth}%`,
                   }}
                 >
-                  {row.link ? <Link to={row.link}>{entry}</Link> : entry}
+                  {row.link ? (
+                    <Link to={row.link}>
+                      {typeof entry === "string" ? <span>{entry}</span> : entry}
+                    </Link>
+                  ) : (
+                    entry
+                  )}
                 </td>
               ))}
             </tr>

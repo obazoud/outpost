@@ -5,7 +5,7 @@ $RADIUS_S: 4px !default;
 $RADIUS_M: 6px !default;
 
 // Surface Colors
-$COLORS_SURFACE_BACKGROUND_LIGHT: #fafaf8 !default;
+$COLORS_SURFACE_BACKGROUND_LIGHT: #ffffff !default;
 $COLORS_SURFACE_BACKGROUND_DARK: #1a1a1a !default;
 $COLORS_SURFACE_NEUTRAL_LIGHT: #ffffff !default;
 $COLORS_SURFACE_NEUTRAL_DARK: #333333 !default;
@@ -51,8 +51,10 @@ $COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT: #cce6d9 !default;
 $COLORS_OUTLINE_CONTAINER_SUCCESS_DARK: #264d3d !default;
 $COLORS_OUTLINE_CONTAINER_ERROR_LIGHT: #f5d3d0 !default;
 $COLORS_OUTLINE_CONTAINER_ERROR_DARK: #4d2626 !default;
-$COLORS_OUTLINE_PRIMARY_FOCUS: #668fe0 !default;
-$COLORS_OUTLINE_PRIMARY_HOVER: #002eb8 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT: #668fe0 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS_DARK: #668fe0 !default;
+$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT: #002eb8 !default;
+$COLORS_OUTLINE_PRIMARY_HOVER_DARK: #002eb8 !default;
 
 // Data Visualization Colors
 $COLORS_DATAVIZ_SUCCESS_LIGHT: #66b38c !default;
@@ -111,6 +113,8 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
 
   --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
   --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT};
+  --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT};
+  --colors-outline-primary-hover: #{$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT};
 
   --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT};
   --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT};
@@ -141,7 +145,8 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
 
     --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_DARK};
     --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_DARK};
-    --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS};
+    --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS_DARK};
+    --colors-outline-primary-hover: #{$COLORS_OUTLINE_PRIMARY_HOVER_DARK};
 
     --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK};
     --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_DARK};

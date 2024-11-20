@@ -60,11 +60,15 @@
       line-height: var(--line-height-m);
       font-weight: 500;
       padding: var(--spacing-4);
-      overflow: hidden;
-      text-overflow: ellipsis;
       display: flex;
       align-items: center;
       gap: var(--spacing-2);
+      
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 }

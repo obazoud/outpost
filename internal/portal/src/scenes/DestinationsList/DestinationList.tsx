@@ -31,7 +31,7 @@ const DestinationList: React.FC = () => {
     { header: "Target", minWidth: 150, relativeWidth: 25 },
     { header: "Topics", minWidth: 150, relativeWidth: 20 },
     { header: "Status", minWidth: 100, relativeWidth: 10 },
-    { header: "Success Rate", minWidth: 120, relativeWidth: 15 },
+    { header: "Success Rate", minWidth: 100, relativeWidth: 10 },
     { header: "Events (24h)", minWidth: 100, relativeWidth: 15 },
   ];
 
@@ -39,7 +39,9 @@ const DestinationList: React.FC = () => {
     const search_value = searchTerm.toLowerCase();
     return (
       destination.type.toLowerCase().includes(search_value) ||
-      destination.config.url.toLowerCase().includes(search_value) ||
+      destination.config[destinationTypes[destination.type].target]
+        .toLowerCase()
+        .includes(search_value) ||
       destination.topics.some((topic) =>
         topic.toLowerCase().includes(search_value)
       )
@@ -51,12 +53,12 @@ const DestinationList: React.FC = () => {
       id: destination.id,
       entries: [
         <>
-          <div style={{ minWidth: "20px", display: "flex" }}>
+          <div style={{ minWidth: "20px", width: "20px", display: "flex" }}>
             {destinationTypes[destination.type].icon}
           </div>
           {destinationTypes[destination.type].label}
         </>,
-        destination.config.url,
+        destination.config[destinationTypes[destination.type].target],
         destination.topics.join(", "),
         destination.disabled_at ? "Disabled" : "Active",
         "N/A", // TODO: Replace with actual success rate data
