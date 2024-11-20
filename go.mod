@@ -13,6 +13,7 @@ require (
 	github.com/aws/smithy-go v1.20.3
 	github.com/gin-contrib/static v1.1.2
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-playground/validator/v10 v10.22.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-cmp v0.6.0
@@ -95,7 +96,6 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.22.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
