@@ -3,15 +3,13 @@ package logmq
 import (
 	"context"
 
-	"github.com/hookdeck/EventKit/internal/mqs"
+	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type LogRabbitMQInfra struct {
 	config *mqs.RabbitMQConfig
 }
-
-var _ LogInfra = &LogRabbitMQInfra{}
 
 func (i *LogRabbitMQInfra) DeclareInfrastructure(ctx context.Context) error {
 	conn, err := amqp091.Dial(i.config.ServerURL)
@@ -55,7 +53,7 @@ func (i *LogRabbitMQInfra) DeclareInfrastructure(ctx context.Context) error {
 	)
 }
 
-func NewLogRabbitMQInfra(config *mqs.RabbitMQConfig) *LogRabbitMQInfra {
+func NewLogRabbitMQInfra(config *mqs.RabbitMQConfig) LogInfra {
 	return &LogRabbitMQInfra{
 		config: config,
 	}

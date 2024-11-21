@@ -4,17 +4,30 @@ import (
 	"context"
 	"encoding"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"slices"
+	"strings"
 	"time"
 
-	"github.com/hookdeck/EventKit/internal/destinationadapter"
-	"github.com/hookdeck/EventKit/internal/redis"
+	"github.com/hookdeck/outpost/internal/destinationadapter"
+	"github.com/hookdeck/outpost/internal/redis"
 )
+
+var (
+	ErrInvalidTopics       = errors.New("validation failed: invalid topics")
+	ErrInvalidTopicsFormat = errors.New("validation failed: invalid topics format")
+)
+
+func NewErrDestinationValidation(err error) error {
+	return fmt.Errorf("validation failed: %w", err)
+}
 
 type Destination struct {
 	ID          string      `json:"id" redis:"id"`
 	Type        string      `json:"type" redis:"type"`
-	Topics      Strings     `json:"topics" redis:"-"`
+	Topics      Topics      `json:"topics" redis:"-"`
 	Config      Config      `json:"config" redis:"-"`
 	Credentials Credentials `json:"credentials" redis:"-"`
 	CreatedAt   time.Time   `json:"created_at" redis:"created_at"`
@@ -55,14 +68,17 @@ func (d *Destination) parseRedisHash(cmd *redis.MapStringStringCmd, cipher Ciphe
 func (d *Destination) Validate(ctx context.Context) error {
 	adapter, err := destinationadapter.NewAdapater(d.Type)
 	if err != nil {
-		return err
+		return NewErrDestinationValidation(err)
 	}
-	return adapter.Validate(ctx, destinationadapter.Destination{
+	if err := adapter.Validate(ctx, destinationadapter.Destination{
 		ID:          d.ID,
 		Type:        d.Type,
 		Config:      d.Config,
 		Credentials: d.Credentials,
-	})
+	}); err != nil {
+		return NewErrDestinationValidation(err)
+	}
+	return nil
 }
 
 func (d *Destination) Publish(ctx context.Context, event *Event) error {
@@ -86,8 +102,8 @@ func (d *Destination) Publish(ctx context.Context, event *Event) error {
 }
 
 type DestinationSummary struct {
-	ID     string  `json:"id"`
-	Topics Strings `json:"topics"`
+	ID     string `json:"id"`
+	Topics Topics `json:"topics"`
 }
 
 var _ encoding.BinaryMarshaler = &DestinationSummary{}
@@ -110,17 +126,65 @@ func (d *Destination) ToSummary() *DestinationSummary {
 
 // ============================== Types ==============================
 
-type Strings []string
+type Topics []string
 
-var _ encoding.BinaryMarshaler = &Strings{}
-var _ encoding.BinaryUnmarshaler = &Strings{}
+var _ encoding.BinaryMarshaler = &Topics{}
+var _ encoding.BinaryUnmarshaler = &Topics{}
+var _ json.Marshaler = &Topics{}
+var _ json.Unmarshaler = &Topics{}
 
-func (s *Strings) MarshalBinary() ([]byte, error) {
-	return json.Marshal(s)
+func (t *Topics) MatchesAll() bool {
+	return len(*t) == 1 && (*t)[0] == "*"
 }
 
-func (s *Strings) UnmarshalBinary(data []byte) error {
-	return json.Unmarshal(data, s)
+func (t *Topics) Validate(availableTopics []string) error {
+	if len(*t) == 0 {
+		return ErrInvalidTopics
+	}
+	if t.MatchesAll() {
+		return nil
+	}
+	for _, topic := range *t {
+		if topic == "*" {
+			return ErrInvalidTopics
+		}
+		if !slices.Contains(availableTopics, topic) {
+			return ErrInvalidTopics
+		}
+	}
+	return nil
+}
+
+func (t *Topics) MarshalBinary() ([]byte, error) {
+	str := strings.Join(*t, ",")
+	return []byte(str), nil
+}
+
+func (t *Topics) UnmarshalBinary(data []byte) error {
+	*t = TopicsFromString(string(data))
+	return nil
+}
+
+func (t *Topics) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*t)
+}
+
+func (t *Topics) UnmarshalJSON(data []byte) error {
+	if string(data) == `"*"` {
+		*t = TopicsFromString("*")
+		return nil
+	}
+	var arr []string
+	if err := json.Unmarshal(data, &arr); err != nil {
+		log.Println(err)
+		return ErrInvalidTopicsFormat
+	}
+	*t = arr
+	return nil
+}
+
+func TopicsFromString(s string) Topics {
+	return Topics(strings.Split(s, ","))
 }
 
 type Config map[string]string

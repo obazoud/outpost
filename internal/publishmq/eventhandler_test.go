@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hookdeck/EventKit/internal/deliverymq"
-	"github.com/hookdeck/EventKit/internal/models"
-	"github.com/hookdeck/EventKit/internal/mqs"
-	"github.com/hookdeck/EventKit/internal/publishmq"
-	"github.com/hookdeck/EventKit/internal/util/testutil"
+	"github.com/hookdeck/outpost/internal/deliverymq"
+	"github.com/hookdeck/outpost/internal/models"
+	"github.com/hookdeck/outpost/internal/mqs"
+	"github.com/hookdeck/outpost/internal/publishmq"
+	"github.com/hookdeck/outpost/internal/util/testutil"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
@@ -38,6 +38,7 @@ func TestPublishMQEventHandler_Concurrency(t *testing.T) {
 		deliveryMQ,
 		entityStore,
 		mockEventTracer,
+		testutil.TestTopics,
 	)
 
 	tenant := models.Tenant{
@@ -50,15 +51,9 @@ func TestPublishMQEventHandler_Concurrency(t *testing.T) {
 		entityStore.UpsertDestination(ctx, destFactory.Any(destFactory.WithTenantID(tenant.ID)))
 	}
 
-	err = eventHandler.Handle(ctx, &models.Event{
-		ID:       uuid.New().String(),
-		Topic:    "mytopic",
-		TenantID: tenant.ID,
-		Metadata: map[string]string{},
-		Data: map[string]interface{}{
-			"mykey": "myvalue",
-		},
-	})
+	err = eventHandler.Handle(ctx, testutil.EventFactory.AnyPointer(
+		testutil.EventFactory.WithTenantID(tenant.ID),
+	))
 	require.Nil(t, err)
 
 	spans := exporter.GetSpans()

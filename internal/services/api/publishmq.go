@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hookdeck/EventKit/internal/consumer"
-	"github.com/hookdeck/EventKit/internal/mqs"
-	"github.com/hookdeck/EventKit/internal/publishmq"
+	"github.com/hookdeck/outpost/internal/consumer"
+	"github.com/hookdeck/outpost/internal/mqs"
+	"github.com/hookdeck/outpost/internal/publishmq"
 	"go.uber.org/zap"
 )
 
 func (s *APIService) SubscribePublishMQ(ctx context.Context, subscription mqs.Subscription, eventHandler publishmq.EventHandler, concurrency int) {
+	s.logger.Ctx(ctx).Info("subscribing to publishmq")
 	messageHandler := publishmq.NewMessageHandler(
 		eventHandler,
 	)

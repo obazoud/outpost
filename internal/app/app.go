@@ -1,43 +1,37 @@
-package main
+package app
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
-	"github.com/hookdeck/EventKit/internal/config"
-	"github.com/hookdeck/EventKit/internal/otel"
-	"github.com/hookdeck/EventKit/internal/services/api"
-	"github.com/hookdeck/EventKit/internal/services/delivery"
-	"github.com/hookdeck/EventKit/internal/services/log"
+	"github.com/hookdeck/outpost/internal/config"
+	"github.com/hookdeck/outpost/internal/otel"
+	"github.com/hookdeck/outpost/internal/services/api"
+	"github.com/hookdeck/outpost/internal/services/delivery"
+	"github.com/hookdeck/outpost/internal/services/log"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
-type Service interface {
-	Run(ctx context.Context) error
+type App struct {
+	config *config.Config
 }
 
-func main() {
-	ctx := context.Background()
-	if err := run(ctx); err != nil {
-		// TODO: Question: Should this log be sent to OTEL too?
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
+func New(cfg *config.Config) *App {
+	return &App{
+		config: cfg,
 	}
 }
 
-func run(mainContext context.Context) error {
-	flags := config.ParseFlags()
-	cfg, err := config.Parse(flags)
-	if err != nil {
-		return err
-	}
+func (a *App) Run(ctx context.Context) error {
+	return run(ctx, a.config)
+}
 
+func run(mainContext context.Context, cfg *config.Config) error {
 	zapLogger, err := zap.NewProduction()
 	if err != nil {
 		return err
@@ -97,6 +91,10 @@ func run(mainContext context.Context) error {
 	wg.Wait() // Block here until all workers are done
 
 	return nil
+}
+
+type Service interface {
+	Run(ctx context.Context) error
 }
 
 func constructServices(

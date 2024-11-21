@@ -2,6 +2,8 @@
 
 ## Local Development
 
+There are a few helper Go scripts to help with the development process of various destination types. In these example snippets, we use `localhost` as the example host. If your dev services run inside Docker, `localhost` will not work. You should use `host.docker.internal` instead.
+
 ### AWS
 
 > We currently only support AWS SQS destination.
@@ -10,14 +12,14 @@ To test AWS SQS destination locally, you can use [localstack](https://github.com
 
 ```sh
 $ cd build/dev/mqs
-# .../hookdeck/EventKit/build/dev/mqs
+# .../hookdeck/outpost/build/dev/mqs
 $ docker-compose up -d
 ```
 
 You can run the local dev script to configure and subscribe to a SQS queue:
 
 ```sh
-# back at root .../hookdeck/EventKit directory
+# back at root .../hookdeck/outpost directory
 $ go run cmd/destinations/aws/main.go
 .......... [*] Ready to receive messages.
 	Endpoint: http://localhost:4566
@@ -64,7 +66,7 @@ To test RabbitMQ destination, make sure you have a running RabbitMQ instance. Yo
 
 ```sh
 $ cd build/dev/mqs
-# .../hookdeck/EventKit/build/dev/mqs
+# .../hookdeck/outpost/build/dev/mqs
 $ docker-compose up -d
 ```
 
@@ -73,7 +75,7 @@ You can visit the [RabbitMQ Management Interface](http://localhost:15672) to con
 From then, you can run the local dev script to declare a simple exchange & with a queue subscripiton:
 
 ```sh
-# back at root .../hookdeck/EventKit directory
+# back at root .../hookdeck/outpost directory
 $ go run cmd/destinations/rabbitmq/main.go
 ```
 
@@ -110,7 +112,6 @@ $ curl --location 'localhost:4000/<TENANT_ID>/destinations' \
   "disabled_at": null
 }
 ```
-
 
 ### Webhooks
 

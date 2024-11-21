@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/outpost/internal/models"
 )
 
 // ============================== Mock Event ==============================
@@ -18,8 +18,8 @@ func (f *mockEventFactory) Any(opts ...func(*models.Event)) models.Event {
 	event := models.Event{
 		ID:               uuid.New().String(),
 		TenantID:         uuid.New().String(),
-		DestinationID:    uuid.New().String(),
-		Topic:            "topic",
+		DestinationID:    "",
+		Topic:            TestTopics[0],
 		EligibleForRetry: true,
 		Time:             time.Now(),
 		Metadata: map[string]string{

@@ -1,4 +1,4 @@
-name: "eventkit-mqs"
+name: "outpost-mqs"
 
 services:
   rabbitmq:
@@ -20,3 +20,8 @@ services:
 
 volumes:
   rabbitmq_data:
+
+networks:
+  default:
+    name: outpost
+    external: true

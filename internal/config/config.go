@@ -1,20 +1,23 @@
 package config
 
 import (
+	"errors"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
-	"github.com/hookdeck/EventKit/internal/clickhouse"
-	"github.com/hookdeck/EventKit/internal/mqs"
-	"github.com/hookdeck/EventKit/internal/otel"
-	"github.com/hookdeck/EventKit/internal/redis"
+	"github.com/hookdeck/outpost/internal/clickhouse"
+	"github.com/hookdeck/outpost/internal/mqs"
+	"github.com/hookdeck/outpost/internal/otel"
+	"github.com/hookdeck/outpost/internal/redis"
 	"github.com/joho/godotenv"
 	v "github.com/spf13/viper"
 )
 
 const (
-	Namespace = "EventKit"
+	Namespace = "Outpost"
 )
 
 type Config struct {
@@ -24,6 +27,8 @@ type Config struct {
 	APIKey           string
 	JWTSecret        string
 	EncryptionSecret string
+	PortalProxyURL   string
+	Topics           []string
 
 	Redis                  *redis.RedisConfig
 	ClickHouse             *clickhouse.ClickHouseConfig
@@ -44,16 +49,20 @@ var defaultConfig = map[string]any{
 	"REDIS_PORT":                 6379,
 	"REDIS_PASSWORD":             "",
 	"REDIS_DATABASE":             0,
-	"DELIVERY_RABBITMQ_EXCHANGE": "eventkit",
-	"DELIVERY_RABBITMQ_QUEUE":    "eventkit.delivery",
-	"LOG_RABBITMQ_EXCHANGE":      "eventkit_logs",
-	"LOG_RABBITMQ_QUEUE":         "eventkit_logs.log",
+	"DELIVERY_RABBITMQ_EXCHANGE": "outpost",
+	"DELIVERY_RABBITMQ_QUEUE":    "outpost.delivery",
+	"LOG_RABBITMQ_EXCHANGE":      "outpost_logs",
+	"LOG_RABBITMQ_QUEUE":         "outpost_logs.log",
 	"PUBLISHMQ_MAX_CONCURRENCY":  1,
 	"DELIVERYMQ_MAX_CONCURRENCY": 1,
 	"LOGMQ_MAX_CONCURRENCY":      1,
 	"RETRY_INTERVAL_SECONDS":     30,
 	"MAX_RETRY_COUNT":            10,
 }
+
+var (
+	ErrMismatchedServiceType = errors.New("service type mismatch")
+)
 
 func Parse(flags Flags) (*Config, error) {
 	var err error
@@ -72,12 +81,6 @@ func Parse(flags Flags) (*Config, error) {
 		// Ignore error if file does not exist
 	}
 
-	// Parse service type from flag
-	service, err := ServiceTypeFromString(flags.Service)
-	if err != nil {
-		return nil, err
-	}
-
 	// Set default config values
 	for key, value := range defaultConfig {
 		viper.SetDefault(key, value)
@@ -94,6 +97,12 @@ func Parse(flags Flags) (*Config, error) {
 	// Bind environemnt variable to viper
 	viper.AutomaticEnv()
 
+	// Parse service type from flag & env
+	service, err := parseService(viper, flags)
+	if err != nil {
+		return nil, err
+	}
+
 	openTelemetry, err := parseOpenTelemetryConfig(viper)
 	if err != nil {
 		return nil, err
@@ -107,6 +116,11 @@ func Parse(flags Flags) (*Config, error) {
 			Password: viper.GetString("CLICKHOUSE_PASSWORD"),
 			Database: viper.GetString("CLICKHOUSE_DATABASE"),
 		}
+	}
+
+	topics, err := parseTopics(viper)
+	if err != nil {
+		return nil, err
 	}
 
 	// MQs
@@ -123,14 +137,23 @@ func Parse(flags Flags) (*Config, error) {
 		return nil, err
 	}
 
+	portalProxyURL := viper.GetString("PORTAL_PROXY_URL")
+	if portalProxyURL != "" {
+		if _, err := url.Parse(portalProxyURL); err != nil {
+			return nil, err
+		}
+	}
+
 	// Initialize config values
 	config := &Config{
 		Hostname:         hostname,
-		Service:          service,
+		Service:          *service,
 		Port:             getPort(viper),
 		APIKey:           viper.GetString("API_KEY"),
 		JWTSecret:        viper.GetString("JWT_SECRET"),
 		EncryptionSecret: viper.GetString("ENCRYPTION_SECRET"),
+		PortalProxyURL:   portalProxyURL,
+		Topics:           topics,
 		Redis: &redis.RedisConfig{
 			Host:     viper.GetString("REDIS_HOST"),
 			Port:     mustInt(viper, "REDIS_PORT"),
@@ -169,4 +192,35 @@ func getPort(viper *v.Viper) int {
 		}
 	}
 	return port
+}
+
+func parseService(viper *v.Viper, flags Flags) (*ServiceType, error) {
+	serviceString := flags.Service
+	if viper.GetString("SERVICE") != "" {
+		if serviceString != "" && serviceString != viper.GetString("SERVICE") {
+			return nil, ErrMismatchedServiceType
+		}
+		serviceString = viper.GetString("SERVICE")
+	}
+	service, err := ServiceTypeFromString(serviceString)
+	if err != nil {
+		return nil, err
+	}
+	return &service, nil
+}
+
+func parseTopics(viper *v.Viper) ([]string, error) {
+	topicStr := viper.GetString("TOPICS")
+	if topicStr == "" {
+		return nil, makeEmptyErr("TOPICS")
+	}
+	topics := strings.Split(topicStr, ",")
+	for i, topic := range topics {
+		topics[i] = strings.TrimSpace(topic)
+	}
+	return topics, nil
+}
+
+func makeEmptyErr(key string) error {
+	return errors.New(key + " is empty")
 }

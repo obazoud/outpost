@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hookdeck/EventKit/internal/models"
+	"github.com/hookdeck/outpost/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +27,7 @@ func TestPublishHandlers(t *testing.T) {
 			ID:            uuid.New().String(),
 			TenantID:      uuid.New().String(),
 			DestinationID: uuid.New().String(),
-			Topic:         "topic",
+			Topic:         "user.created",
 			Time:          time.Now(),
 			Metadata:      map[string]string{"key": "value"},
 			Data:          map[string]interface{}{"key": "value"},

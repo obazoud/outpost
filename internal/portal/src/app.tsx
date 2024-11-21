@@ -6,7 +6,7 @@ export function App() {
 
   return (
     <div>
-      <p>EventKit Portal</p>
+      <p>Outpost Portal</p>
       <p>Token: {token}</p>
       <p>Tenant:</p>
       <pre>{JSON.stringify(tenant ?? {}, null, 2)}</pre>
@@ -51,7 +51,7 @@ function useTenant(token?: string): Tenant | undefined {
         return;
       }
       const tenantId = value.sub;
-      const response = await fetch(`/api/${tenantId}`, {
+      const response = await fetch(`/api/v1/${tenantId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

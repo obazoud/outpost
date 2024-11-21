@@ -3,15 +3,13 @@ package deliverymq
 import (
 	"context"
 
-	"github.com/hookdeck/EventKit/internal/mqs"
+	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type DeliveryRabbitMQInfra struct {
 	config *mqs.RabbitMQConfig
 }
-
-var _ DeliveryInfra = &DeliveryRabbitMQInfra{}
 
 func (i *DeliveryRabbitMQInfra) DeclareInfrastructure(ctx context.Context) error {
 	conn, err := amqp091.Dial(i.config.ServerURL)
@@ -55,7 +53,7 @@ func (i *DeliveryRabbitMQInfra) DeclareInfrastructure(ctx context.Context) error
 	)
 }
 
-func NewDeliveryRabbitMQInfra(config *mqs.RabbitMQConfig) *DeliveryRabbitMQInfra {
+func NewDeliveryRabbitMQInfra(config *mqs.RabbitMQConfig) DeliveryInfra {
 	return &DeliveryRabbitMQInfra{
 		config: config,
 	}

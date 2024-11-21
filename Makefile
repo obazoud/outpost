@@ -1,10 +1,33 @@
 TEST?=$$(go list ./...)
 
 up:
-	docker-compose -f build/dev/compose.yml --env-file .env up -d
+	make up/outpost
+	make up/mqs
 
 down:
-	docker-compose -f build/dev/compose.yml down
+	make down/outpost
+	make down/mqs
+
+up/outpost:
+	docker-compose -f build/dev/compose.yml --env-file .env up -d
+
+down/outpost:
+	docker-compose -f build/dev/compose.yml --env-file .env down
+
+up/mqs:
+	docker-compose -f build/dev/mqs/compose.yml up -d
+
+down/mqs:
+	docker-compose -f build/dev/mqs/compose.yml down
+
+up/uptrace:
+	docker-compose -f build/dev/uptrace/compose.yml up -d
+
+down/uptrace:
+	docker-compose -f build/dev/uptrace/compose.yml down
+
+up/portal:
+	cd internal/portal && npm install && npm run dev
 
 test:
 	go test $(TEST) $(TESTARGS)
@@ -20,3 +43,9 @@ test/coverage:
 
 test/coverage/html:
 	go tool cover -html=coverage.out
+
+network:
+	docker network create outpost
+
+logs:
+	docker logs $$(docker ps -f name=outpost-${SERVICE} --format "{{.ID}}") -f $(ARGS)

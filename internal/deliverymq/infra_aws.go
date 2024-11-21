@@ -2,73 +2,54 @@ package deliverymq
 
 import (
 	"context"
-	"errors"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
-	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/smithy-go"
-	"github.com/hookdeck/EventKit/internal/mqs"
+	"github.com/hookdeck/outpost/internal/mqs"
+	"github.com/hookdeck/outpost/internal/util/awsutil"
 )
 
 type DeliveryAWSInfra struct {
 	config *mqs.AWSSQSConfig
 }
 
-var _ DeliveryInfra = &DeliveryAWSInfra{}
-
 func (i *DeliveryAWSInfra) DeclareInfrastructure(ctx context.Context) error {
-	creds, err := i.config.ToCredentials()
+	sqsClient, err := awsutil.SQSClientFromConfig(ctx, i.config)
 	if err != nil {
 		return err
 	}
 
-	sdkConfig, err := config.LoadDefaultConfig(ctx,
-		config.WithRegion(i.config.Region),
-		config.WithCredentialsProvider(creds),
-	)
-	if err != nil {
+	if _, err := awsutil.EnsureQueue(ctx, sqsClient, i.config.Topic, awsutil.MakeCreateQueue(nil)); err != nil {
 		return err
 	}
+	return nil
 
-	sqsClient := sqs.NewFromConfig(sdkConfig, func(o *sqs.Options) {
-		if i.config.Endpoint != "" {
-			o.BaseEndpoint = aws.String(i.config.Endpoint)
-		}
-	})
+	// TODO: continue implementation // testing
+	// queueName := i.config.Topic
+	// dlqName := i.config.Topic + "_dlq"
 
-	_, err = ensureQueue(ctx, sqsClient, i.config.Topic)
-	return err
+	// // dlq
+	// dlqURL, err := awsutil.EnsureQueue(ctx, sqsClient, dlqName, awsutil.MakeCreateQueue(nil))
+	// if err != nil {
+	// 	return err
+	// }
+
+	// // deliverymq
+	// dlqARN, err := awsutil.GetQueueARN(ctx, sqsClient, dlqURL)
+	// if err != nil {
+	// 	return err
+	// }
+	// maxReceiveCount := "5"
+	// deliverymqAttributes := map[string]string{
+	// 	"RedrivePolicy": `{"deadLetterTargetArn":"` + dlqARN + `","maxReceiveCount":"` + maxReceiveCount + `"}`,
+	// }
+	// if _, err := awsutil.EnsureQueue(ctx, sqsClient, queueName, awsutil.MakeCreateQueue(deliverymqAttributes)); err != nil {
+	// 	return err
+	// }
+
+	// return nil
 }
 
-func NewDeliveryAWSInfra(config *mqs.AWSSQSConfig) *DeliveryAWSInfra {
+func NewDeliveryAWSInfra(config *mqs.AWSSQSConfig) DeliveryInfra {
 	return &DeliveryAWSInfra{
 		config: config,
 	}
-}
-
-func ensureQueue(ctx context.Context, sqsClient *sqs.Client, queueName string) (string, error) {
-	queue, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
-		QueueName: aws.String(queueName),
-	})
-	if err != nil {
-		var apiErr smithy.APIError
-		if errors.As(err, &apiErr) {
-			switch apiErr.(type) {
-			case *types.QueueDoesNotExist:
-				createdQueue, err := sqsClient.CreateQueue(ctx, &sqs.CreateQueueInput{
-					QueueName: aws.String(queueName),
-				})
-				if err != nil {
-					return "", err
-				}
-				return *createdQueue.QueueUrl, nil
-			default:
-				return "", err
-			}
-		}
-		return "", err
-	}
-	return *queue.QueueUrl, nil
 }

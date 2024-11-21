@@ -2,17 +2,23 @@ package publishmq
 
 import (
 	"context"
+	"errors"
+	"slices"
 	"time"
 
-	"github.com/hookdeck/EventKit/internal/deliverymq"
-	"github.com/hookdeck/EventKit/internal/emetrics"
-	"github.com/hookdeck/EventKit/internal/eventtracer"
-	"github.com/hookdeck/EventKit/internal/idempotence"
-	"github.com/hookdeck/EventKit/internal/models"
-	"github.com/hookdeck/EventKit/internal/redis"
+	"github.com/hookdeck/outpost/internal/deliverymq"
+	"github.com/hookdeck/outpost/internal/emetrics"
+	"github.com/hookdeck/outpost/internal/eventtracer"
+	"github.com/hookdeck/outpost/internal/idempotence"
+	"github.com/hookdeck/outpost/internal/models"
+	"github.com/hookdeck/outpost/internal/redis"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+)
+
+var (
+	ErrInvalidTopic = errors.New("invalid topic")
 )
 
 type EventHandler interface {
@@ -20,12 +26,13 @@ type EventHandler interface {
 }
 
 type eventHandler struct {
-	emeter      emetrics.EventKitMetrics
+	emeter      emetrics.OutpostMetrics
 	eventTracer eventtracer.EventTracer
 	logger      *otelzap.Logger
 	idempotence idempotence.Idempotence
 	deliveryMQ  *deliverymq.DeliveryMQ
 	entityStore models.EntityStore
+	topics      []string
 }
 
 func NewEventHandler(
@@ -34,6 +41,7 @@ func NewEventHandler(
 	deliveryMQ *deliverymq.DeliveryMQ,
 	entityStore models.EntityStore,
 	eventTracer eventtracer.EventTracer,
+	topics []string,
 ) EventHandler {
 	emeter, _ := emetrics.New()
 	eventHandler := &eventHandler{
@@ -45,6 +53,7 @@ func NewEventHandler(
 		deliveryMQ:  deliveryMQ,
 		entityStore: entityStore,
 		eventTracer: eventTracer,
+		topics:      topics,
 		emeter:      emeter,
 	}
 	return eventHandler
@@ -53,6 +62,9 @@ func NewEventHandler(
 var _ EventHandler = (*eventHandler)(nil)
 
 func (h *eventHandler) Handle(ctx context.Context, event *models.Event) error {
+	if !slices.Contains(h.topics, event.Topic) {
+		return ErrInvalidTopic
+	}
 	return h.idempotence.Exec(ctx, idempotencyKeyFromEvent(event), func(ctx context.Context) error {
 		return h.doHandle(ctx, event)
 	})
