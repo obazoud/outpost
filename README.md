@@ -2,13 +2,18 @@
 
 TODO: What is outpost?
 
-## Get Started
+## Quick Start
 
 Create a `.env` file from the example:
 
 ```sh
 cp .env.example .env
 ```
+
+The `TOPICS` defined in the `.env` determine:
+
+- Which topics that destinations can be subscribed to
+- The topics that can be published to
 
 Start the Outpost dependencies and services:
 
