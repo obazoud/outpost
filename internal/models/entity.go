@@ -43,32 +43,50 @@ func redisDestinationID(destinationID, tenantID string) string {
 }
 
 type entityStoreImpl struct {
-	redisClient *redis.Client
-	cipher      Cipher
+	redisClient     *redis.Client
+	cipher          Cipher
+	availableTopics []string
 }
 
 var _ EntityStore = (*entityStoreImpl)(nil)
 
-func NewEntityStore(redisClient *redis.Client, cipher Cipher) EntityStore {
+func NewEntityStore(redisClient *redis.Client, cipher Cipher, availableTopics []string) EntityStore {
 	return &entityStoreImpl{
-		redisClient: redisClient,
-		cipher:      cipher,
+		redisClient:     redisClient,
+		cipher:          cipher,
+		availableTopics: availableTopics,
 	}
 }
 
 func (s *entityStoreImpl) RetrieveTenant(ctx context.Context, tenantID string) (*Tenant, error) {
-	hash, err := s.redisClient.HGetAll(ctx, redisTenantID(tenantID)).Result()
+	pipe := s.redisClient.Pipeline()
+	tenantCmd := pipe.HGetAll(ctx, redisTenantID(tenantID))
+	topicsCmd := pipe.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID))
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	tenantHash, err := tenantCmd.Result()
 	if err != nil {
 		return nil, err
 	}
-	if len(hash) == 0 {
+	if len(tenantHash) == 0 {
 		return nil, nil
 	}
 	tenant := &Tenant{}
-	if err = tenant.parseRedisHash(hash); err != nil {
+	if err := tenant.parseRedisHash(tenantHash); err != nil {
 		return nil, err
 	}
-	return tenant, nil
+
+	destinationSummaryList, err := s.parseListDestinationSummaryByTenantCmd(topicsCmd)
+	if err != nil {
+		return nil, err
+	}
+	tenant.DestinationsCount = len(destinationSummaryList)
+	tenant.Topics = s.parseTenantTopics(destinationSummaryList)
+
+	return tenant, err
 }
 
 func (s *entityStoreImpl) UpsertTenant(ctx context.Context, tenant Tenant) error {
@@ -112,7 +130,11 @@ func (s *entityStoreImpl) DeleteTenant(ctx context.Context, tenantID string) err
 }
 
 func (s *entityStoreImpl) ListDestinationSummaryByTenant(ctx context.Context, tenantID string) ([]DestinationSummary, error) {
-	destinationSummaryListHash, err := s.redisClient.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID)).Result()
+	return s.parseListDestinationSummaryByTenantCmd(s.redisClient.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID)))
+}
+
+func (s *entityStoreImpl) parseListDestinationSummaryByTenantCmd(cmd *redis.MapStringStringCmd) ([]DestinationSummary, error) {
+	destinationSummaryListHash, err := cmd.Result()
 	if err != nil {
 		if err == redis.Nil {
 			return []DestinationSummary{}, nil
@@ -263,4 +285,30 @@ func (s *entityStoreImpl) matchEventWithDestination(ctx context.Context, event E
 		return []DestinationSummary{*destination.ToSummary()}, nil
 	}
 	return []DestinationSummary{}, nil
+}
+
+func (s *entityStoreImpl) parseTenantTopics(destinationSummaryList []DestinationSummary) []string {
+	all := false
+	topicsSet := make(map[string]struct{})
+	for _, destination := range destinationSummaryList {
+		for _, topic := range destination.Topics {
+			if topic == "*" {
+				all = true
+				break
+			}
+			topicsSet[topic] = struct{}{}
+		}
+	}
+
+	if all {
+		return s.availableTopics
+	}
+
+	topics := make([]string, 0, len(topicsSet))
+	for topic := range topicsSet {
+		topics = append(topics, topic)
+	}
+
+	sort.Strings(topics)
+	return topics
 }
