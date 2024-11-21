@@ -2,7 +2,7 @@
 
 TODO: What is outpost?
 
-## Quick Start
+## Quickstart
 
 Create a `.env` file from the example:
 
