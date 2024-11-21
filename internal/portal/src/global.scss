@@ -38,8 +38,8 @@ $COLORS_ON_SURFACE_PRIMARY_DARK: #ffffff !default;
 // On Container Colors
 $COLORS_ON_CONTAINER_SUCCESS_LIGHT: #006633 !default;
 $COLORS_ON_CONTAINER_SUCCESS_DARK: #00cc66 !default;
-$COLORS_ON_CONTAINER_MUTED_LIGHT: #141412 !default;
-$COLORS_ON_CONTAINER_MUTED_DARK: #e6e6e6 !default;
+$COLORS_ON_CONTAINER_NEUTRAL_LIGHT: #141412 !default;
+$COLORS_ON_CONTAINER_NEUTRAL_DARK: #e6e6e6 !default;
 $COLORS_ON_CONTAINER_ERROR_LIGHT: #cc2314 !default;
 $COLORS_ON_CONTAINER_ERROR_DARK: #ff4d4d !default;
 
@@ -90,6 +90,7 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
   --shadow-elevation-1: 0px 1px 0px 0px rgba(0, 0, 0, 0.02);
   --shadow-elevation-2: 0px -1px 0px 0px rgba(0, 0, 0, 0.2) inset,
     0px 1px 0px 0px rgba(0, 0, 0, 0.08);
+  --shadow-elevation-3: box-shadow: 0px 8px 24px 0px rgba(82, 80, 74, 0.12);
 
   --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_LIGHT};
   --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_LIGHT};
@@ -108,7 +109,7 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
   --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_LIGHT};
 
   --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_LIGHT};
-  --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_LIGHT};
+  --colors-on-container-neutral: #{$COLORS_ON_CONTAINER_NEUTRAL_LIGHT};
   --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_LIGHT};
 
   --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
@@ -140,7 +141,7 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
     --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_DARK};
 
     --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_DARK};
-    --colors-on-container-muted: #{$COLORS_ON_CONTAINER_MUTED_DARK};
+    --colors-on-container-neutral: #{$COLORS_ON_CONTAINER_NEUTRAL_DARK};
     --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_DARK};
 
     --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_DARK};
@@ -167,6 +168,8 @@ html {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
 
+  color: var(--colors-on-surface-neutral);
+
   &:focus-visible {
     outline: 2px solid var(--colors-outline-primary-focus);
   }
@@ -188,6 +191,14 @@ body {
 :root {
   --spacing-1--5: calc(var(--spacing-1) * 1.5);
   @include generate-spacing-variables;
+}
+
+.muted {
+  color: var(--colors-on-surface-secondary);
+}
+
+.muted-variant {
+  color: var(--colors-on-surface-secondary-variant);
 }
 
 /* Title styles */

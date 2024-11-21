@@ -13,7 +13,7 @@ type Destination = adapters.DestinationAdapterValue
 
 func NewAdapater(destinationType string) (adapters.DestinationAdapter, error) {
 	switch destinationType {
-	case "aws":
+	case "aws_sqs":
 		return awsdestination.New(), nil
 	case "rabbitmq":
 		return rabbitmqdestination.New(), nil

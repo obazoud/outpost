@@ -56,7 +56,7 @@ export function App() {
                 <Route path="/" Component={DestinationList} />
                 <Route path="/new" element={<div>New Destination</div>} />
                 <Route
-                  path="/:destination_id"
+                  path="/destinations/:destination_id"
                   element={<div>Specific Destination</div>}
                 />
               </Routes>

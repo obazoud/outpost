@@ -56,7 +56,7 @@ func (d *AWSDestination) Publish(ctx context.Context, destination adapters.Desti
 }
 
 func parseConfig(destination adapters.DestinationAdapterValue) (*AWSDestinationConfig, error) {
-	if destination.Type != "aws" {
+	if destination.Type != "aws_sqs" {
 		return nil, errors.New("invalid destination type")
 	}
 
@@ -73,7 +73,7 @@ func parseConfig(destination adapters.DestinationAdapterValue) (*AWSDestinationC
 }
 
 func parseCredentials(destination adapters.DestinationAdapterValue) (*AWSDestinationCredentials, error) {
-	if destination.Type != "aws" {
+	if destination.Type != "aws_sqs" {
 		return nil, errors.New("invalid destination type")
 	}
 

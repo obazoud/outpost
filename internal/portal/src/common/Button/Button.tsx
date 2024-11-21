@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
-import { ButtonHTMLAttributes, FC } from "react";
+import { FC, PropsWithChildren } from "react";
 import "./Button.scss";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps {
   primary?: boolean;
   to?: string;
   onClick?: () => void;
 }
 
-const Button: FC<ButtonProps> = ({
+const Button: FC<PropsWithChildren<ButtonProps>> = ({
   primary = false,
   to,
   onClick,

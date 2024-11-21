@@ -1,74 +1,63 @@
-.table-container {
+.table {
   width: 100%;
   overflow-x: auto;
   border-radius: var(--radius-m);
   border: 1px solid var(--colors-outline-neutral);
   background-color: var(--colors-surface-neutral);
-}
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: var(--radius-m);
-
-  th {
+  &__header {
+    display: grid;
     background-color: var(--colors-surface-neutral-variant);
     border-bottom: 1px solid var(--colors-outline-neutral);
-    padding: var(--spacing-1) var(--spacing-4);
     color: var(--colors-on-surface-secondary-variant);
 
-    &:last-child {
-      text-align: right;
+    &-cell {
+      padding: var(--spacing-1) var(--spacing-4);
+      color: var(--colors-on-surface-secondary-variant);
     }
   }
 
-  tr {
-    border-bottom: 1px solid #ddd;
-    &:last-child {
-      border-bottom: none;
+  &__body {
+    &-row {
+      display: grid;
+      border-bottom: 1px solid var(--colors-outline-neutral);
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--colors-surface-neutral-variant);
+      }
     }
+    &-cell {
+      width: 100%;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
-    &:hover {
-      background-color: var(--colors-surface-neutral-variant);
-    }
-  }
-
-  th,
-  td {
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  td {
-    max-width: 0;
-    padding: 0;
-
-    &:last-child {
       a,
       button {
-        justify-content: flex-end;
+        text-decoration: none;
+        color: var(--colors-on-surface-neutral);
+        font-size: var(--font-size-m);
+        line-height: var(--line-height-m);
+        padding: var(--spacing-4);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-2);
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
       }
     }
+  }
 
-    a,
-    button {
-      text-decoration: none;
-      color: var(--colors-on-surface-neutral);
-      font-size: var(--font-size-m);
-      line-height: var(--line-height-m);
-      font-weight: 500;
-      padding: var(--spacing-4);
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-2);
-      
-      span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+  &__footer {
+    padding: var(--spacing-4);
+    span {
+      color: var(--colors-on-surface-secondary-variant);
     }
   }
 }

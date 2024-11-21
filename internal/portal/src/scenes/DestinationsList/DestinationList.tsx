@@ -6,6 +6,8 @@ import SearchInput from "../../common/SearchInput/SearchInput";
 import Button from "../../common/Button/Button";
 import { AddIcon, FilterIcon } from "../../common/Icons";
 import destinationTypes from "../../destination-types";
+import Badge from "../../common/Badge/Badge";
+import Tooltip from "../../common/Tooltip/Tooltip";
 
 interface Destination {
   id: string;
@@ -22,17 +24,18 @@ const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // TODO: Add loading state
   if (!destinations) {
     return <div>Loading...</div>;
   }
 
   const table_columns = [
-    { header: "Type", minWidth: 100, relativeWidth: 15 },
-    { header: "Target", minWidth: 150, relativeWidth: 25 },
-    { header: "Topics", minWidth: 150, relativeWidth: 20 },
-    { header: "Status", minWidth: 100, relativeWidth: 10 },
-    { header: "Success Rate", minWidth: 100, relativeWidth: 10 },
-    { header: "Events (24h)", minWidth: 100, relativeWidth: 15 },
+    { header: "Type", width: 160 },
+    { header: "Target" },
+    { header: "Topics", width: 120 },
+    { header: "Status", width: 120 },
+    { header: "Success Rate", width: 120 },
+    { header: "Events (24h)", width: 120 },
   ];
 
   const filtered_destinations = destinations?.filter((destination) => {
@@ -53,39 +56,80 @@ const DestinationList: React.FC = () => {
       id: destination.id,
       entries: [
         <>
-          <div style={{ minWidth: "20px", width: "20px", display: "flex" }}>
+          <div style={{ minWidth: "16px", width: "16px", display: "flex" }}>
             {destinationTypes[destination.type].icon}
           </div>
-          {destinationTypes[destination.type].label}
+          <span className="subtitle-m">{destinationTypes[destination.type].label}</span>
         </>,
-        destination.config[destinationTypes[destination.type].target],
-        destination.topics.join(", "),
-        destination.disabled_at ? "Disabled" : "Active",
-        "N/A", // TODO: Replace with actual success rate data
-        "N/A", // TODO: Replace with actual events count
+        <span className="muted-variant">
+          {destination.config[destinationTypes[destination.type].target]}
+        </span>,
+        <Tooltip
+          content={
+            <div className="destination-list__topics-tooltip">
+              {(destination.topics.length > 0 && destination.topics[0] === "*"
+                ? TOPICS.split(",")
+                : destination.topics
+              )
+                .slice(0, 9)
+                .map((topic) => (
+                  <Badge key={topic} text={topic.trim()} />
+                ))}
+              {(destination.topics[0] === "*"
+                ? TOPICS.split(",").length
+                : destination.topics.length) > 9 && (
+                <span className="subtitle-s muted">
+                  +{" "}
+                  {(destination.topics[0] === "*"
+                    ? TOPICS.split(",").length
+                    : destination.topics.length) - 9}{" "}
+                  more
+                </span>
+              )}
+            </div>
+          }
+        >
+          <span className="muted-variant">
+            {destination.topics.length > 0 && destination.topics[0] === "*"
+              ? "All"
+              : destination.topics.length}
+          </span>
+        </Tooltip>,
+        destination.disabled_at ? (
+          <Badge text="Disabled" />
+        ) : (
+          <Badge text="Active" success />
+        ),
+        <span className="muted-variant">99.5%</span>, // TODO: Replace with actual success rate data
+        <span className="muted-variant">100</span>, // TODO: Replace with actual events count
       ],
-      link: `/${destination.id}`,
+      link: `/destinations/${destination.id}`,
     })) || [];
 
   return (
     <div className="destination-list">
       <div className="destination-list__header">
+        <span className="subtitle-s muted">&nbsp;</span>
         <h1 className="title-3xl">Event Destinations</h1>
         <div className="destination-list__actions">
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search by type, target, or topic..."
+            placeholder="Filter by type, target or topic"
           />
-          <Button onClick={console.log}>
+          {/* <Button onClick={console.log}>
             <FilterIcon /> Status
-          </Button>
+          </Button> */}
           <Button primary to="/new">
             <AddIcon /> Add Destination
           </Button>
         </div>
       </div>
-      <Table columns={table_columns} rows={table_rows} />
+      <Table
+        columns={table_columns}
+        rows={table_rows}
+        footer_label="event destinations"
+      />
     </div>
   );
 };

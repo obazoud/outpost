@@ -9,7 +9,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: var(--spacing-4);
+    padding-top: var(--spacing-5);
     margin-bottom: calc(var(--base-grid-multiplier) * 20);
 
     a {
@@ -23,7 +23,7 @@
   }
 
   &__header-logo {
-    height: 20px;
+    height: 16px;
 
     svg {
       height: 100%;

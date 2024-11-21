@@ -3,7 +3,7 @@
     margin-bottom: var(--spacing-4);
 
     h1 {
-      margin-top: 0;
+      margin-top: var(--spacing-10);
       margin-bottom: var(--spacing-4);
     }
   }
@@ -15,5 +15,12 @@
     *:last-child {
       margin-left: auto;
     }
+  }
+
+  &__topics-tooltip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2) var(--spacing-2);
+    align-items: center;
   }
 }
