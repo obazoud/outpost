@@ -1,13 +1,23 @@
-import useSWR from "swr";
-import { useState } from "react";
-import Table from "../../common/Table/Table";
 import "./DestinationList.scss";
-import SearchInput from "../../common/SearchInput/SearchInput";
-import Button from "../../common/Button/Button";
-import { AddIcon, FilterIcon } from "../../common/Icons";
-import destinationTypes from "../../destination-types";
+
+import { useState } from "react";
+import useSWR from "swr";
+
 import Badge from "../../common/Badge/Badge";
+import Button from "../../common/Button/Button";
+import { AddIcon } from "../../common/Icons";
+import SearchInput from "../../common/SearchInput/SearchInput";
+import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
+import destinationTypes from "../../destination-types";
+
+// TODO: Add empty state
+// TODO: Add loading state
+// TODO: Check behavior for large destination counts
+// TODO: Fetch destination types from the API instead of hardcoding them
+// TODO: Add success rate column
+// TODO: Add events count column
+// TODO: Add status filter
 
 interface Destination {
   id: string;
@@ -17,14 +27,12 @@ interface Destination {
   };
   topics: string[];
   disabled_at: string | null;
-  // Add other fields that might be needed for the new columns
 }
 
 const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // TODO: Add loading state
   if (!destinations) {
     return <div>Loading...</div>;
   }
@@ -59,7 +67,9 @@ const DestinationList: React.FC = () => {
           <div style={{ minWidth: "16px", width: "16px", display: "flex" }}>
             {destinationTypes[destination.type].icon}
           </div>
-          <span className="subtitle-m">{destinationTypes[destination.type].label}</span>
+          <span className="subtitle-m">
+            {destinationTypes[destination.type].label}
+          </span>
         </>,
         <span className="muted-variant">
           {destination.config[destinationTypes[destination.type].target]}
