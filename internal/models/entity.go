@@ -236,7 +236,9 @@ func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Des
 		r.HSet(ctx, key, "credentials", encryptedCredentials)
 		r.HSet(ctx, key, "created_at", destination.CreatedAt)
 		if destination.DisabledAt != nil {
-			r.HSet(ctx, key, "disabled_at", destination.DisabledAt)
+			r.HSet(ctx, key, "disabled_at", *destination.DisabledAt)
+		} else {
+			r.HDel(ctx, key, "disabled_at")
 		}
 		r.HSet(ctx, redisTenantDestinationSummaryKey(destination.TenantID), destination.ID, destination.ToSummary()).Val()
 		return nil
@@ -275,7 +277,7 @@ func (s *entityStoreImpl) matchEventWithAllDestination(ctx context.Context, even
 	matchedDestinationSummaryList := []DestinationSummary{}
 
 	for _, destinationSummary := range destinationSummaryList {
-		if destinationSummary.Topics[0] == "*" || slices.Contains(destinationSummary.Topics, event.Topic) {
+		if !destinationSummary.Disabled && (destinationSummary.Topics[0] == "*" || slices.Contains(destinationSummary.Topics, event.Topic)) {
 			matchedDestinationSummaryList = append(matchedDestinationSummaryList, destinationSummary)
 		}
 	}

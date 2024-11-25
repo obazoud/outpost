@@ -74,15 +74,8 @@ func (h *DestinationHandlers) Create(c *gin.Context) {
 }
 
 func (h *DestinationHandlers) Retrieve(c *gin.Context) {
-	tenantID := c.Param("tenantID")
-	destinationID := c.Param("destinationID")
-	destination, err := h.entityStore.RetrieveDestination(c.Request.Context(), tenantID, destinationID)
-	if err != nil {
-		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
-		return
-	}
+	destination := h.mustRetrieveDestination(c, c.Param("tenantID"), c.Param("destinationID"))
 	if destination == nil {
-		c.Status(http.StatusNotFound)
 		return
 	}
 	c.JSON(http.StatusOK, destination)
@@ -97,15 +90,8 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 
 	// Get destination.
-	tenantID := c.Param("tenantID")
-	destinationID := c.Param("destinationID")
-	destination, err := h.entityStore.RetrieveDestination(c.Request.Context(), tenantID, destinationID)
-	if err != nil {
-		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
-		return
-	}
+	destination := h.mustRetrieveDestination(c, c.Param("tenantID"), c.Param("destinationID"))
 	if destination == nil {
-		c.Status(http.StatusNotFound)
 		return
 	}
 
@@ -146,23 +132,60 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 }
 
 func (h *DestinationHandlers) Delete(c *gin.Context) {
-	tenantID := c.Param("tenantID")
-	destinationID := c.Param("destinationID")
-	destination, err := h.entityStore.RetrieveDestination(c.Request.Context(), tenantID, destinationID)
-	if err != nil {
-		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
-		return
-	}
+	destination := h.mustRetrieveDestination(c, c.Param("tenantID"), c.Param("destinationID"))
 	if destination == nil {
-		c.Status(http.StatusNotFound)
 		return
 	}
-	err = h.entityStore.DeleteDestination(c.Request.Context(), tenantID, destinationID)
-	if err != nil {
+	if err := h.entityStore.DeleteDestination(c.Request.Context(), destination.TenantID, destination.ID); err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return
 	}
 	c.JSON(http.StatusOK, destination)
+}
+
+func (h *DestinationHandlers) Disable(c *gin.Context) {
+	h.setDisabilityHandler(c, true)
+}
+
+func (h *DestinationHandlers) Enable(c *gin.Context) {
+	h.setDisabilityHandler(c, false)
+}
+
+func (h *DestinationHandlers) setDisabilityHandler(c *gin.Context, disabled bool) {
+	destination := h.mustRetrieveDestination(c, c.Param("tenantID"), c.Param("destinationID"))
+	if destination == nil {
+		return
+	}
+	shouldUpdate := false
+	if disabled && destination.DisabledAt == nil {
+		shouldUpdate = true
+		now := time.Now()
+		destination.DisabledAt = &now
+	}
+	if !disabled && destination.DisabledAt != nil {
+		shouldUpdate = true
+		destination.DisabledAt = nil
+	}
+	if shouldUpdate {
+		if err := h.entityStore.UpsertDestination(c.Request.Context(), *destination); err != nil {
+			h.handleUpsertDestinationError(c, err)
+			return
+		}
+	}
+	c.JSON(http.StatusOK, destination)
+}
+
+func (h *DestinationHandlers) mustRetrieveDestination(c *gin.Context, tenantID, destinationID string) *models.Destination {
+	destination, err := h.entityStore.RetrieveDestination(c.Request.Context(), tenantID, destinationID)
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+		return nil
+	}
+	if destination == nil {
+		c.Status(http.StatusNotFound)
+		return nil
+	}
+	return destination
 }
 
 func (h *DestinationHandlers) handleUpsertDestinationError(c *gin.Context, err error) {

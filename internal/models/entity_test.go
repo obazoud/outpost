@@ -549,3 +549,88 @@ func TestMultiDestinationSuite_MatchEvent(t *testing.T) {
 		}
 	})
 }
+
+func TestDestinationEnableDisable(t *testing.T) {
+	t.Parallel()
+
+	redisClient := testutil.CreateTestRedisClient(t)
+	entityStore := models.NewEntityStore(redisClient, models.NewAESCipher("secret"), testutil.TestTopics)
+
+	input := testutil.DestinationFactory.Any()
+	require.NoError(t, entityStore.UpsertDestination(context.Background(), input))
+
+	assertDestination := func(t *testing.T, expected models.Destination) {
+		actual, err := entityStore.RetrieveDestination(context.Background(), input.TenantID, input.ID)
+		require.NoError(t, err)
+		assert.Equal(t, expected.ID, actual.ID)
+		assert.True(t, cmp.Equal(expected.DisabledAt, actual.DisabledAt), "expected %v, got %v", expected.DisabledAt, actual.DisabledAt)
+	}
+
+	t.Run("should disable", func(t *testing.T) {
+		now := time.Now()
+		input.DisabledAt = &now
+		require.NoError(t, entityStore.UpsertDestination(context.Background(), input))
+		assertDestination(t, input)
+	})
+
+	t.Run("should enable", func(t *testing.T) {
+		input.DisabledAt = nil
+		require.NoError(t, entityStore.UpsertDestination(context.Background(), input))
+		assertDestination(t, input)
+	})
+}
+
+func TestMultiSuite_DisableAndMatch(t *testing.T) {
+	t.Parallel()
+
+	suite := multiDestinationSuite{}
+	suite.SetupTest(t)
+
+	t.Run("initial match user.deleted", func(t *testing.T) {
+		event := testutil.EventFactory.Any(
+			testutil.EventFactory.WithTenantID(suite.tenant.ID),
+			testutil.EventFactory.WithTopic("user.deleted"),
+		)
+		matchedDestinationSummaryList, err := suite.entityStore.MatchEvent(suite.ctx, event)
+		require.NoError(t, err)
+		require.Len(t, matchedDestinationSummaryList, 2)
+		for _, summary := range matchedDestinationSummaryList {
+			require.Contains(t, []string{suite.destinations[0].ID, suite.destinations[3].ID}, summary.ID)
+		}
+	})
+
+	t.Run("should not match disabled destination", func(t *testing.T) {
+		destination := suite.destinations[0]
+		now := time.Now()
+		destination.DisabledAt = &now
+		require.NoError(t, suite.entityStore.UpsertDestination(suite.ctx, destination))
+
+		event := testutil.EventFactory.Any(
+			testutil.EventFactory.WithTenantID(suite.tenant.ID),
+			testutil.EventFactory.WithTopic("user.deleted"),
+		)
+		matchedDestinationSummaryList, err := suite.entityStore.MatchEvent(suite.ctx, event)
+		require.NoError(t, err)
+		require.Len(t, matchedDestinationSummaryList, 1)
+		for _, summary := range matchedDestinationSummaryList {
+			require.Contains(t, []string{suite.destinations[3].ID}, summary.ID)
+		}
+	})
+
+	t.Run("should match after re-enabled destination", func(t *testing.T) {
+		destination := suite.destinations[0]
+		destination.DisabledAt = nil
+		require.NoError(t, suite.entityStore.UpsertDestination(suite.ctx, destination))
+
+		event := testutil.EventFactory.Any(
+			testutil.EventFactory.WithTenantID(suite.tenant.ID),
+			testutil.EventFactory.WithTopic("user.deleted"),
+		)
+		matchedDestinationSummaryList, err := suite.entityStore.MatchEvent(suite.ctx, event)
+		require.NoError(t, err)
+		require.Len(t, matchedDestinationSummaryList, 2)
+		for _, summary := range matchedDestinationSummaryList {
+			require.Contains(t, []string{suite.destinations[0].ID, suite.destinations[3].ID}, summary.ID)
+		}
+	})
+}
