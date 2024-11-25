@@ -1,13 +1,8 @@
-name: "outpost"
-
+name: outpost-example
 services:
   api:
-    image: outpost
-    build:
-      context: ../../
-      dockerfile: ./build/dev/Dockerfile
-    volumes:
-      - ../../:/app
+    image: hookdeck/outpost:latest
+    env_file: .env
     depends_on:
       redis:
         condition: service_started
@@ -15,47 +10,30 @@ services:
         condition: service_healthy
     ports:
       - "${PORT}:${PORT}"
-    env_file: ../../.env
     environment:
       SERVICE: api
 
   delivery:
-    image: outpost
-    volumes:
-      - ../..:/app
+    image: hookdeck/outpost:latest
+    env_file: .env
     depends_on:
       redis:
         condition: service_started
       clickhouse:
         condition: service_healthy
-      api:
-        condition: service_started
-    env_file: ../../.env
     environment:
       SERVICE: delivery
 
   log:
-    image: outpost
-    volumes:
-      - ../..:/app
+    image: hookdeck/outpost:latest
+    env_file: .env
     depends_on:
       redis:
         condition: service_started
       clickhouse:
         condition: service_healthy
-      api:
-        condition: service_started
-    env_file: ../../.env
     environment:
       SERVICE: log
-
-  portal:
-    build:
-      context: ../../
-      dockerfile: ./build/dev/portal/Dockerfile
-    volumes:
-      - ../../internal/portal:/app
-      - /app/node_modules
 
   redis:
     image: redis:7.4-alpine
@@ -67,7 +45,7 @@ services:
         --save 20 1
         --requirepass ${REDIS_PASSWORD}
     volumes:
-      - redis:/data
+      - ./data/redis:/data
 
   clickhouse:
     image: clickhouse/clickhouse-server:24-alpine
@@ -82,7 +60,7 @@ services:
       # - 9005:9005
     volumes:
       # optional to persist data locally
-      - clickhouse:/var/lib/clickhouse/
+      - ./data/clickhouse:/var/lib/clickhouse/
       # optional to add own config
       # - ./extra-config.xml:/etc/clickhouse-server/config.d/extra-config.xml
       # optional to add users or enable settings for a default user
@@ -102,14 +80,3 @@ services:
       interval: 1s
       timeout: 1s
       retries: 30
-
-volumes:
-  redis:
-    driver: local
-  clickhouse:
-    driver: local
-
-networks:
-  default:
-    name: outpost
-    external: true

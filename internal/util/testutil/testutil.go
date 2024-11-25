@@ -15,10 +15,17 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+// must be sorted
 var TestTopics = []string{
 	"user.created",
-	"user.updated",
 	"user.deleted",
+	"user.updated",
+}
+
+func CheckIntegrationTest(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
 }
 
 func CreateTestRedisConfig(t *testing.T) *internalredis.RedisConfig {
