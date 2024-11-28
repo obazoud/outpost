@@ -127,13 +127,13 @@ $ curl --location 'localhost:3333/api/v1/publish' \
 --header 'Authorization: Bearer apikey' \
 --data '{
     "tenant_id": "123",
-    "topic": "order.created",
+    "topic": "user.created",
     "eligible_for_retry": true,
     "metadata": {
         "meta": "data"
     },
     "data": {
-        "order_id": "an_order_id"
+        "user_id": "userid"
     }
 }'
 ```
