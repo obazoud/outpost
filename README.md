@@ -20,7 +20,7 @@
 
 # Open Source Event Destinations Infrastructure
 
-Outpost is a self-hosted and open-source product that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, AWS SQS, Amazon EventBridge, GCP Pub/Sub, MQTT, and Azure EventBus.
+Outpost is a self-hosted and open-source product that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
 
 Learn more about Event Destinations in the [Event Destinations Manifesto](https://event-destinations-website.vercel.app/).
 
