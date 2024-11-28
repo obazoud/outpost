@@ -12,6 +12,7 @@ import (
 	"github.com/hookdeck/outpost/cmd/e2e/httpclient"
 	"github.com/hookdeck/outpost/internal/app"
 	"github.com/hookdeck/outpost/internal/config"
+	"github.com/hookdeck/outpost/internal/util/testinfra"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,10 +20,12 @@ import (
 )
 
 type e2eSuite struct {
-	ctx     context.Context
-	config  *config.Config
-	cleanup func()
-	client  httpclient.Client
+	ctx               context.Context
+	config            *config.Config
+	mockServerBaseURL string
+	mockServerInfra   *testinfra.MockServerInfra
+	cleanup           func()
+	client            httpclient.Client
 }
 
 func (suite *e2eSuite) SetupSuite() {
@@ -101,12 +104,15 @@ type basicSuite struct {
 }
 
 func (suite *basicSuite) SetupSuite() {
-	config, cleanup, err := configs.Basic(suite.T())
-	require.NoError(suite.T(), err)
+	t := suite.T()
+	t.Cleanup(testinfra.Start(t))
+	mockServerBaseURL := testinfra.GetMockServer(t)
 	suite.e2eSuite = e2eSuite{
-		ctx:     context.Background(),
-		config:  config,
-		cleanup: cleanup,
+		ctx:               context.Background(),
+		config:            configs.Basic(t),
+		mockServerBaseURL: mockServerBaseURL,
+		mockServerInfra:   testinfra.NewMockServerInfra(mockServerBaseURL),
+		cleanup:           func() {},
 	}
 	suite.e2eSuite.SetupSuite()
 
