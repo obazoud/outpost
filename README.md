@@ -44,6 +44,8 @@ Create a `.env` file from the example:
 cp .env.example .env
 ```
 
+Update the `<API_KEY>` value within the new `.env` file.
+
 The `TOPICS` defined in the `.env` determine:
 
 - Which topics that destinations can subscribe to
@@ -63,7 +65,7 @@ curl localhost:3333/api/v1/healthz
 
 Wait until you get a `OK%` response.
 
-Create a tenant:
+Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your `.env`:
 
 ```sh
 curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
@@ -73,7 +75,7 @@ curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
 
 Run a local server exposed via a localtunnel or use a hosted service such as the [Hookdeck Console](https://console.hookdeck.com?ref=github-outpost) to capture webhook events.
 
-Create a webhook destination where events will be delivered to:
+Create a webhook destination where events will be delivered to with the following command. Again, replace `<TENANT_ID>` and `<API_KEY>`. Also, replace `<URL>` with the webhook destinations URL:
 
 ```sh
 curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
@@ -84,12 +86,11 @@ curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
     "topics": ["*"],
     "config": {
         "url": "<URL>"
-    },
-    "credentials": {}
+    }
 }'
 ```
 
-Publish an event:
+Publish an event, remembering to replace `<API_KEY>` and `<TENANT_ID>`:
 
 ```sh
 curl --location 'localhost:3333/api/v1/publish' \
