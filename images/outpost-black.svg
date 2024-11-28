@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="15 15 400 130" width="400" height="130">
+  <!-- Background (optional, can be removed if transparency is needed) -->
+  <!-- <rect width="400" height="200" fill="#283593" /> -->
+
+  <!-- Stylized "O" with a modern radar icon -->
+  <circle cx="82" cy="75" r="30" fill="none" stroke="#0044cc" stroke-width="8" />
+  <circle cx="82" cy="75" r="15" fill="none" stroke="#0044cc" stroke-width="4" />
+  <circle cx="82" cy="75" r="5" fill="#0044cc" />
+
+  <!-- Text styling -->
+  <text x="240" y="100" text-anchor="middle" fill="#000" font-family="Arial, sans-serif" font-size="80px"
+    font-weight="bold">
+    utpost
+  </text>
+
+
+</svg>
