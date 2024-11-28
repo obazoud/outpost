@@ -36,6 +36,16 @@ func SQSClientFromConfig(ctx context.Context, cfg *mqs.AWSSQSConfig) (*sqs.Clien
 
 type CreateQueueFn func(ctx context.Context, sqsClient *sqs.Client, queueName string) (*sqs.CreateQueueOutput, error)
 
+func RetrieveQueueURL(ctx context.Context, sqsClient *sqs.Client, queueName string) (string, error) {
+	queue, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
+		QueueName: aws.String(queueName),
+	})
+	if err != nil {
+		return "", err
+	}
+	return *queue.QueueUrl, nil
+}
+
 func EnsureQueue(ctx context.Context, sqsClient *sqs.Client, queueName string, createQueue CreateQueueFn) (string, error) {
 	queue, err := sqsClient.GetQueueUrl(ctx, &sqs.GetQueueUrlInput{
 		QueueName: aws.String(queueName),
@@ -68,7 +78,7 @@ func MakeCreateQueue(attributes map[string]string) CreateQueueFn {
 	}
 }
 
-func GetQueueARN(ctx context.Context, sqsClient *sqs.Client, queueURL string) (string, error) {
+func RetrieveQueueARN(ctx context.Context, sqsClient *sqs.Client, queueURL string) (string, error) {
 	attributesOutput, err := sqsClient.GetQueueAttributes(ctx, &sqs.GetQueueAttributesInput{
 		QueueUrl: aws.String(queueURL),
 		AttributeNames: []types.QueueAttributeName{
