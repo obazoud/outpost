@@ -24,6 +24,20 @@ Outpost is a self-hosted and open-source product that enables event producers to
 
 Learn more about Event Destinations in the [Event Destinations Manifesto](https://event-destinations-website.vercel.app/).
 
+## Features
+
+- **Event topics and topics-based subscriptions**: Supports the common publish and subscription paradigm to ease adoption and integration into existing systems.
+- **Publish events via the API or a queue**: Publish events using the Outpost API or configure Outpost to read events from a publish queue.
+- **At least once delivery guarantee**: Messages are guaranteed to be delivered at least once and never lost.
+- **Event fanout**: A message is sent to a topic is replicated and sent to multiple endpoints. This allows for parallel processing and asynchronous event notifications.
+- **User portal**: Allow customers to view metrics, manage, debug, and observe their event destinations.
+- **Automatic and manual retries**: Configure retry strategies for event destinations and manually trigger event delivery retries via the API or user portal.
+- **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
+- **User alerts**: Allow customers to manage event delivery alerts.
+- **OpenTelemetry**: OTel standardized traces, metrics, and logs.
+- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka. Extend to support other destinations types.
+- **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
+
 ## Quickstart
 
 Clone the repo:
