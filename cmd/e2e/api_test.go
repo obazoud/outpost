@@ -8,7 +8,6 @@ import (
 )
 
 func (suite *basicSuite) TestHealthzAPI() {
-	suite.T().Parallel()
 	tests := []APITest{
 		{
 			Name: "GET /healthz",
@@ -27,7 +26,6 @@ func (suite *basicSuite) TestHealthzAPI() {
 }
 
 func (suite *basicSuite) TestTenantsAPI() {
-	suite.T().Parallel()
 	tenantID := uuid.New().String()
 	sampleDestinationID := uuid.New().String()
 	tests := []APITest{
@@ -216,12 +214,64 @@ func (suite *basicSuite) TestTenantsAPI() {
 				},
 			},
 		},
+		{
+			Name: "DELETE /:tenantID",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodDELETE,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusNotFound,
+				},
+			},
+		},
+		{
+			Name: "POST /:tenantID/destinations",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusNotFound,
+				},
+			},
+		},
+		{
+			Name: "PUT /:tenantID should override deleted tenant",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPUT,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+					Body: map[string]interface{}{
+						"id":                 tenantID,
+						"destinations_count": 0,
+						"topics":             []string{},
+					},
+				},
+			},
+		},
 	}
 	suite.RunAPITests(suite.T(), tests)
 }
 
 func (suite *basicSuite) TestDestinationsAPI() {
-	suite.T().Parallel()
 	tenantID := uuid.New().String()
 	sampleDestinationID := uuid.New().String()
 	tests := []APITest{
@@ -572,7 +622,6 @@ func (suite *basicSuite) TestDestinationsAPI() {
 }
 
 func (suite *basicSuite) TestDestinationsListAPI() {
-	suite.T().Parallel()
 	tenantID := uuid.New().String()
 	tests := []APITest{
 		{
@@ -739,7 +788,6 @@ func (suite *basicSuite) TestDestinationsListAPI() {
 }
 
 func (suite *basicSuite) TestDestinationEnableDisableAPI() {
-	suite.T().Parallel()
 	tenantID := uuid.New().String()
 	sampleDestinationID := uuid.New().String()
 	tests := []APITest{
@@ -880,7 +928,6 @@ func (suite *basicSuite) TestDestinationEnableDisableAPI() {
 }
 
 func (suite *basicSuite) TestTopicsAPI() {
-	suite.T().Parallel()
 	tests := []APITest{
 		{
 			Name: "GET /topics",
