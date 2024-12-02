@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destwebhook"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/util/testutil"
@@ -26,34 +27,50 @@ func TestWebhookDestination_Validate(t *testing.T) {
 		testutil.DestinationFactory.WithCredentials(map[string]string{}),
 	)
 
-	webhookDestination := destwebhook.New()
+	webhookDestination, err := destwebhook.New()
+	require.NoError(t, err)
 
-	t.Run("should not return error for valid destination", func(t *testing.T) {
+	t.Run("should validate valid destination", func(t *testing.T) {
 		t.Parallel()
-
-		err := webhookDestination.Validate(nil, &validDestination)
-
-		assert.Nil(t, err)
+		assert.NoError(t, webhookDestination.Validate(nil, &validDestination))
 	})
 
-	t.Run("should validate type", func(t *testing.T) {
+	t.Run("should validate invalid type", func(t *testing.T) {
 		t.Parallel()
-
 		invalidDestination := validDestination
 		invalidDestination.Type = "invalid"
 		err := webhookDestination.Validate(nil, &invalidDestination)
-
-		assert.ErrorContains(t, err, "invalid destination type")
+		assert.Error(t, err)
+		var validationErr *destregistry.ErrDestinationValidation
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Equal(t, "type", validationErr.Errors[0].Field)
+		assert.Equal(t, "invalid_type", validationErr.Errors[0].Type)
 	})
 
-	t.Run("should validate config", func(t *testing.T) {
+	t.Run("should validate missing url", func(t *testing.T) {
 		t.Parallel()
-
 		invalidDestination := validDestination
 		invalidDestination.Config = map[string]string{}
 		err := webhookDestination.Validate(nil, &invalidDestination)
 
-		assert.ErrorContains(t, err, "url is required for webhook destination config")
+		var validationErr *destregistry.ErrDestinationValidation
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Equal(t, "config.url", validationErr.Errors[0].Field)
+		assert.Equal(t, "required", validationErr.Errors[0].Type)
+	})
+
+	t.Run("should validate malformed url", func(t *testing.T) {
+		t.Parallel()
+		invalidDestination := validDestination
+		invalidDestination.Config = map[string]string{
+			"url": "not-a-valid-url",
+		}
+		err := webhookDestination.Validate(nil, &invalidDestination)
+
+		var validationErr *destregistry.ErrDestinationValidation
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Equal(t, "config.url", validationErr.Errors[0].Field)
+		assert.Equal(t, "format", validationErr.Errors[0].Type)
 	})
 }
 
@@ -122,7 +139,8 @@ func (suite *webhookDestinationSuite) TeardownTest(t *testing.T) {
 func TestWebhookDestination_Publish(t *testing.T) {
 	t.Parallel()
 
-	webhookDestination := destwebhook.New()
+	webhookDestination, err := destwebhook.New()
+	require.NoError(t, err)
 
 	destination := testutil.DestinationFactory.Any(
 		testutil.DestinationFactory.WithType("webhook"),
@@ -139,7 +157,7 @@ func TestWebhookDestination_Publish(t *testing.T) {
 		invalidDestination.Type = "invalid"
 
 		err := webhookDestination.Publish(nil, &invalidDestination, nil)
-		assert.ErrorContains(t, err, "invalid destination type")
+		assert.Error(t, err)
 	})
 
 	t.Run("should send webhook request", func(t *testing.T) {

@@ -14,6 +14,7 @@ import (
 )
 
 type WebhookDestination struct {
+	*destregistry.BaseProvider
 }
 
 type WebhookDestinationConfig struct {
@@ -22,19 +23,20 @@ type WebhookDestinationConfig struct {
 
 var _ destregistry.Provider = (*WebhookDestination)(nil)
 
-func New() *WebhookDestination {
-	return &WebhookDestination{}
+func New() (*WebhookDestination, error) {
+	base, err := destregistry.NewBaseProvider("webhook")
+	if err != nil {
+		return nil, err
+	}
+	return &WebhookDestination{BaseProvider: base}, nil
 }
 
 func (d *WebhookDestination) Validate(ctx context.Context, destination *models.Destination) error {
-	if _, err := parseConfig(destination); err != nil {
-		return destregistry.NewErrDestinationValidation(err)
-	}
-	return nil
+	return d.BaseProvider.Validate(ctx, destination)
 }
 
 func (d *WebhookDestination) Publish(ctx context.Context, destination *models.Destination, event *models.Event) error {
-	config, err := parseConfig(destination)
+	config, err := d.resolveConfig(ctx, destination)
 	if err != nil {
 		return destregistry.NewErrDestinationPublish(err)
 	}
@@ -44,20 +46,13 @@ func (d *WebhookDestination) Publish(ctx context.Context, destination *models.De
 	return nil
 }
 
-func parseConfig(destination *models.Destination) (*WebhookDestinationConfig, error) {
-	if destination.Type != "webhook" {
-		return nil, errors.New("invalid destination type")
+func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *models.Destination) (*WebhookDestinationConfig, error) {
+	if err := d.BaseProvider.Validate(ctx, destination); err != nil {
+		return nil, err
 	}
-
-	destinationConfig := &WebhookDestinationConfig{
+	return &WebhookDestinationConfig{
 		URL: destination.Config["url"],
-	}
-
-	if destinationConfig.URL == "" {
-		return nil, errors.New("url is required for webhook destination config")
-	}
-
-	return destinationConfig, nil
+	}, nil
 }
 
 func makeRequest(ctx context.Context, url string, event *models.Event) error {
