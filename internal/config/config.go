@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -30,34 +31,40 @@ type Config struct {
 	PortalProxyURL   string
 	Topics           []string
 
-	Redis                  *redis.RedisConfig
-	ClickHouse             *clickhouse.ClickHouseConfig
-	OpenTelemetry          *otel.OpenTelemetryConfig
-	PublishQueueConfig     *mqs.QueueConfig
-	DeliveryQueueConfig    *mqs.QueueConfig
-	LogQueueConfig         *mqs.QueueConfig
-	PublishMaxConcurrency  int
-	DeliveryMaxConcurrency int
-	LogMaxConcurrency      int
-	RetryIntervalSeconds   int
-	RetryMaxCount          int
+	Redis                           *redis.RedisConfig
+	ClickHouse                      *clickhouse.ClickHouseConfig
+	OpenTelemetry                   *otel.OpenTelemetryConfig
+	PublishQueueConfig              *mqs.QueueConfig
+	DeliveryQueueConfig             *mqs.QueueConfig
+	LogQueueConfig                  *mqs.QueueConfig
+	PublishMaxConcurrency           int
+	DeliveryMaxConcurrency          int
+	LogMaxConcurrency               int
+	RetryIntervalSeconds            int
+	RetryMaxCount                   int
+	LogBatcherDelayThresholdSeconds int
+	LogBatcherItemCountThreshold    int
+	DestinationMetadataPath         string
 }
 
 var defaultConfig = map[string]any{
-	"PORT":                       3333,
-	"REDIS_HOST":                 "127.0.0.1",
-	"REDIS_PORT":                 6379,
-	"REDIS_PASSWORD":             "",
-	"REDIS_DATABASE":             0,
-	"DELIVERY_RABBITMQ_EXCHANGE": "outpost",
-	"DELIVERY_RABBITMQ_QUEUE":    "outpost.delivery",
-	"LOG_RABBITMQ_EXCHANGE":      "outpost_logs",
-	"LOG_RABBITMQ_QUEUE":         "outpost_logs.log",
-	"PUBLISHMQ_MAX_CONCURRENCY":  1,
-	"DELIVERYMQ_MAX_CONCURRENCY": 1,
-	"LOGMQ_MAX_CONCURRENCY":      1,
-	"RETRY_INTERVAL_SECONDS":     30,
-	"MAX_RETRY_COUNT":            10,
+	"PORT":                                3333,
+	"REDIS_HOST":                          "127.0.0.1",
+	"REDIS_PORT":                          6379,
+	"REDIS_PASSWORD":                      "",
+	"REDIS_DATABASE":                      0,
+	"DELIVERY_RABBITMQ_EXCHANGE":          "outpost",
+	"DELIVERY_RABBITMQ_QUEUE":             "outpost.delivery",
+	"LOG_RABBITMQ_EXCHANGE":               "outpost_logs",
+	"LOG_RABBITMQ_QUEUE":                  "outpost_logs.log",
+	"PUBLISHMQ_MAX_CONCURRENCY":           1,
+	"DELIVERYMQ_MAX_CONCURRENCY":          1,
+	"LOGMQ_MAX_CONCURRENCY":               1,
+	"RETRY_INTERVAL_SECONDS":              30,
+	"MAX_RETRY_COUNT":                     10,
+	"LOG_BATCHER_DELAY_THRESHOLD_SECONDS": 5,
+	"LOG_BATCHER_ITEM_COUNT_THRESHOLD":    100,
+	"DESTINATION_METADATA_PATH":           "config/outpost/destinations",
 }
 
 var (
@@ -132,10 +139,12 @@ func Parse(flags Flags) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	deliveryQueueConfig.Policy.RetryLimit = viper.GetInt("DELIVERYMQ_RETRY_LIMIT")
 	logQueueConfig, err := mqs.ParseQueueConfig(viper, "LOG")
 	if err != nil {
 		return nil, err
 	}
+	logQueueConfig.Policy.RetryLimit = viper.GetInt("LOGMQ_RETRY_LIMIT")
 
 	portalProxyURL := viper.GetString("PORTAL_PROXY_URL")
 	if portalProxyURL != "" {
@@ -160,16 +169,19 @@ func Parse(flags Flags) (*Config, error) {
 			Password: viper.GetString("REDIS_PASSWORD"),
 			Database: mustInt(viper, "REDIS_DATABASE"),
 		},
-		ClickHouse:             clickHouseConfig,
-		OpenTelemetry:          openTelemetry,
-		PublishQueueConfig:     publishQueueConfig,
-		DeliveryQueueConfig:    deliveryQueueConfig,
-		LogQueueConfig:         logQueueConfig,
-		PublishMaxConcurrency:  mustInt(viper, "PUBLISHMQ_MAX_CONCURRENCY"),
-		DeliveryMaxConcurrency: mustInt(viper, "DELIVERYMQ_MAX_CONCURRENCY"),
-		LogMaxConcurrency:      mustInt(viper, "LOGMQ_MAX_CONCURRENCY"),
-		RetryIntervalSeconds:   mustInt(viper, "RETRY_INTERVAL_SECONDS"),
-		RetryMaxCount:          mustInt(viper, "MAX_RETRY_COUNT"),
+		ClickHouse:                      clickHouseConfig,
+		OpenTelemetry:                   openTelemetry,
+		PublishQueueConfig:              publishQueueConfig,
+		DeliveryQueueConfig:             deliveryQueueConfig,
+		LogQueueConfig:                  logQueueConfig,
+		PublishMaxConcurrency:           mustInt(viper, "PUBLISHMQ_MAX_CONCURRENCY"),
+		DeliveryMaxConcurrency:          mustInt(viper, "DELIVERYMQ_MAX_CONCURRENCY"),
+		LogMaxConcurrency:               mustInt(viper, "LOGMQ_MAX_CONCURRENCY"),
+		RetryIntervalSeconds:            mustInt(viper, "RETRY_INTERVAL_SECONDS"),
+		RetryMaxCount:                   mustInt(viper, "MAX_RETRY_COUNT"),
+		LogBatcherDelayThresholdSeconds: mustInt(viper, "LOG_BATCHER_DELAY_THRESHOLD_SECONDS"),
+		LogBatcherItemCountThreshold:    mustInt(viper, "LOG_BATCHER_ITEM_COUNT_THRESHOLD"),
+		DestinationMetadataPath:         viper.GetString("DESTINATION_METADATA_PATH"),
 	}
 
 	return config, nil
@@ -218,6 +230,7 @@ func parseTopics(viper *v.Viper) ([]string, error) {
 	for i, topic := range topics {
 		topics[i] = strings.TrimSpace(topic)
 	}
+	sort.Strings(topics)
 	return topics, nil
 }
 

@@ -68,7 +68,7 @@ func setupTestEntityStore(_ *testing.T, redisClient *redis.Client, cipher models
 	if cipher == nil {
 		cipher = models.NewAESCipher("secret")
 	}
-	return models.NewEntityStore(redisClient, cipher)
+	return models.NewEntityStore(redisClient, cipher, testutil.TestTopics)
 }
 
 func TestRouterWithAPIKey(t *testing.T) {
@@ -290,7 +290,7 @@ func TestRouterWithoutAPIKey(t *testing.T) {
 		req.Header.Set("Authorization", "NotBearer "+validToken)
 		router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("should block request with bearer authorization header with invalid token", func(t *testing.T) {

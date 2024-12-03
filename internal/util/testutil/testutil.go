@@ -2,13 +2,13 @@ package testutil
 
 import (
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	mathrand "math/rand"
 	"strconv"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	internalch "github.com/hookdeck/outpost/internal/clickhouse"
 	internalredis "github.com/hookdeck/outpost/internal/redis"
 	"github.com/redis/go-redis/v9"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
@@ -16,10 +16,17 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
+// must be sorted
 var TestTopics = []string{
 	"user.created",
-	"user.updated",
 	"user.deleted",
+	"user.updated",
+}
+
+func CheckIntegrationTest(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
 }
 
 func CreateTestRedisConfig(t *testing.T) *internalredis.RedisConfig {
@@ -51,15 +58,6 @@ func CreateTestRedisClient(t *testing.T) *redis.Client {
 	})
 }
 
-func CreateTestClickHouseConfig(t *testing.T) *internalch.ClickHouseConfig {
-	return &internalch.ClickHouseConfig{
-		Addr:     "127.0.0.1:9000",
-		Username: "default",
-		Password: "",
-		Database: "default",
-	}
-}
-
 func CreateTestLogger(t *testing.T) *otelzap.Logger {
 	zapLogger := zaptest.NewLogger(t)
 	logger := otelzap.New(zapLogger,
@@ -74,8 +72,19 @@ func RandomString(length int) string {
 	return fmt.Sprintf("%x", b)[2 : length+2]
 }
 
+func RandomPortNumber() int {
+	return 3500 + mathrand.Intn(100)
+}
+
 // Create a random port number between 3500 and 3600
 func RandomPort() string {
-	randomPortNumber := 3500 + mathrand.Intn(100)
-	return ":" + strconv.Itoa(randomPortNumber)
+	return ":" + strconv.Itoa(RandomPortNumber())
+}
+
+func MustMarshalJSON(v any) []byte {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return data
 }

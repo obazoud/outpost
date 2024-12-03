@@ -1,7 +1,6 @@
 package models
 
 import (
-	"context"
 	"encoding"
 	"encoding/json"
 	"errors"
@@ -11,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hookdeck/outpost/internal/destinationadapter"
 	"github.com/hookdeck/outpost/internal/redis"
 )
 
@@ -39,6 +37,10 @@ func (d *Destination) parseRedisHash(cmd *redis.MapStringStringCmd, cipher Ciphe
 	if len(hash) == 0 {
 		return redis.Nil
 	}
+	// Check for deleted resource before scanning
+	if _, exists := hash["deleted_at"]; exists {
+		return ErrDestinationDeleted
+	}
 	if err = cmd.Scan(d); err != nil {
 		return err
 	}
@@ -61,46 +63,18 @@ func (d *Destination) parseRedisHash(cmd *redis.MapStringStringCmd, cipher Ciphe
 	return nil
 }
 
-func (d *Destination) ValidateTopics(availableTopics []string) error {
-	return d.Topics.Validate(availableTopics)
-}
-
-func (d *Destination) Validate(ctx context.Context) error {
-	adapter, err := destinationadapter.NewAdapater(d.Type)
-	if err != nil {
+func (d *Destination) Validate(topics []string) error {
+	if err := d.Topics.Validate(topics); err != nil {
 		return err
-	}
-	return adapter.Validate(ctx, destinationadapter.Destination{
-		ID:          d.ID,
-		Type:        d.Type,
-		Config:      d.Config,
-		Credentials: d.Credentials,
-	})
-}
-
-func (d *Destination) Publish(ctx context.Context, event *Event) error {
-	adapter, err := destinationadapter.NewAdapater(d.Type)
-	if err != nil {
-		return &DestinationPublishError{Err: err}
-	}
-	if err := adapter.Publish(
-		ctx,
-		destinationadapter.Destination{
-			ID:          d.ID,
-			Type:        d.Type,
-			Config:      d.Config,
-			Credentials: d.Credentials,
-		},
-		event.ToAdapterEvent(),
-	); err != nil {
-		return &DestinationPublishError{Err: err}
 	}
 	return nil
 }
 
 type DestinationSummary struct {
-	ID     string `json:"id"`
-	Topics Topics `json:"topics"`
+	ID       string `json:"id"`
+	Type     string `json:"type"`
+	Topics   Topics `json:"topics"`
+	Disabled bool   `json:"disabled"`
 }
 
 var _ encoding.BinaryMarshaler = &DestinationSummary{}
@@ -116,8 +90,10 @@ func (ds *DestinationSummary) UnmarshalBinary(data []byte) error {
 
 func (d *Destination) ToSummary() *DestinationSummary {
 	return &DestinationSummary{
-		ID:     d.ID,
-		Topics: d.Topics,
+		ID:       d.ID,
+		Type:     d.Type,
+		Topics:   d.Topics,
+		Disabled: d.DisabledAt != nil,
 	}
 }
 
@@ -208,14 +184,4 @@ func (c *Credentials) MarshalBinary() ([]byte, error) {
 
 func (c *Credentials) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, c)
-}
-
-type DestinationPublishError struct {
-	Err error
-}
-
-var _ error = &DestinationPublishError{}
-
-func (e *DestinationPublishError) Error() string {
-	return e.Err.Error()
 }

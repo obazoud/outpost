@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/redis"
 )
@@ -17,13 +18,21 @@ type EntityStore interface {
 	RetrieveTenant(ctx context.Context, tenantID string) (*Tenant, error)
 	UpsertTenant(ctx context.Context, tenant Tenant) error
 	DeleteTenant(ctx context.Context, tenantID string) error
-	ListDestinationSummaryByTenant(ctx context.Context, tenantID string) ([]DestinationSummary, error)
-	ListDestinationByTenant(ctx context.Context, tenantID string) ([]Destination, error)
+	ListDestinationByTenant(ctx context.Context, tenantID string, options ...ListDestinationByTenantOpts) ([]Destination, error)
 	RetrieveDestination(ctx context.Context, tenantID, destinationID string) (*Destination, error)
+	CreateDestination(ctx context.Context, destination Destination) error
 	UpsertDestination(ctx context.Context, destination Destination) error
 	DeleteDestination(ctx context.Context, tenantID, destinationID string) error
 	MatchEvent(ctx context.Context, event Event) ([]DestinationSummary, error)
 }
+
+var (
+	ErrTenantNotFound       = errors.New("tenant does not exist")
+	ErrTenantDeleted        = errors.New("tenant has been deleted")
+	ErrDuplicateDestination = errors.New("destination already exists")
+	ErrDestinationNotFound  = errors.New("destination does not exist")
+	ErrDestinationDeleted   = errors.New("destination has been deleted")
+)
 
 func redisTenantID(tenantID string) string {
 	return fmt.Sprintf("tenant:%s", tenantID)
@@ -38,55 +47,97 @@ func redisDestinationID(destinationID, tenantID string) string {
 }
 
 type entityStoreImpl struct {
-	redisClient *redis.Client
-	cipher      Cipher
+	redisClient     *redis.Client
+	cipher          Cipher
+	availableTopics []string
 }
 
 var _ EntityStore = (*entityStoreImpl)(nil)
 
-func NewEntityStore(redisClient *redis.Client, cipher Cipher) EntityStore {
+func NewEntityStore(redisClient *redis.Client, cipher Cipher, availableTopics []string) EntityStore {
 	return &entityStoreImpl{
-		redisClient: redisClient,
-		cipher:      cipher,
+		redisClient:     redisClient,
+		cipher:          cipher,
+		availableTopics: availableTopics,
 	}
 }
 
 func (s *entityStoreImpl) RetrieveTenant(ctx context.Context, tenantID string) (*Tenant, error) {
-	hash, err := s.redisClient.HGetAll(ctx, redisTenantID(tenantID)).Result()
+	pipe := s.redisClient.Pipeline()
+	tenantCmd := pipe.HGetAll(ctx, redisTenantID(tenantID))
+	topicsCmd := pipe.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID))
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	tenantHash, err := tenantCmd.Result()
 	if err != nil {
 		return nil, err
 	}
-	if len(hash) == 0 {
+	if len(tenantHash) == 0 {
 		return nil, nil
 	}
 	tenant := &Tenant{}
-	if err = tenant.parseRedisHash(hash); err != nil {
+	if err := tenant.parseRedisHash(tenantHash); err != nil {
 		return nil, err
 	}
-	return tenant, nil
+
+	destinationSummaryList, err := s.parselistDestinationSummaryByTenantCmd(topicsCmd, ListDestinationByTenantOpts{})
+	if err != nil {
+		return nil, err
+	}
+	tenant.DestinationsCount = len(destinationSummaryList)
+	tenant.Topics = s.parseTenantTopics(destinationSummaryList)
+
+	return tenant, err
 }
 
 func (s *entityStoreImpl) UpsertTenant(ctx context.Context, tenant Tenant) error {
-	return s.redisClient.HSet(ctx, redisTenantID(tenant.ID), tenant).Err()
+	key := redisTenantID(tenant.ID)
+
+	_, err := s.redisClient.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+		// Support overriding deleted resources
+		pipe.Persist(ctx, key)
+		pipe.HDel(ctx, key, "deleted_at")
+
+		// Set tenant data
+		pipe.HSet(ctx, key, tenant)
+		return nil
+	})
+
+	return err
 }
 
 func (s *entityStoreImpl) DeleteTenant(ctx context.Context, tenantID string) error {
 	maxRetries := 100
+
+	if exists, err := s.redisClient.Exists(ctx, redisTenantID(tenantID)).Result(); err != nil {
+		return err
+	} else if exists == 0 {
+		return ErrTenantNotFound
+	}
 
 	txf := func(tx *redis.Tx) error {
 		destinationIDs, err := s.redisClient.HKeys(ctx, redisTenantDestinationSummaryKey(tenantID)).Result()
 		if err != nil {
 			return err
 		}
-		_, err = s.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
+		if _, err := s.redisClient.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+			now := time.Now()
 			for _, destinationID := range destinationIDs {
-				r.Del(ctx, redisDestinationID(destinationID, tenantID))
+				s.deleteDestinationOperation(ctx, pipe, redisDestinationID(destinationID, tenantID), now)
 			}
-			r.Del(ctx, redisTenantDestinationSummaryKey(tenantID))
-			r.Del(ctx, redisTenantID(tenantID))
+			pipe.Del(ctx, redisTenantDestinationSummaryKey(tenantID))
+			tenantKey := redisTenantID(tenantID)
+			pipe.Del(ctx, tenantKey)
+			pipe.HSet(ctx, tenantKey, "deleted_at", now)
+			pipe.Expire(ctx, tenantKey, 7*24*time.Hour)
 			return nil
-		})
-		return err
+		}); err != nil {
+			return err
+		}
+		return nil
 	}
 
 	for i := 0; i < maxRetries; i++ {
@@ -106,29 +157,44 @@ func (s *entityStoreImpl) DeleteTenant(ctx context.Context, tenantID string) err
 	return errors.New("increment reached maximum number of retries")
 }
 
-func (s *entityStoreImpl) ListDestinationSummaryByTenant(ctx context.Context, tenantID string) ([]DestinationSummary, error) {
-	destinationSummaryListHash, err := s.redisClient.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID)).Result()
+func (s *entityStoreImpl) listDestinationSummaryByTenant(ctx context.Context, tenantID string, opts ListDestinationByTenantOpts) ([]DestinationSummary, error) {
+	return s.parselistDestinationSummaryByTenantCmd(s.redisClient.HGetAll(ctx, redisTenantDestinationSummaryKey(tenantID)), opts)
+}
+
+func (s *entityStoreImpl) parselistDestinationSummaryByTenantCmd(cmd *redis.MapStringStringCmd, opts ListDestinationByTenantOpts) ([]DestinationSummary, error) {
+	destinationSummaryListHash, err := cmd.Result()
 	if err != nil {
 		if err == redis.Nil {
 			return []DestinationSummary{}, nil
 		}
 		return nil, err
 	}
-	destinationSummaryList := make([]DestinationSummary, len(destinationSummaryListHash))
-	index := 0
+	destinationSummaryList := make([]DestinationSummary, 0, len(destinationSummaryListHash))
 	for _, destinationSummaryStr := range destinationSummaryListHash {
 		destinationSummary := DestinationSummary{}
 		if err := destinationSummary.UnmarshalBinary([]byte(destinationSummaryStr)); err != nil {
 			return nil, err
 		}
-		destinationSummaryList[index] = destinationSummary
-		index++
+		included := true
+		if opts.Filter != nil {
+			included = opts.Filter.match(destinationSummary)
+		}
+		if included {
+			destinationSummaryList = append(destinationSummaryList, destinationSummary)
+		}
 	}
 	return destinationSummaryList, nil
 }
 
-func (s *entityStoreImpl) ListDestinationByTenant(ctx context.Context, tenantID string) ([]Destination, error) {
-	destinationSummaryList, err := s.ListDestinationSummaryByTenant(ctx, tenantID)
+func (s *entityStoreImpl) ListDestinationByTenant(ctx context.Context, tenantID string, options ...ListDestinationByTenantOpts) ([]Destination, error) {
+	var opts ListDestinationByTenantOpts
+	if len(options) > 0 {
+		opts = options[0]
+	} else {
+		opts = ListDestinationByTenantOpts{}
+	}
+
+	destinationSummaryList, err := s.listDestinationSummaryByTenant(ctx, tenantID, opts)
 
 	pipe := s.redisClient.Pipeline()
 	cmds := make([]*redis.MapStringStringCmd, len(destinationSummaryList))
@@ -169,13 +235,22 @@ func (s *entityStoreImpl) RetrieveDestination(ctx context.Context, tenantID, des
 	return destination, nil
 }
 
-func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Destination) error {
-	err := destination.Validate(ctx)
-	if err != nil {
-		return fmt.Errorf("validation failed: %w", err)
-	}
+func (m *entityStoreImpl) CreateDestination(ctx context.Context, destination Destination) error {
 	key := redisDestinationID(destination.ID, destination.TenantID)
-	_, err = m.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
+	// Check if destination exists
+	if fields, err := m.redisClient.HGetAll(ctx, key).Result(); err != nil {
+		return err
+	} else if len(fields) > 0 {
+		if _, isDeleted := fields["deleted_at"]; !isDeleted {
+			return ErrDuplicateDestination
+		}
+	}
+	return m.UpsertDestination(ctx, destination)
+}
+
+func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Destination) error {
+	key := redisDestinationID(destination.ID, destination.TenantID)
+	_, err := m.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
 		credentialsBytes, err := destination.Credentials.MarshalBinary()
 		if err != nil {
 			return err
@@ -184,7 +259,10 @@ func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Des
 		if err != nil {
 			return err
 		}
-
+		// Support overriding deleted resources
+		r.Persist(ctx, key)
+		r.HDel(ctx, key, "deleted_at")
+		// Set the new destination values
 		r.HSet(ctx, key, "id", destination.ID)
 		r.HSet(ctx, key, "type", destination.Type)
 		r.HSet(ctx, key, "topics", &destination.Topics)
@@ -192,7 +270,9 @@ func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Des
 		r.HSet(ctx, key, "credentials", encryptedCredentials)
 		r.HSet(ctx, key, "created_at", destination.CreatedAt)
 		if destination.DisabledAt != nil {
-			r.HSet(ctx, key, "disabled_at", destination.DisabledAt)
+			r.HSet(ctx, key, "disabled_at", *destination.DisabledAt)
+		} else {
+			r.HDel(ctx, key, "disabled_at")
 		}
 		r.HSet(ctx, redisTenantDestinationSummaryKey(destination.TenantID), destination.ID, destination.ToSummary()).Val()
 		return nil
@@ -201,13 +281,30 @@ func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Des
 }
 
 func (s *entityStoreImpl) DeleteDestination(ctx context.Context, tenantID, destinationID string) error {
-	_, err := s.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
-		if err := r.HDel(ctx, redisTenantDestinationSummaryKey(tenantID), destinationID).Err(); err != nil {
-			return err
-		}
-		return r.Del(ctx, redisDestinationID(destinationID, tenantID)).Err()
-	})
-	return err
+	key := redisDestinationID(destinationID, tenantID)
+	summaryKey := redisTenantDestinationSummaryKey(tenantID)
+
+	// Check if destination exists
+	if exists, err := s.redisClient.Exists(ctx, key).Result(); err != nil {
+		return err
+	} else if exists == 0 {
+		return ErrDestinationNotFound
+	}
+
+	pipe := s.redisClient.Pipeline()
+	pipe.HDel(ctx, summaryKey, destinationID)
+	s.deleteDestinationOperation(ctx, pipe, key, time.Now())
+	if _, err := pipe.Exec(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *entityStoreImpl) deleteDestinationOperation(ctx context.Context, pipe redis.Pipeliner, key string, ts time.Time) {
+	pipe.Del(ctx, key)
+	pipe.HSet(ctx, key, "deleted_at", ts)
+	pipe.Expire(ctx, key, 7*24*time.Hour)
 }
 
 func (s *entityStoreImpl) MatchEvent(ctx context.Context, event Event) ([]DestinationSummary, error) {
@@ -219,7 +316,7 @@ func (s *entityStoreImpl) MatchEvent(ctx context.Context, event Event) ([]Destin
 }
 
 func (s *entityStoreImpl) matchEventWithAllDestination(ctx context.Context, event Event) ([]DestinationSummary, error) {
-	destinationSummaryList, err := s.ListDestinationSummaryByTenant(ctx, event.TenantID)
+	destinationSummaryList, err := s.listDestinationSummaryByTenant(ctx, event.TenantID, ListDestinationByTenantOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +328,7 @@ func (s *entityStoreImpl) matchEventWithAllDestination(ctx context.Context, even
 	matchedDestinationSummaryList := []DestinationSummary{}
 
 	for _, destinationSummary := range destinationSummaryList {
-		if destinationSummary.Topics[0] == "*" || slices.Contains(destinationSummary.Topics, event.Topic) {
+		if !destinationSummary.Disabled && (destinationSummary.Topics[0] == "*" || slices.Contains(destinationSummary.Topics, event.Topic)) {
 			matchedDestinationSummaryList = append(matchedDestinationSummaryList, destinationSummary)
 		}
 	}
@@ -251,4 +348,64 @@ func (s *entityStoreImpl) matchEventWithDestination(ctx context.Context, event E
 		return []DestinationSummary{*destination.ToSummary()}, nil
 	}
 	return []DestinationSummary{}, nil
+}
+
+func (s *entityStoreImpl) parseTenantTopics(destinationSummaryList []DestinationSummary) []string {
+	all := false
+	topicsSet := make(map[string]struct{})
+	for _, destination := range destinationSummaryList {
+		for _, topic := range destination.Topics {
+			if topic == "*" {
+				all = true
+				break
+			}
+			topicsSet[topic] = struct{}{}
+		}
+	}
+
+	if all {
+		return s.availableTopics
+	}
+
+	topics := make([]string, 0, len(topicsSet))
+	for topic := range topicsSet {
+		topics = append(topics, topic)
+	}
+
+	sort.Strings(topics)
+	return topics
+}
+
+type ListDestinationByTenantOpts struct {
+	Filter *DestinationFilter
+}
+
+type DestinationFilter struct {
+	Type   []string
+	Topics []string
+}
+
+func WithDestinationFilter(filter DestinationFilter) ListDestinationByTenantOpts {
+	return ListDestinationByTenantOpts{Filter: &filter}
+}
+
+// match returns true if the destinationSummary matches the options
+func (filter DestinationFilter) match(destinationSummary DestinationSummary) bool {
+	if len(filter.Type) > 0 && !slices.Contains(filter.Type, destinationSummary.Type) {
+		return false
+	}
+	if len(filter.Topics) > 0 {
+		filterMatchesAll := len(filter.Topics) == 1 && filter.Topics[0] == "*"
+		if !destinationSummary.Topics.MatchesAll() {
+			if filterMatchesAll {
+				return false
+			}
+			for _, topic := range filter.Topics {
+				if !slices.Contains(destinationSummary.Topics, topic) {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }

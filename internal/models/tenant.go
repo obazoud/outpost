@@ -6,11 +6,16 @@ import (
 )
 
 type Tenant struct {
-	ID        string    `json:"id" redis:"id"`
-	CreatedAt time.Time `json:"created_at" redis:"created_at"`
+	ID                string    `json:"id" redis:"id"`
+	DestinationsCount int       `json:"destinations_count" redis:"-"`
+	Topics            []string  `json:"topics" redis:"-"`
+	CreatedAt         time.Time `json:"created_at" redis:"created_at"`
 }
 
 func (t *Tenant) parseRedisHash(hash map[string]string) error {
+	if _, ok := hash["deleted_at"]; ok {
+		return ErrTenantDeleted
+	}
 	if hash["id"] == "" {
 		return fmt.Errorf("missing id")
 	}

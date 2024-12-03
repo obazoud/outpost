@@ -1,0 +1,26 @@
+name: "outpost-test"
+
+services:
+  mock:
+    image: outpost-mock
+    build:
+      context: ../../
+      dockerfile: ./build/test/Dockerfile.mock
+    ports:
+      - 35555:5555
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    ports:
+      - 39000:9000
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 35672:5672
+      - 45672:15672
+  aws:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=sns,sts,sqs
+    ports:
+      - 34566:4566
+      - 34571:4571

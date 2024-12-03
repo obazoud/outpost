@@ -2,9 +2,14 @@ package api
 
 import (
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/hookdeck/outpost/internal/deliverymq"
+	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/portal"
 	"github.com/hookdeck/outpost/internal/publishmq"
@@ -19,6 +24,7 @@ type RouterConfig struct {
 	JWTSecret      string
 	PortalProxyURL string
 	Topics         []string
+	Registry       destregistry.Registry
 }
 
 func NewRouter(
@@ -31,8 +37,20 @@ func NewRouter(
 	publishmqEventHandler publishmq.EventHandler,
 ) http.Handler {
 	r := gin.Default()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
+
 	r.Use(otelgin.Middleware(cfg.Hostname))
 	r.Use(MetricsMiddleware())
+	r.Use(ErrorHandlerMiddleware(logger))
 
 	portal.AddRoutes(r, portal.PortalConfig{
 		ProxyURL: cfg.PortalProxyURL,
@@ -45,7 +63,7 @@ func NewRouter(
 	})
 
 	tenantHandlers := NewTenantHandlers(logger, cfg.JWTSecret, entityStore)
-	destinationHandlers := NewDestinationHandlers(logger, entityStore, cfg.Topics)
+	destinationHandlers := NewDestinationHandlers(logger, entityStore, cfg.Topics, cfg.Registry)
 	publishHandlers := NewPublishHandlers(logger, publishmqEventHandler)
 	logHandlers := NewLogHandlers(logger, logStore)
 	topicHandlers := NewTopicHandlers(logger, cfg.Topics)
@@ -76,6 +94,8 @@ func NewRouter(
 	tenantRouter.GET("/:tenantID/destinations/:destinationID", destinationHandlers.Retrieve)
 	tenantRouter.PATCH("/:tenantID/destinations/:destinationID", destinationHandlers.Update)
 	tenantRouter.DELETE("/:tenantID/destinations/:destinationID", destinationHandlers.Delete)
+	tenantRouter.PUT("/:tenantID/destinations/:destinationID/enable", destinationHandlers.Enable)
+	tenantRouter.PUT("/:tenantID/destinations/:destinationID/disable", destinationHandlers.Disable)
 
 	tenantRouter.GET("/:tenantID/events", logHandlers.ListEvent)
 	tenantRouter.GET("/:tenantID/events/:eventID", logHandlers.RetrieveEvent)
@@ -84,6 +104,9 @@ func NewRouter(
 	adminRouter.POST("/publish", publishHandlers.Ingest)
 
 	adminRouter.GET("/topics", topicHandlers.List)
+
+	adminRouter.GET("/providers", destinationHandlers.ListProviderMetadata)
+	adminRouter.GET("/providers/:type", destinationHandlers.RetrieveProviderMetadata)
 
 	return r
 }

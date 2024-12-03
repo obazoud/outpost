@@ -61,7 +61,7 @@ func (s *RetryDeliveryMQSuite) SetupTest(t *testing.T) {
 		s.redisClient = testutil.CreateTestRedisClient(t)
 	}
 	if s.entityStore == nil {
-		s.entityStore = models.NewEntityStore(s.redisClient, models.NewAESCipher(""))
+		s.entityStore = models.NewEntityStore(s.redisClient, models.NewAESCipher(""), testutil.TestTopics)
 	}
 	logMQ := logmq.New(logmq.WithQueue(&mqs.QueueConfig{InMemory: &mqs.InMemoryConfig{Name: testutil.RandomString(5)}}))
 	cleanupLogMQ, err := logMQ.Init(s.ctx)
@@ -79,6 +79,7 @@ func (s *RetryDeliveryMQSuite) SetupTest(t *testing.T) {
 		logMQ,
 		s.entityStore,
 		s.logStore,
+		testutil.Registry,
 		testutil.NewMockEventTracer(s.exporter),
 		retryScheduler,
 		&backoff.ConstantBackoff{Interval: 1 * time.Second},
@@ -129,7 +130,7 @@ func (s *RetryDeliveryMQSuite) SetupTest(t *testing.T) {
 		ID: uuid.New().String(),
 	}
 	s.destination = testutil.DestinationFactory.Any(
-		testutil.DestinationFactory.WithType("webhooks"),
+		testutil.DestinationFactory.WithType("webhook"),
 		testutil.DestinationFactory.WithTenantID(s.tenant.ID),
 		testutil.DestinationFactory.WithConfig(map[string]string{"url": webhookURL}),
 	)
@@ -250,7 +251,7 @@ func TestDeliveryMQRetry_SystemError(t *testing.T) {
 		InMemory: &mqs.InMemoryConfig{Name: testutil.RandomString(5)},
 	}
 	redisClient := testutil.CreateTestRedisClient(t)
-	entityStore := newMockEntityStore(models.NewEntityStore(redisClient, models.NewAESCipher("")))
+	entityStore := newMockEntityStore(models.NewEntityStore(redisClient, models.NewAESCipher(""), testutil.TestTopics))
 	logStore := &mockLogStore{}
 	suite := &RetryDeliveryMQSuite{
 		ctx:           ctx,
