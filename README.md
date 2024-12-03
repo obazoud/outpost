@@ -1,5 +1,138 @@
-# Outpost
+<br>
+
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/outpost-white.svg">
+    <img alt="Outpost logo" src="images/outpost-black.svg" width="40%">
+  </picture>
+</div>
+
+<br>
+
+<div align="center">
+
+[![License](https://img.shields.io/badge/License-Apache--2.0-blue)](#license)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hookdeck/outpost)](https://goreportcard.com/report/github.com/hookdeck/outpost)
+[![Issues - Outpost](https://img.shields.io/github/issues/hookdeck/outposta)](https://github.com/hookdeck/outpost/issues)
+![GitHub Release](https://img.shields.io/github/v/release/hookdeck/outpost)
+
+</div>
+
+# Open Source Event Destinations Infrastructure
+
+Outpost is a self-hosted and open-source product that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+
+Learn more about Event Destinations in the [Event Destinations Manifesto](https://event-destinations-website.vercel.app/).
+
+## Features
+
+- **Event topics and topics-based subscriptions**: Supports the common publish and subscription paradigm to ease adoption and integration into existing systems.
+- **Publish events via the API or a queue**: Publish events using the Outpost API or configure Outpost to read events from a publish queue.
+- **At least once delivery guarantee**: Messages are guaranteed to be delivered at least once and never lost.
+- **Event fanout**: A message is sent to a topic is replicated and sent to multiple endpoints. This allows for parallel processing and asynchronous event notifications.
+- **User portal**: Allow customers to view metrics, manage, debug, and observe their event destinations.
+- **Automatic and manual retries**: Configure retry strategies for event destinations and manually trigger event delivery retries via the API or user portal.
+- **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
+- **User alerts**: Allow customers to manage event delivery alerts.
+- **OpenTelemetry**: OTel standardized traces, metrics, and logs.
+- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka. Extend to support other destinations types.
+- **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
+
+## Quickstart
+
+Clone the repo:
+
+```sh
+git clone https://github.com/hookdeck/outpost.git
+```
+
+Navigate to `outpost/examples/docker-compose/`:
+
+```sh
+cd outpost/examples/docker-compose/
+```
+
+Create a `.env` file from the example:
+
+```sh
+cp .env.example .env
+```
+
+Update the `<API_KEY>` value within the new `.env` file.
+
+The `TOPICS` defined in the `.env` determine:
+
+- Which topics that destinations can subscribe to
+- The topics that can be published to
+
+Start the Outpost dependencies and services:
+
+```sh
+docker-compose -f compose.yml -f compose-rabbitmq.yml up
+```
+
+Check the services are running:
+
+```sh
+curl localhost:3333/api/v1/healthz
+```
+
+Wait until you get a `OK%` response.
+
+Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your `.env`:
+
+```sh
+curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>'
+```
+
+Run a local server exposed via a localtunnel or use a hosted service such as the [Hookdeck Console](https://console.hookdeck.com?ref=github-outpost) to capture webhook events.
+
+Create a webhook destination where events will be delivered to with the following command. Again, replace `<TENANT_ID>` and `<API_KEY>`. Also, replace `<URL>` with the webhook destinations URL:
+
+```sh
+curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>' \
+--data '{
+    "type": "webhook",
+    "topics": ["*"],
+    "config": {
+        "url": "<URL>"
+    }
+}'
+```
+
+Publish an event, remembering to replace `<API_KEY>` and `<TENANT_ID>`:
+
+```sh
+curl --location 'localhost:3333/api/v1/publish' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>' \
+--data '{
+    "tenant_id": "<TENANT_ID>",
+    "topic": "user.created",
+    "eligible_for_retry": true,
+    "metadata": {
+        "meta": "data"
+    },
+    "data": {
+        "user_id": "userid"
+    }
+}'
+```
+
+Check the logs on your server or your webhook capture tool for the delivered event.
+
+## Documentation
+
+TODO
 
 ## Contributing
 
-To contribute, please read the [contribution documentation](docs/contributing).
+See [CONTRIBUTING](CONTRIBUTING.md).
+
+## License
+
+This repository contains Outpost, covered under the [Apache License 2.0](LICENSE), except where noted (any Outpost logos or trademarks are not covered under the Apache License, and should be explicitly noted by a LICENSE file.)
