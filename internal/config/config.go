@@ -44,6 +44,7 @@ type Config struct {
 	RetryMaxCount                   int
 	LogBatcherDelayThresholdSeconds int
 	LogBatcherItemCountThreshold    int
+	DestinationMetadataPath         string
 }
 
 var defaultConfig = map[string]any{
@@ -63,6 +64,7 @@ var defaultConfig = map[string]any{
 	"MAX_RETRY_COUNT":                     10,
 	"LOG_BATCHER_DELAY_THRESHOLD_SECONDS": 5,
 	"LOG_BATCHER_ITEM_COUNT_THRESHOLD":    100,
+	"DESTINATION_METADATA_PATH":           "config/outpost/destinations",
 }
 
 var (
@@ -137,10 +139,12 @@ func Parse(flags Flags) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	deliveryQueueConfig.Policy.RetryLimit = viper.GetInt("DELIVERYMQ_RETRY_LIMIT")
 	logQueueConfig, err := mqs.ParseQueueConfig(viper, "LOG")
 	if err != nil {
 		return nil, err
 	}
+	logQueueConfig.Policy.RetryLimit = viper.GetInt("LOGMQ_RETRY_LIMIT")
 
 	portalProxyURL := viper.GetString("PORTAL_PROXY_URL")
 	if portalProxyURL != "" {
@@ -177,6 +181,7 @@ func Parse(flags Flags) (*Config, error) {
 		RetryMaxCount:                   mustInt(viper, "MAX_RETRY_COUNT"),
 		LogBatcherDelayThresholdSeconds: mustInt(viper, "LOG_BATCHER_DELAY_THRESHOLD_SECONDS"),
 		LogBatcherItemCountThreshold:    mustInt(viper, "LOG_BATCHER_ITEM_COUNT_THRESHOLD"),
+		DestinationMetadataPath:         viper.GetString("DESTINATION_METADATA_PATH"),
 	}
 
 	return config, nil

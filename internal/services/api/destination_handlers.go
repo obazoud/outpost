@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
@@ -17,13 +18,15 @@ type DestinationHandlers struct {
 	logger      *otelzap.Logger
 	entityStore models.EntityStore
 	topics      []string
+	registry    destregistry.Registry
 }
 
-func NewDestinationHandlers(logger *otelzap.Logger, entityStore models.EntityStore, topics []string) *DestinationHandlers {
+func NewDestinationHandlers(logger *otelzap.Logger, entityStore models.EntityStore, topics []string, registry destregistry.Registry) *DestinationHandlers {
 	return &DestinationHandlers{
 		logger:      logger,
 		entityStore: entityStore,
 		topics:      topics,
+		registry:    registry,
 	}
 }
 
@@ -58,11 +61,16 @@ func (h *DestinationHandlers) Create(c *gin.Context) {
 		return
 	}
 	destination := input.ToDestination(c.Param("tenantID"))
-	if err := destination.Topics.Validate(h.topics); err != nil {
+	if err := destination.Validate(h.topics); err != nil {
 		AbortWithValidationError(c, err)
 		return
 	}
-	if err := destination.Validate(c.Request.Context()); err != nil {
+	provider, err := h.registry.GetProvider(destination.Type)
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+		return
+	}
+	if err := provider.Validate(c.Request.Context(), &destination); err != nil {
 		AbortWithValidationError(c, err)
 		return
 	}
@@ -98,7 +106,7 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	// Validate.
 	if input.Topics != nil {
 		destination.Topics = input.Topics
-		if err := destination.Topics.Validate(h.topics); err != nil {
+		if err := destination.Validate(h.topics); err != nil {
 			AbortWithValidationError(c, err)
 			return
 		}
@@ -117,7 +125,12 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 		destination.Credentials = input.Credentials
 	}
 	if shouldRevalidate {
-		if err := destination.Validate(c.Request.Context()); err != nil {
+		provider, err := h.registry.GetProvider(destination.Type)
+		if err != nil {
+			AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+			return
+		}
+		if err := provider.Validate(c.Request.Context(), destination); err != nil {
 			AbortWithValidationError(c, err)
 			return
 		}
@@ -151,6 +164,21 @@ func (h *DestinationHandlers) Enable(c *gin.Context) {
 	h.setDisabilityHandler(c, false)
 }
 
+func (h *DestinationHandlers) ListProviderMetadata(c *gin.Context) {
+	metadata := h.registry.ListProviderMetadata()
+	c.JSON(http.StatusOK, metadata)
+}
+
+func (h *DestinationHandlers) RetrieveProviderMetadata(c *gin.Context) {
+	providerType := c.Param("type")
+	metadata, err := h.registry.RetrieveProviderMetadata(providerType)
+	if err != nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, metadata)
+}
+
 func (h *DestinationHandlers) setDisabilityHandler(c *gin.Context, disabled bool) {
 	destination := h.mustRetrieveDestination(c, c.Param("tenantID"), c.Param("destinationID"))
 	if destination == nil {
@@ -178,6 +206,10 @@ func (h *DestinationHandlers) setDisabilityHandler(c *gin.Context, disabled bool
 func (h *DestinationHandlers) mustRetrieveDestination(c *gin.Context, tenantID, destinationID string) *models.Destination {
 	destination, err := h.entityStore.RetrieveDestination(c.Request.Context(), tenantID, destinationID)
 	if err != nil {
+		if errors.Is(err, models.ErrDestinationDeleted) {
+			c.Status(http.StatusNotFound)
+			return nil
+		}
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return nil
 	}

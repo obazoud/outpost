@@ -12,6 +12,7 @@ import (
 	"github.com/hookdeck/outpost/cmd/e2e/httpclient"
 	"github.com/hookdeck/outpost/internal/app"
 	"github.com/hookdeck/outpost/internal/config"
+	"github.com/hookdeck/outpost/internal/util/testinfra"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,17 +20,21 @@ import (
 )
 
 type e2eSuite struct {
-	ctx     context.Context
-	config  *config.Config
-	cleanup func()
-	client  httpclient.Client
+	ctx               context.Context
+	config            *config.Config
+	mockServerBaseURL string
+	mockServerInfra   *testinfra.MockServerInfra
+	cleanup           func()
+	client            httpclient.Client
 }
 
 func (suite *e2eSuite) SetupSuite() {
 	suite.client = httpclient.New(fmt.Sprintf("http://localhost:%d/api/v1", suite.config.Port), suite.config.APIKey)
 	go func() {
 		application := app.New(suite.config)
-		application.Run(suite.ctx)
+		if err := application.Run(suite.ctx); err != nil {
+			log.Println("Application failed to run", err)
+		}
 	}()
 }
 
@@ -46,6 +51,7 @@ func (s *e2eSuite) AuthRequest(req httpclient.Request) httpclient.Request {
 }
 
 func (suite *e2eSuite) RunAPITests(t *testing.T, tests []APITest) {
+	t.Helper()
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			test.Run(t, suite.client)
@@ -66,6 +72,8 @@ type APITestExpectation struct {
 }
 
 func (test *APITest) Run(t *testing.T, client httpclient.Client) {
+	t.Helper()
+
 	if test.Delay > 0 {
 		time.Sleep(test.Delay)
 	}
@@ -101,16 +109,20 @@ type basicSuite struct {
 }
 
 func (suite *basicSuite) SetupSuite() {
-	config, cleanup, err := configs.Basic(suite.T())
-	require.NoError(suite.T(), err)
+	t := suite.T()
+	t.Cleanup(testinfra.Start(t))
+	mockServerBaseURL := testinfra.GetMockServer(t)
 	suite.e2eSuite = e2eSuite{
-		ctx:     context.Background(),
-		config:  config,
-		cleanup: cleanup,
+		ctx:               context.Background(),
+		config:            configs.Basic(t),
+		mockServerBaseURL: mockServerBaseURL,
+		mockServerInfra:   testinfra.NewMockServerInfra(mockServerBaseURL),
+		cleanup:           func() {},
 	}
 	suite.e2eSuite.SetupSuite()
 
 	// wait for outpost services to start
+	// TODO: replace with a health check
 	time.Sleep(2 * time.Second)
 }
 
@@ -119,6 +131,7 @@ func (s *basicSuite) TearDownSuite() {
 }
 
 func TestBasicSuite(t *testing.T) {
+	t.Parallel()
 	if testing.Short() {
 		t.Skip("skipping e2e test")
 	}
