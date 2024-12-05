@@ -9,6 +9,7 @@ import "./app.scss";
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);
+  useTheme();
 
   return (
     <>
@@ -150,4 +151,21 @@ function decodeJWT(token: string) {
     console.error(e);
     return {};
   }
+}
+
+function useTheme() {
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryTheme = searchParams.get("theme");
+    
+    if (queryTheme === "dark" || queryTheme === "light") {
+      // Save new theme preference
+      localStorage.setItem("theme", queryTheme);
+      document.body.setAttribute("data-theme", queryTheme);
+    } else {
+      // Use saved theme preference, default to light if none exists
+      const savedTheme = localStorage.getItem("theme") ?? "light";
+      document.body.setAttribute("data-theme", savedTheme);
+    }
+  }, []);
 }

@@ -17,7 +17,6 @@ Right now, the spec designs the portal to be a part of the API server. This coul
 
 We can consider supporting a dedicated Portal service or maybe distributing the built portal bundle so users can deploy it separately (either as a service or potentially as a static SPA). In that case, Outpost API will require a `PORTAL_URL` value to generate the portal redirect URL.
 
-
 ## Adding a new NPM package
 
 If you're adding a new NPM package, run `npm install` in the `internal/portal` directory and restart the portal docker container.

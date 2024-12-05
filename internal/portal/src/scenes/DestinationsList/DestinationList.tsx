@@ -135,11 +135,20 @@ const DestinationList: React.FC = () => {
           </Button>
         </div>
       </div>
-      <Table
-        columns={table_columns}
-        rows={table_rows}
-        footer_label="event destinations"
-      />
+      {destinations.length === 0 ? (
+        <div className="destination-list__empty-state">
+          <span className="body-m muted">
+            No event destinations yet. Add your first destination to get
+            started.
+          </span>
+        </div>
+      ) : (
+        <Table
+          columns={table_columns}
+          rows={table_rows}
+          footer_label="event destinations"
+        />
+      )}
     </div>
   );
 };

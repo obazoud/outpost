@@ -183,7 +183,7 @@ body {
 }
 
 @mixin generate-spacing-variables {
-  @for $i from 1 through 12 {
+  @for $i from 1 through 20 {
     --spacing-#{$i}: #{$i * $BASE_GRID_MULTIPLIER};
   }
 }

@@ -89,7 +89,16 @@ func (h *TenantHandlers) RetrievePortal(c *gin.Context) {
 		scheme = "https"
 	}
 
+	// Get theme from query parameter
+	theme := c.Query("theme")
+	if theme != "dark" && theme != "light" {
+		theme = ""
+	}
+
 	portalURL := scheme + "://" + c.Request.Host + "?token=" + jwtToken
+	if theme != "" {
+		portalURL += "&theme=" + theme
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"redirect_url": portalURL,
