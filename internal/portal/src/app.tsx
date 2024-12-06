@@ -5,12 +5,13 @@ import { SWRConfig } from "swr";
 
 import "./global.scss";
 import "./app.scss";
+import { Loading } from "./common/Icons";
+import ErrorBoundary from "./common/ErrorBoundary/ErrorBoundary";
 
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);
   useTheme();
-
   return (
     <>
       <div className="layout">
@@ -35,35 +36,40 @@ export function App() {
             Back to {ORGANIZATION_NAME} {"->"}
           </a>
         </header>
-        {/* TODO: Add loading state */}
-        {tenant ? (
-          <SWRConfig
-            value={{
-              fetcher: (path: string) =>
-                fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }).then((res) => res.json()),
-            }}
-          >
-            <BrowserRouter
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true,
+        <ErrorBoundary>
+          {tenant ? (
+            <SWRConfig
+              value={{
+                fetcher: (path: string) =>
+                  fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                  }).then((res) => res.json()),
               }}
             >
-              <Routes>
-                <Route path="/" Component={DestinationList} />
-                <Route path="/new" element={<div>New Destination</div>} />
-                <Route
-                  path="/destinations/:destination_id"
-                  element={<div>Specific Destination</div>}
-                />
-              </Routes>
-            </BrowserRouter>
-          </SWRConfig>
-        ) : null}
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}
+              >
+                <Routes>
+                  <Route path="/" Component={DestinationList} />
+                  <Route path="/new" element={<div>New Destination</div>} />
+                  <Route
+                    path="/destinations/:destination_id"
+                    element={<div>Specific Destination</div>}
+                  />
+                </Routes>
+              </BrowserRouter>
+            </SWRConfig>
+          ) : (
+            <div className="fullscreen-loading">
+              <Loading />
+            </div>
+          )}
+        </ErrorBoundary>
       </div>
       <div className="powered-by subtitle-s">
         Powered by{" "}
@@ -157,7 +163,7 @@ function useTheme() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const queryTheme = searchParams.get("theme");
-    
+
     if (queryTheme === "dark" || queryTheme === "light") {
       // Save new theme preference
       localStorage.setItem("theme", queryTheme);

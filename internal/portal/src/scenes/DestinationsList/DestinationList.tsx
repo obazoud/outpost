@@ -33,10 +33,6 @@ const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
   const [searchTerm, setSearchTerm] = useState("");
 
-  if (!destinations) {
-    return <div>Loading...</div>;
-  }
-
   const table_columns = [
     { header: "Type", width: 160 },
     { header: "Target" },
@@ -135,19 +131,23 @@ const DestinationList: React.FC = () => {
           </Button>
         </div>
       </div>
-      {destinations.length === 0 ? (
-        <div className="destination-list__empty-state">
-          <span className="body-m muted">
-            No event destinations yet. Add your first destination to get
-            started.
-          </span>
-        </div>
-      ) : (
-        <Table
-          columns={table_columns}
-          rows={table_rows}
-          footer_label="event destinations"
-        />
+      {destinations && (
+        <>
+          {destinations.length === 0 ? (
+            <div className="destination-list__empty-state">
+              <span className="body-m muted">
+                No event destinations yet. Add your first destination to get
+                started.
+              </span>
+            </div>
+          ) : (
+            <Table
+              columns={table_columns}
+              rows={table_rows}
+              footer_label="event destinations"
+            />
+          )}
+        </>
       )}
     </div>
   );

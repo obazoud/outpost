@@ -23,6 +23,7 @@ export default defineConfig(() => {
     },
     define: {
       REFERER_URL: JSON.stringify(process.env.PORTAL_REFERER_URL),
+      FAVICON_URL: JSON.stringify(process.env.PORTAL_FAVICON_URL),
       LOGO: JSON.stringify(process.env.PORTAL_LOGO),
       ORGANIZATION_NAME: JSON.stringify(process.env.PORTAL_ORGANIZATION_NAME),
       FORCE_THEME: JSON.stringify(process.env.PORTAL_FORCE_THEME),

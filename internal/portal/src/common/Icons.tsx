@@ -129,3 +129,56 @@ export const CloseIcon = () => (
     <path d="M8.00088 8.85L5.26755 11.5833C5.14533 11.7056 5.00644 11.7639 4.85088 11.7583C4.69533 11.7528 4.55644 11.6889 4.43422 11.5667C4.31199 11.4444 4.25088 11.3028 4.25088 11.1417C4.25088 10.9806 4.31199 10.8389 4.43422 10.7167L7.15088 8L4.41755 5.26667C4.29533 5.14445 4.23699 5.00278 4.24255 4.84167C4.24811 4.68056 4.31199 4.53889 4.43422 4.41667C4.55644 4.29445 4.69811 4.23334 4.85922 4.23334C5.02033 4.23334 5.16199 4.29445 5.28422 4.41667L8.00088 7.15L10.7342 4.41667C10.8564 4.29445 10.9981 4.23334 11.1592 4.23334C11.3203 4.23334 11.462 4.29445 11.5842 4.41667C11.7064 4.53889 11.7675 4.68056 11.7675 4.84167C11.7675 5.00278 11.7064 5.14445 11.5842 5.26667L8.85088 8L11.5842 10.7333C11.7064 10.8556 11.7675 10.9944 11.7675 11.15C11.7675 11.3056 11.7064 11.4444 11.5842 11.5667C11.462 11.6889 11.3203 11.75 11.1592 11.75C10.9981 11.75 10.8564 11.6889 10.7342 11.5667L8.00088 8.85Z" />
   </svg>
 );
+
+export const Loading = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="24px">
+    <radialGradient
+      id="a12"
+      cx=".66"
+      fx=".66"
+      cy=".3125"
+      fy=".3125"
+      gradientTransform="scale(1.5)"
+    >
+      <stop offset="0" stopColor="var(--colors-on-surface-secondary)"></stop>
+      <stop offset=".3" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".9"></stop>
+      <stop offset=".6" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".6"></stop>
+      <stop offset=".8" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".3"></stop>
+      <stop offset="1" stopColor="var(--colors-on-surface-secondary)" stopOpacity="0"></stop>
+    </radialGradient>
+    <circle
+      transform-origin="center"
+      fill="none"
+      stroke="url(#a12)"
+      stroke-width="15"
+      stroke-linecap="round"
+      stroke-dasharray="200 1000"
+      stroke-dashoffset="0"
+      cx="100"
+      cy="100"
+      r="70"
+    >
+      <animateTransform
+        type="rotate"
+        attributeName="transform"
+        calcMode="spline"
+        dur="0.75"
+        values="360;0"
+        keyTimes="0;1"
+        keySplines="0 0 1 1"
+        repeatCount="indefinite"
+      ></animateTransform>
+    </circle>
+    <circle
+      transform-origin="center"
+      fill="none"
+      opacity=".2"
+      stroke="var(--colors-on-surface-secondary)"
+      stroke-width="15"
+      stroke-linecap="round"
+      cx="100"
+      cy="100"
+      r="70"
+    ></circle>
+  </svg>
+);
