@@ -5,7 +5,7 @@ import useSWR from "swr";
 
 import Badge from "../../common/Badge/Badge";
 import Button from "../../common/Button/Button";
-import { AddIcon } from "../../common/Icons";
+import { AddIcon, FilterIcon } from "../../common/Icons";
 import SearchInput from "../../common/SearchInput/SearchInput";
 import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
@@ -123,9 +123,9 @@ const DestinationList: React.FC = () => {
             onChange={setSearchTerm}
             placeholder="Filter by type, target or topic"
           />
-          {/* <Button onClick={console.log}>
+          <Button onClick={console.log}>
             <FilterIcon /> Status
-          </Button> */}
+          </Button>
           <Button primary to="/new">
             <AddIcon /> Add Destination
           </Button>

@@ -4,65 +4,150 @@ $BASE_GRID_MULTIPLIER: 4px !default;
 $RADIUS_S: 4px !default;
 $RADIUS_M: 6px !default;
 
-// Surface Colors
-$COLORS_SURFACE_BACKGROUND_LIGHT: #ffffff !default;
-$COLORS_SURFACE_BACKGROUND_DARK: #1a1a1a !default;
-$COLORS_SURFACE_NEUTRAL_LIGHT: #ffffff !default;
-$COLORS_SURFACE_NEUTRAL_DARK: #333333 !default;
-$COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT: #f5f5f5 !default;
-$COLORS_SURFACE_NEUTRAL_VARIANT_DARK: #404040 !default;
-$COLORS_SURFACE_PRIMARY_LIGHT: #0044cc !default;
-$COLORS_SURFACE_PRIMARY_DARK: #0044cc !default;
-$COLORS_SURFACE_PRIMARY_HOVER_LIGHT: #0036a3 !default;
-$COLORS_SURFACE_PRIMARY_HOVER_DARK: #0036a3 !default;
+// Background Colors
 
-// Container Colors
-$COLORS_CONTAINER_SUCCESS_LIGHT: #e5f2ec !default;
-$COLORS_CONTAINER_SUCCESS_DARK: #1a332b !default;
-$COLORS_CONTAINER_NEUTRAL_LIGHT: #ebebeb !default;
-$COLORS_CONTAINER_NEUTRAL_DARK: #404040 !default;
-$COLORS_CONTAINER_ERROR_LIGHT: #fafaf8 !default;
-$COLORS_CONTAINER_ERROR_DARK: #331a1a !default;
+/// Neutral
+$COLORS_BACKGROUND_LIGHT: #ffffff !default;
+$COLORS_BACKGROUND_DARK: #1a1a1a !default;
 
-// On Surface Colors
-$COLORS_ON_SURFACE_NEUTRAL_LIGHT: #141412 !default;
-$COLORS_ON_SURFACE_NEUTRAL_DARK: #e6e6e6 !default;
-$COLORS_ON_SURFACE_SECONDARY_LIGHT: #7a7a7a !default;
-$COLORS_ON_SURFACE_SECONDARY_DARK: #999999 !default;
-$COLORS_ON_SURFACE_SECONDARY_VARIANT: #525252 !default;
-$COLORS_ON_SURFACE_ERROR_LIGHT: #fae9e7 !default;
-$COLORS_ON_SURFACE_ERROR_DARK: #4d1a14 !default;
-$COLORS_ON_SURFACE_PRIMARY_LIGHT: #ffffff !default;
-$COLORS_ON_SURFACE_PRIMARY_DARK: #ffffff !default;
+$COLORS_BACKGROUND_HOVER_LIGHT: #F5F5F5 !default;
+$COLORS_BACKGROUND_HOVER_DARK: #272725 !default;
 
-// On Container Colors
-$COLORS_ON_CONTAINER_SUCCESS_LIGHT: #006633 !default;
-$COLORS_ON_CONTAINER_SUCCESS_DARK: #00cc66 !default;
-$COLORS_ON_CONTAINER_NEUTRAL_LIGHT: #141412 !default;
-$COLORS_ON_CONTAINER_NEUTRAL_DARK: #e6e6e6 !default;
-$COLORS_ON_CONTAINER_ERROR_LIGHT: #cc2314 !default;
-$COLORS_ON_CONTAINER_ERROR_DARK: #ff4d4d !default;
+$COLORS_BACKGROUND_NEUTRAL_1_LIGHT: #FAFAFA !default;
+$COLORS_BACKGROUND_NEUTRAL_1_DARK: #1D1D1B !default;
+
+$COLORS_BACKGROUND_NEUTRAL_2_LIGHT: #F5F5F5 !default;
+$COLORS_BACKGROUND_NEUTRAL_2_DARK: #222220 !default;
+
+$COLORS_BACKGROUND_NEUTRAL_3_LIGHT: #EBEBEB !default;
+$COLORS_NEUTRAL_3_DARK: #353533 !default;
+
+$COLORS_BACKGROUND_NEUTRAL_ELEVATED_LIGHT: #ffffff !default;
+$COLORS_BACKGROUND_NEUTRAL_ELEVATED_DARK: #1D1D1B !default;
+
+/// Primary
+$COLORS_BACKGROUND_PRIMARY_LIGHT: #0044cc !default;
+$COLORS_BACKGROUND_PRIMARY_DARK: #0044cc !default;
+
+$COLORS_BACKGROUND_PRIMARY_HOVER_LIGHT: #0036A3 !default;
+$COLORS_BACKGROUND_PRIMARY_HOVER_DARK: #3369D6 !default;
+
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT: #E5ECFA !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK: #001B52 !default;
+
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_LIGHT: #CCDAF5 !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_DARK: #00297A !default;
+
+/// Danger
+$COLORS_BACKGROUND_DANGER_LIGHT: #CC2314 !default;
+$COLORS_BACKGROUND_DANGER_DARK: #A31C10 !default;
+
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT: #FAE9E7 !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK: #520E08 !default;
+
+/// Success
+$COLORS_BACKGROUND_SUCCESS_LIGHT: #66B38C !default;
+$COLORS_BACKGROUND_SUCCESS_DARK: #004D26 !default;
+
+$COLORS_BACKGROUND_CONTAINER_SUCCESS_LIGHT: #E5F2EC !default;
+$COLORS_BACKGROUND_CONTAINER_SUCCESS_DARK: #00331A !default;
+
+// Foreground Colors
+
+/// Neutral
+$COLORS_FOREGROUND_NEUTRAL_LIGHT: #141412 !default;
+$COLORS_FOREGROUND_NEUTRAL_DARK: #F5F4F1 !default;
+
+$COLORS_FOREGROUND_NEUTRAL_2_LIGHT: #52504A !default;
+$COLORS_FOREGROUND_NEUTRAL_2_DARK: #CCC8B8 !default;
+
+$COLORS_FOREGROUND_NEUTRAL_3_LIGHT: #7A786E !default;
+$COLORS_FOREGROUND_NEUTRAL_3_DARK: #7A786E !default;
+
+$COLORS_FOREGROUND_NEUTRAL_DISABLED_LIGHT: #A3A093 !default;
+$COLORS_FOREGROUND_NEUTRAL_DISABLED_DARK: #52504A !default;
+
+$COLORS_FOREGROUND_ON_HUE_LIGHT: #FFFFFF !default;
+$COLORS_FOREGROUND_ON_HUE_DARK: #FFFFFF !default;
+
+/// Primary
+$COLORS_FOREGROUND_PRIMARY_LIGHT: #0044CC !default;
+$COLORS_FOREGROUND_PRIMARY_DARK: #668FE0 !default;
+
+$COLORS_FOREGROUND_CONTAINER_PRIMARY_LIGHT: #0036A3 !default;
+$COLORS_FOREGROUND_CONTAINER_PRIMARY_DARK: #99B4EB !default;
+
+/// Danger
+$COLORS_FOREGROUND_DANGER_LIGHT: #CC2314 !default;
+$COLORS_FOREGROUND_DANGER_DARK: #E07B72 !default;
+
+/// Success
+$COLORS_FOREGROUND_SUCCESS_LIGHT: #006633 !default;
+$COLORS_FOREGROUND_SUCCESS_DARK: #99CCB3 !default;
+
+// Code
+$COLORS_CODE_BOOLEAN_LIGHT: #0036A3 !default;
+$COLORS_CODE_BOOLEAN_DARK: #668FE0 !default;
+
+$COLORS_CODE_STRING_LIGHT: #006633 !default;
+$COLORS_CODE_STRING_DARK: #66B38C !default;
+
+$COLORS_CODE_NULL_LIGHT: #A31C10 !default;
+$COLORS_CODE_NULL_DARK: #E07B72 !default;
+
+$COLORS_CODE_NUMBER_LIGHT: #665200 !default;
+$COLORS_CODE_NUMBER_DARK: #FFE066 !default;
+
+// Shadows
+
+$COLORS_SHADOW_TOOLTIP_LIGHT: 0px 2px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_TOOLTIP_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 4px 8px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+
+$COLORS_SHADOW_MENU_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_MENU_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 4px 8px 0px rgba(0, 0, 0, 0.32), 0px 8px 16px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+
+$COLORS_SHADOW_DIALOG_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08), 0px 16px 32px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_DIALOG_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 16px 0px rgba(0, 0, 0, 0.32), 0px 16px 32px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+
+$COLORS_SHADOW_BUTTON_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_BUTTON_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.24);
+
+$COLORS_SHADOW_BUTTON_PRIMARY_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px #0036A3;
+$COLORS_SHADOW_BUTTON_PRIMARY_DARK: 0px 1px 2px 0px rgba(0, 0, 0, 0.16), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+
+$COLORS_SHADOW_INPUT_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.04) inset, 0px 0px 0px 1px rgba(0, 0, 0, 0.08) inset;
+$COLORS_SHADOW_INPUT_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset, 0px 0px 0px 1px rgba(255, 255, 255, 0.24) inset;
 
 // Outline Colors
+
 $COLORS_OUTLINE_NEUTRAL_LIGHT: #ebebeb !default;
-$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT: #d6d6d6 !default;
-$COLORS_OUTLINE_NEUTRAL_DARK: #404040 !default;
-$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT: #cce6d9 !default;
-$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK: #264d3d !default;
-$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT: #f5d3d0 !default;
-$COLORS_OUTLINE_CONTAINER_ERROR_DARK: #4d2626 !default;
-$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT: #668fe0 !default;
-$COLORS_OUTLINE_PRIMARY_FOCUS_DARK: #668fe0 !default;
-$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT: #002eb8 !default;
-$COLORS_OUTLINE_PRIMARY_HOVER_DARK: #002eb8 !default;
+$COLORS_OUTLINE_NEUTRAL_DARK: #353533 !default;
+
+$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT: #E0E0E0 !default;
+$COLORS_OUTLINE_NEUTRAL_HOVER_DARK: #3E3E3D !default;
+
+$COLORS_OUTLINE_PRIMARY_LIGHT: #CCDAF5 !default;
+$COLORS_OUTLINE_PRIMARY_DARK: #0036A3 !default;
+
+$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT: #668FE0 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS_DARK: #668FE0 !default;
+
+$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT: #99B4EB !default;
+$COLORS_OUTLINE_PRIMARY_HOVER_DARK: #0044CC !default;
+
+$COLORS_OUTLINE_SUCCESS_LIGHT: #CCE6D9 !default;
+$COLORS_OUTLINE_SUCCESS_DARK: #006633 !default;
+
+$COLORS_OUTLINE_DANGER_LIGHT: #F5D3D0 !default;
+$COLORS_OUTLINE_DANGER_DARK: #7A150C !default;
+
 
 // Data Visualization Colors
-$COLORS_DATAVIZ_SUCCESS_LIGHT: #66b38c !default;
-$COLORS_DATAVIZ_SUCCESS_DARK: #33664d !default;
+$COLORS_DATAVIZ_SUCCESS_LIGHT: #66B38C !default;
+$COLORS_DATAVIZ_SUCCESS_DARK: #004D26 !default;
+
 $COLORS_DATAVIZ_ERROR_LIGHT: #cc2314 !default;
-$COLORS_DATAVIZ_ERROR_DARK: #ff4d4d !default;
-$COLORS_DATAVIZ_INFO_LIGHT: #99b8f5 !default;
-$COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
+$COLORS_DATAVIZ_ERROR_DARK: #D64F43 !default;
 
 :root {
   --base-font-size: #{$BASE_FONT_SIZE};
@@ -87,74 +172,100 @@ $COLORS_DATAVIZ_INFO_DARK: #1a4080 !default;
   --line-height-s: 1.25rem; /* 20px */
   --line-height-xs: 1.25rem; /* 20px */
 
-  --shadow-elevation-1: 0px 1px 0px 0px rgba(0, 0, 0, 0.02);
-  --shadow-elevation-2: 0px -1px 0px 0px rgba(0, 0, 0, 0.2) inset,
-    0px 1px 0px 0px rgba(0, 0, 0, 0.08);
-  --shadow-elevation-3: box-shadow: 0px 8px 24px 0px rgba(82, 80, 74, 0.12);
-
-  --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_LIGHT};
-  --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_LIGHT};
-  --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_LIGHT};
-  --colors-surface-primary: #{$COLORS_SURFACE_PRIMARY_LIGHT};
-  --colors-surface-primary-hover: #{$COLORS_SURFACE_PRIMARY_HOVER_LIGHT};
-
-  --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_LIGHT};
-  --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_LIGHT};
-  --colors-container-error: #{$COLORS_CONTAINER_ERROR_LIGHT};
-
-  --colors-on-surface-neutral: #{$COLORS_ON_SURFACE_NEUTRAL_LIGHT};
-  --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_LIGHT};
-  --colors-on-surface-secondary-variant: #{$COLORS_ON_SURFACE_SECONDARY_VARIANT};
-  --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_LIGHT};
-  --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_LIGHT};
-
-  --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_LIGHT};
-  --colors-on-container-neutral: #{$COLORS_ON_CONTAINER_NEUTRAL_LIGHT};
-  --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_LIGHT};
+  --colors-background: #{$COLORS_BACKGROUND_LIGHT};
+  --colors-background-hover: #{$COLORS_BACKGROUND_HOVER_LIGHT};
+  --colors-background-neutral-1: #{$COLORS_BACKGROUND_NEUTRAL_1_LIGHT};
+  --colors-background-neutral-2: #{$COLORS_BACKGROUND_NEUTRAL_2_LIGHT};
+  --colors-background-neutral-3: #{$COLORS_BACKGROUND_NEUTRAL_3_LIGHT};
+  --colors-background-neutral-elevated: #{$COLORS_BACKGROUND_NEUTRAL_ELEVATED_LIGHT};
+  --colors-background-primary: #{$COLORS_BACKGROUND_PRIMARY_LIGHT};
+  --colors-background-primary-hover: #{$COLORS_BACKGROUND_PRIMARY_HOVER_LIGHT};
+  --colors-background-container-primary: #{$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT};
+  --colors-background-container-primary-hover: #{$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_LIGHT};
+  --colors-background-danger: #{$COLORS_BACKGROUND_DANGER_LIGHT};
+  --colors-background-success: #{$COLORS_BACKGROUND_SUCCESS_LIGHT};
+  --colors-background-container-success: #{$COLORS_BACKGROUND_CONTAINER_SUCCESS_LIGHT};
 
   --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
   --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT};
+  --colors-outline-primary: #{$COLORS_OUTLINE_PRIMARY_LIGHT};
   --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT};
   --colors-outline-primary-hover: #{$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT};
+  --colors-outline-success: #{$COLORS_OUTLINE_SUCCESS_LIGHT};
+  --colors-outline-danger: #{$COLORS_OUTLINE_DANGER_LIGHT};
 
-  --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_LIGHT};
-  --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_LIGHT};
+  --colors-code-boolean: #{$COLORS_CODE_BOOLEAN_LIGHT};
+  --colors-code-null: #{$COLORS_CODE_NULL_LIGHT};
+  --colors-code-number: #{$COLORS_CODE_NUMBER_LIGHT};
+  --colors-code-string: #{$COLORS_CODE_STRING_LIGHT};
 
-  --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_LIGHT};
   --colors-dataviz-error: #{$COLORS_DATAVIZ_ERROR_LIGHT};
-  --colors-dataviz-info: #{$COLORS_DATAVIZ_INFO_LIGHT};
+  --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_LIGHT};
+
+  --colors-foreground-neutral: #{$COLORS_FOREGROUND_NEUTRAL_LIGHT};
+  --colors-foreground-neutral-2: #{$COLORS_FOREGROUND_NEUTRAL_2_LIGHT};
+  --colors-foreground-neutral-3: #{$COLORS_FOREGROUND_NEUTRAL_3_LIGHT};
+  --colors-foreground-neutral-disabled: #{$COLORS_FOREGROUND_NEUTRAL_DISABLED_LIGHT};
+  --colors-foreground-on-hue: #{$COLORS_FOREGROUND_ON_HUE_LIGHT};
+  --colors-foreground-primary: #{$COLORS_FOREGROUND_PRIMARY_LIGHT};
+  --colors-foreground-container-primary: #{$COLORS_FOREGROUND_CONTAINER_PRIMARY_LIGHT};
+  --colors-foreground-danger: #{$COLORS_FOREGROUND_DANGER_LIGHT};
+  --colors-foreground-success: #{$COLORS_FOREGROUND_SUCCESS_LIGHT};
+
+  --colors-shadow-tooltip: #{$COLORS_SHADOW_TOOLTIP_LIGHT};
+  --colors-shadow-menu: #{$COLORS_SHADOW_MENU_LIGHT};
+  --colors-shadow-dialog: #{$COLORS_SHADOW_DIALOG_LIGHT};
+  --colors-shadow-button: #{$COLORS_SHADOW_BUTTON_LIGHT};
+  --colors-shadow-button-primary: #{$COLORS_SHADOW_BUTTON_PRIMARY_LIGHT};
+  --colors-shadow-input: #{$COLORS_SHADOW_INPUT_LIGHT};
 
   body[data-theme="dark"] {
-    --colors-surface-background: #{$COLORS_SURFACE_BACKGROUND_DARK};
-    --colors-surface-neutral: #{$COLORS_SURFACE_NEUTRAL_DARK};
-    --colors-surface-neutral-variant: #{$COLORS_SURFACE_NEUTRAL_VARIANT_DARK};
-    --colors-surface-primary: #{$COLORS_SURFACE_PRIMARY_DARK};
-    --colors-surface-primary-hover: #{$COLORS_SURFACE_PRIMARY_HOVER_DARK};
+    --colors-background: #{$COLORS_BACKGROUND_DARK};
+    --colors-background-hover: #{$COLORS_BACKGROUND_HOVER_DARK};
+    --colors-background-neutral-1: #{$COLORS_BACKGROUND_NEUTRAL_1_DARK};
+    --colors-background-neutral-2: #{$COLORS_BACKGROUND_NEUTRAL_2_DARK};
+    --colors-background-neutral-3: #{$COLORS_NEUTRAL_3_DARK};
+    --colors-background-neutral-elevated: #{$COLORS_BACKGROUND_NEUTRAL_ELEVATED_DARK};
+    --colors-background-primary: #{$COLORS_BACKGROUND_PRIMARY_DARK};
+    --colors-background-primary-hover: #{$COLORS_BACKGROUND_PRIMARY_HOVER_DARK};
+    --colors-background-container-primary: #{$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK};
+    --colors-background-container-primary-hover: #{$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_DARK};
+    --colors-background-danger: #{$COLORS_BACKGROUND_DANGER_DARK};
+    --colors-background-success: #{$COLORS_BACKGROUND_SUCCESS_DARK};
+    --colors-background-container-success: #{$COLORS_BACKGROUND_CONTAINER_SUCCESS_DARK};
 
-    --colors-container-success: #{$COLORS_CONTAINER_SUCCESS_DARK};
-    --colors-container-neutral: #{$COLORS_CONTAINER_NEUTRAL_DARK};
-    --colors-container-error: #{$COLORS_CONTAINER_ERROR_DARK};
+    --colors-code-boolean: #{$COLORS_CODE_BOOLEAN_DARK};
+    --colors-code-null: #{$COLORS_CODE_NULL_DARK};
+    --colors-code-number: #{$COLORS_CODE_NUMBER_DARK};
+    --colors-code-string: #{$COLORS_CODE_STRING_DARK};
 
-    --colors-on-surface-neutral: #{$COLORS_ON_SURFACE_NEUTRAL_DARK};
-    --colors-on-surface-secondary: #{$COLORS_ON_SURFACE_SECONDARY_DARK};
-    --colors-on-surface-error: #{$COLORS_ON_SURFACE_ERROR_DARK};
-    --colors-on-surface-primary: #{$COLORS_ON_SURFACE_PRIMARY_DARK};
+    --colors-dataviz-error: #{$COLORS_DATAVIZ_ERROR_DARK};
+    --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_DARK};
 
-    --colors-on-container-success: #{$COLORS_ON_CONTAINER_SUCCESS_DARK};
-    --colors-on-container-neutral: #{$COLORS_ON_CONTAINER_NEUTRAL_DARK};
-    --colors-on-container-error: #{$COLORS_ON_CONTAINER_ERROR_DARK};
+    --colors-foreground-neutral: #{$COLORS_FOREGROUND_NEUTRAL_DARK};
+    --colors-foreground-neutral-2: #{$COLORS_FOREGROUND_NEUTRAL_2_DARK};
+    --colors-foreground-neutral-3: #{$COLORS_FOREGROUND_NEUTRAL_3_DARK};
+    --colors-foreground-neutral-disabled: #{$COLORS_FOREGROUND_NEUTRAL_DISABLED_DARK};
+    --colors-foreground-on-hue: #{$COLORS_FOREGROUND_ON_HUE_DARK};
+    --colors-foreground-primary: #{$COLORS_FOREGROUND_PRIMARY_DARK};
+    --colors-foreground-container-primary: #{$COLORS_FOREGROUND_CONTAINER_PRIMARY_DARK};
+    --colors-foreground-danger: #{$COLORS_FOREGROUND_DANGER_DARK};
+    --colors-foreground-success: #{$COLORS_FOREGROUND_SUCCESS_DARK};
 
     --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_DARK};
     --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_DARK};
+    --colors-outline-primary: #{$COLORS_OUTLINE_PRIMARY_DARK};
     --colors-outline-primary-focus: #{$COLORS_OUTLINE_PRIMARY_FOCUS_DARK};
     --colors-outline-primary-hover: #{$COLORS_OUTLINE_PRIMARY_HOVER_DARK};
+    --colors-outline-success: #{$COLORS_OUTLINE_SUCCESS_DARK};
+    --colors-outline-danger: #{$COLORS_OUTLINE_DANGER_DARK};
 
-    --colors-outline-container-success: #{$COLORS_OUTLINE_CONTAINER_SUCCESS_DARK};
-    --colors-outline-container-error: #{$COLORS_OUTLINE_CONTAINER_ERROR_DARK};
-
-    --colors-dataviz-success: #{$COLORS_DATAVIZ_SUCCESS_DARK};
-    --colors-dataviz-error: #{$COLORS_DATAVIZ_ERROR_DARK};
-    --colors-dataviz-info: #{$COLORS_DATAVIZ_INFO_DARK};
+    --colors-shadow-tooltip: #{$COLORS_SHADOW_TOOLTIP_DARK};
+    --colors-shadow-menu: #{$COLORS_SHADOW_MENU_DARK};
+    --colors-shadow-dialog: #{$COLORS_SHADOW_DIALOG_DARK};
+    --colors-shadow-button: #{$COLORS_SHADOW_BUTTON_DARK};
+    --colors-shadow-button-primary: #{$COLORS_SHADOW_BUTTON_PRIMARY_DARK};
+    --colors-shadow-input: #{$COLORS_SHADOW_INPUT_DARK};
   }
 }
 
@@ -168,17 +279,18 @@ html {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
 
-  color: var(--colors-on-surface-neutral);
+  color: var(--colors-foreground-neutral);
 
   &:focus-visible {
     outline: 2px solid var(--colors-outline-primary-focus);
+    outline-offset: 2px;
   }
 }
 
 body {
   padding: 0;
   margin: 0;
-  background: var(--colors-surface-background);
+  background: var(--colors-background);
   font-size: 1rem;
 }
 
@@ -194,11 +306,11 @@ body {
 }
 
 .muted {
-  color: var(--colors-on-surface-secondary);
+  color: var(--colors-foreground-neutral-1);
 }
 
 .muted-variant {
-  color: var(--colors-on-surface-secondary-variant);
+  color: var(--colors-foreground-neutral-2);
 }
 
 /* Title styles */
@@ -385,19 +497,15 @@ textarea {
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   border-radius: var(--radius-m);
-  border: 1px solid var(--colors-outline-neutral);
-  padding: calc(var(--spacing-1--5) - 1px) var(--spacing-3);
+  border: none;
+  padding: var(--spacing-1--5) var(--spacing-3);
   font-family: inherit;
-  background: var(--colors-surface-neutral);
+  background: var(--colors-background-neutral);
   color: var(--colors-on-surface-neutral);
+  box-shadow: var(--colors-shadow-input);
 
   &:hover {
     border-color: var(--colors-outline-neutral-hover);
-  }
-
-  &:focus {
-    outline: 1px solid var(--colors-outline-primary-focus);
-    border-color: var(--colors-outline-primary-focus);
   }
 
   &::placeholder {

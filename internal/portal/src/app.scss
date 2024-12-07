@@ -13,11 +13,11 @@
     margin-bottom: calc(var(--base-grid-multiplier) * 10);
 
     a {
-      color: var(--colors-on-surface-secondary);
+      color: var(--colors-foreground-neutral-3);
       text-decoration: none;
 
       &:hover {
-        color: var(--colors-on-surface-neutral);
+        color: var(--colors-foreground-neutral-2);
       }
     }
   }
@@ -36,14 +36,14 @@
   position: absolute;
   bottom: var(--spacing-3);
   left: var(--spacing-4);
-  color: var(--colors-on-surface-secondary);
+  color: var(--colors-foreground-neutral-2);
 
   a {
-    color: var(--colors-on-surface-secondary);
+    color: var(--colors-foreground-neutral-2);
     text-decoration: none;
 
     &:hover {
-      color: var(--colors-on-surface-neutral);
+      color: var(--colors-foreground-neutral);
     }
   }
 }
