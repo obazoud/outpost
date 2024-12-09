@@ -4,10 +4,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/gin-contrib/static"
@@ -19,35 +16,51 @@ var staticFS embed.FS
 
 type PortalConfig struct {
 	ProxyURL string
+	Configs  map[string]string
+}
+
+func createJSONFromConfigs(env map[string]string) string {
+	parts := make([]string, 0, len(env))
+	for k, v := range env {
+		parts = append(parts, fmt.Sprintf("%q:%q", k, v))
+	}
+	return "{" + strings.Join(parts, ",") + "}"
 }
 
 // AddRoutes serves the static file system for the UI React App.
 func AddRoutes(router *gin.Engine, config PortalConfig) {
-	if config.ProxyURL != "" {
-		// Proxy to Portal server
-		remote, err := url.Parse(config.ProxyURL)
-		if err != nil {
-			panic(err)
-		}
-		proxy := httputil.NewSingleHostReverseProxy(remote)
-		router.NoRoute(func(c *gin.Context) {
-			if strings.HasPrefix(c.Request.URL.Path, "/api") {
-				c.Next()
-				return
-			}
-			if c.Request.Method != "GET" {
-				c.Next()
-				return
-			}
-			log.Println(c.Request.Method, c.Request.URL.Path, c.Request.URL.RawQuery)
-			proxy.ServeHTTP(c.Writer, c.Request)
-		})
-	} else {
-		embeddedBuildFolder := newStaticFileSystem()
-		fallbackFileSystem := newFallbackFileSystem(embeddedBuildFolder)
-		router.Use(static.Serve("/", embeddedBuildFolder))
-		router.Use(static.Serve("/", fallbackFileSystem))
-	}
+	// Hijack the / route to serve the index.html file and append the env variables
+	router.GET("/inject-portal-config.js", func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		c.Header("Pragma", "no-cache")
+		c.Header("Expires", "0")
+		c.String(http.StatusOK, "window.PORTAL_CONFIGS = "+createJSONFromConfigs(config.Configs)+";")
+	})
+
+	// if config.ProxyURL != "" {
+	// 	remote, err := url.Parse(config.ProxyURL)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	proxy := httputil.NewSingleHostReverseProxy(remote)
+	// 	router.NoRoute(func(c *gin.Context) {
+	// 		if strings.HasPrefix(c.Request.URL.Path, "/api") {
+	// 			c.Next()
+	// 			return
+	// 		}
+	// 		if c.Request.Method != "GET" {
+	// 			c.Next()
+	// 			return
+	// 		}
+	// 		log.Println(c.Request.Method, c.Request.URL.Path, c.Request.URL.RawQuery)
+	// 		proxy.ServeHTTP(c.Writer, c.Request)
+	// 	})
+	// } else {
+	embeddedBuildFolder := newStaticFileSystem()
+	fallbackFileSystem := newFallbackFileSystem(embeddedBuildFolder)
+	router.Use(static.Serve("/", embeddedBuildFolder))
+	router.Use(static.Serve("/", fallbackFileSystem))
+	//}
 }
 
 // staticFileSystem serves files out of the embedded build folder
@@ -101,7 +114,12 @@ func newFallbackFileSystem(staticFileSystem *staticFileSystem) *fallbackFileSyst
 }
 
 func (f *fallbackFileSystem) Open(path string) (http.File, error) {
-	return f.staticFileSystem.Open("/index.html")
+	file, err := f.staticFileSystem.Open("/index.html")
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }
 
 func (f *fallbackFileSystem) Exists(prefix string, path string) bool {

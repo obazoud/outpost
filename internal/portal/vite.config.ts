@@ -1,40 +1,39 @@
 import { defineConfig, UserConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
-function generateScssVariables(env: Record<string, string | undefined>) {
-  const portal_css_vars = Object.entries(env).filter(([key]) =>
-    key.startsWith("PORTAL_CSS_")
-  );
+export default defineConfig(({ mode }) => {
+  let plugins: UserConfig["plugins"] = [react()];
 
-  return portal_css_vars
-    .map(([key, value]) => {
-      // Just remove PORTAL_CSS_ prefix but keep the rest of the name
-      const scss_var_name = key.replace("PORTAL_CSS_", "");
-      return `$${scss_var_name}: ${value};`;
-    })
-    .join("\n");
-}
+  if (mode === "production") {
+    plugins.push(
+      sentryVitePlugin({
+        authToken: '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',
+        org: "hookdeck",
+        project: "outpost-portal",
+        telemetry: false,
+        bundleSizeOptimizations: {
+          excludeTracing: true,
+          excludePerformanceMonitoring: true,
+          excludeReplayCanvas: true,
+          excludeReplayShadowDom: true,
+          excludeReplayIframe: true,
+          excludeReplayWorker: true,
+        },
+      })
+    );
+  }
 
-export default defineConfig(() => {
   const config: UserConfig = {
-    plugins: [react()],
+    plugins,
     server: {
       port: 3334,
+      // hmr: {
+      //   port: 3334,
+      // },
     },
-    define: {
-      REFERER_URL: JSON.stringify(process.env.PORTAL_REFERER_URL),
-      FAVICON_URL: JSON.stringify(process.env.PORTAL_FAVICON_URL),
-      LOGO: JSON.stringify(process.env.PORTAL_LOGO),
-      ORGANIZATION_NAME: JSON.stringify(process.env.PORTAL_ORGANIZATION_NAME),
-      FORCE_THEME: JSON.stringify(process.env.PORTAL_FORCE_THEME),
-      TOPICS: JSON.stringify(process.env.TOPICS),
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          additionalData: generateScssVariables(process.env),
-        },
-      },
+    build: {
+      sourcemap: true,
     },
   };
 

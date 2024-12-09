@@ -10,6 +10,7 @@ import SearchInput from "../../common/SearchInput/SearchInput";
 import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
 import destinationTypes from "../../destination-types";
+import CONFIGS from "../../config";
 
 // TODO: Add empty state
 // TODO: Add loading state
@@ -74,7 +75,7 @@ const DestinationList: React.FC = () => {
           content={
             <div className="destination-list__topics-tooltip">
               {(destination.topics.length > 0 && destination.topics[0] === "*"
-                ? TOPICS.split(",")
+                ? CONFIGS.TOPICS.split(",")
                 : destination.topics
               )
                 .slice(0, 9)
@@ -82,12 +83,12 @@ const DestinationList: React.FC = () => {
                   <Badge key={topic} text={topic.trim()} />
                 ))}
               {(destination.topics[0] === "*"
-                ? TOPICS.split(",").length
+                ? CONFIGS.TOPICS.split(",").length
                 : destination.topics.length) > 9 && (
                 <span className="subtitle-s muted">
                   +{" "}
                   {(destination.topics[0] === "*"
-                    ? TOPICS.split(",").length
+                    ? CONFIGS.TOPICS.split(",").length
                     : destination.topics.length) - 9}{" "}
                   more
                 </span>

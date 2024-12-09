@@ -6,19 +6,21 @@
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.1.4",
+    "@sentry/react": "^8.42.0",
+    "@sentry/vite-plugin": "^2.22.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
     "swr": "^2.2.5"
   },
   "devDependencies": {
-    "@tsconfig/vite-react": "^3.0.2",
-    "@types/node": "^22.9.0",
+    "@tsconfig/vite-react": "^3.4.0",
+    "@types/node": "^22.10.1",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react-swc": "^3.7.1",
-    "sass-embedded": "^1.81.0",
-    "typescript": "^5.6.2",
-    "vite": "^5.4.8"
+    "@vitejs/plugin-react-swc": "^3.7.2",
+    "sass-embedded": "^1.82.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
   }
 }

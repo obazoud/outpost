@@ -7,6 +7,7 @@ import "./global.scss";
 import "./app.scss";
 import { Loading } from "./common/Icons";
 import ErrorBoundary from "./common/ErrorBoundary/ErrorBoundary";
+import CONFIGS from "./config";
 
 export function App() {
   const token = useToken();
@@ -17,23 +18,23 @@ export function App() {
       <div className="layout">
         <header className="layout__header">
           <a href="/">
-            {LOGO ? (
-              LOGO.indexOf("http") === 0 ? (
+            {CONFIGS.LOGO ? (
+              CONFIGS.LOGO.indexOf("http") === 0 ? (
                 <img
                   className="layout__header-logo"
-                  src={LOGO}
-                  alt={ORGANIZATION_NAME}
+                  src={CONFIGS.LOGO}
+                  alt={CONFIGS.ORGANIZATION_NAME}
                 />
               ) : (
                 <div
                   className="layout__header-logo"
-                  dangerouslySetInnerHTML={{ __html: LOGO }}
+                  dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
                 />
               )
             ) : null}
           </a>
-          <a href={REFERER_URL} className="subtitle-m">
-            Back to {ORGANIZATION_NAME} {"->"}
+          <a href={CONFIGS.REFERER_URL} className="subtitle-m">
+            Back to {CONFIGS.ORGANIZATION_NAME} {"->"}
           </a>
         </header>
         <ErrorBoundary>
@@ -65,22 +66,24 @@ export function App() {
               </BrowserRouter>
             </SWRConfig>
           ) : (
-            <div className="fullscreen-loading">
+            <div>
               <Loading />
             </div>
           )}
         </ErrorBoundary>
       </div>
-      <div className="powered-by subtitle-s">
-        Powered by{" "}
-        <a
-          href="https://github.com/hookdeck/outpost"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Outpost
-        </a>
-      </div>
+      {!CONFIGS.DISABLE_OUTPOST_BRANDING && (
+        <div className="powered-by subtitle-s">
+          Powered by{" "}
+          <a
+            href="https://github.com/hookdeck/outpost"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Outpost
+          </a>
+        </div>
+      )}
     </>
   );
 }
@@ -97,6 +100,11 @@ function useToken() {
       window.location.replace("/");
     }
   }, []);
+  
+  if (!token) {
+    window.location.replace(CONFIGS.REFERER_URL);
+    return;
+  }
 
   return token;
 }
@@ -129,7 +137,7 @@ function useTenant(token?: string): Tenant | undefined {
         },
       });
       if (!response.ok) {
-        window.location.replace(REFERER_URL);
+        window.location.replace(CONFIGS.REFERER_URL);
         return;
       }
       const tenant = await response.json();
@@ -162,7 +170,7 @@ function decodeJWT(token: string) {
 function useTheme() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const queryTheme = searchParams.get("theme");
+    const queryTheme = CONFIGS.FORCE_THEME || searchParams.get("theme");
 
     if (queryTheme === "dark" || queryTheme === "light") {
       // Save new theme preference

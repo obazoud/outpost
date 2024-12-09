@@ -140,11 +140,11 @@ export const Loading = () => (
       fy=".3125"
       gradientTransform="scale(1.5)"
     >
-      <stop offset="0" stopColor="var(--colors-on-surface-secondary)"></stop>
-      <stop offset=".3" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".9"></stop>
-      <stop offset=".6" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".6"></stop>
-      <stop offset=".8" stopColor="var(--colors-on-surface-secondary)" stopOpacity=".3"></stop>
-      <stop offset="1" stopColor="var(--colors-on-surface-secondary)" stopOpacity="0"></stop>
+      <stop offset="0" stopColor="var(--colors-foreground-neutral-3)"></stop>
+      <stop offset=".3" stopColor="var(--colors-foreground-neutral-3)" stopOpacity=".9"></stop>
+      <stop offset=".6" stopColor="var(--colors-foreground-neutral-3)" stopOpacity=".6"></stop>
+      <stop offset=".8" stopColor="var(--colors-foreground-neutral-3)" stopOpacity=".3"></stop>
+      <stop offset="1" stopColor="var(--colors-foreground-neutral-3)" stopOpacity="0"></stop>
     </radialGradient>
     <circle
       transform-origin="center"
@@ -173,7 +173,7 @@ export const Loading = () => (
       transform-origin="center"
       fill="none"
       opacity=".2"
-      stroke="var(--colors-on-surface-secondary)"
+      stroke="var(--colors-foreground-neutral-3)"
       strokeWidth="15"
       strokeLinecap="round"
       cx="100"
