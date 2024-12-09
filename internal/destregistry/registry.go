@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"hash/fnv"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
+	"github.com/hookdeck/outpost/internal/lru"
 	"github.com/hookdeck/outpost/internal/models"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.uber.org/zap"
 )
 
 // Registry manages providers, their metadata, and publishers
@@ -47,21 +50,40 @@ type Publisher interface {
 type registry struct {
 	metadataLoader *metadata.MetadataLoader
 	metadata       map[string]*metadata.ProviderMetadata
-	providers      map[string]Provider  // Set during init
-	publishers     map[string]Publisher // Need mutex for concurrent access
-	mu             sync.RWMutex         // Protects publishers map
+	providers      map[string]Provider
+	publishers     *lru.Cache[string, Publisher]
 }
 
 type Config struct {
 	DestinationMetadataPath string
+	PublisherCacheSize      int
+	PublisherTTL            time.Duration
 }
 
-func NewRegistry(cfg *Config) Registry {
+func NewRegistry(cfg *Config, logger *otelzap.Logger) *registry {
+	if cfg.PublisherCacheSize == 0 {
+		cfg.PublisherCacheSize = defaultPublisherCacheSize
+	}
+	if cfg.PublisherTTL == 0 {
+		cfg.PublisherTTL = defaultPublisherTTL
+	}
+
+	onEvict := func(key string, p Publisher) {
+		if err := p.Close(); err != nil {
+			logger.Error("failed to close publisher on eviction",
+				zap.String("key", key),
+				zap.Error(err),
+			)
+		}
+	}
+
+	cache := lru.New[string, Publisher](cfg.PublisherCacheSize, cfg.PublisherTTL, onEvict)
+
 	return &registry{
 		metadataLoader: metadata.NewMetadataLoader(cfg.DestinationMetadataPath),
 		metadata:       make(map[string]*metadata.ProviderMetadata),
 		providers:      make(map[string]Provider),
-		publishers:     make(map[string]Publisher),
+		publishers:     cache,
 	}
 }
 
@@ -128,18 +150,7 @@ func MakePublisherKey(dest *models.Destination) string {
 func (r *registry) ResolvePublisher(ctx context.Context, destination *models.Destination) (Publisher, error) {
 	key := MakePublisherKey(destination)
 
-	r.mu.RLock()
-	publisher, exists := r.publishers[key]
-	r.mu.RUnlock()
-	if exists {
-		return publisher, nil
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	// Double-check after acquiring write lock
-	if publisher, exists = r.publishers[key]; exists {
+	if publisher, ok := r.publishers.Get(key); ok {
 		return publisher, nil
 	}
 
@@ -148,12 +159,12 @@ func (r *registry) ResolvePublisher(ctx context.Context, destination *models.Des
 		return nil, err
 	}
 
-	publisher, err = provider.CreatePublisher(ctx, destination)
+	publisher, err := provider.CreatePublisher(ctx, destination)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create publisher: %w", err)
 	}
 
-	r.publishers[key] = publisher
+	r.publishers.Add(key, publisher)
 	return publisher, nil
 }
 
@@ -177,3 +188,8 @@ func (r *registry) ListProviderMetadata() map[string]*metadata.ProviderMetadata 
 	}
 	return metadataCopy
 }
+
+var (
+	defaultPublisherCacheSize = 10000
+	defaultPublisherTTL       = time.Minute
+)
