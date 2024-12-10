@@ -11,9 +11,13 @@
   box-shadow: var(--shadow-elevation-1);
   min-width: var(--line-height-m);
   box-sizing: border-box;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  background-color: var(--colors-background-neutral-3);
+  color: var(--colors-foreground-neutral);
+  border-color: transparent;
 
   &__success {
     background-color: var(--colors-background-container-success);

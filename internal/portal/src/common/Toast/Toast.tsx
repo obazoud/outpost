@@ -1,9 +1,9 @@
 import * as React from "react";
 import * as ToastPrimitive from "@radix-ui/react-toast";
 import "./Toast.scss";
-import { CloseIcon, SuccessIcon } from "../Icons";
+import { CloseIcon, ErrorIcon, SuccessIcon } from "../Icons";
 
-type ToastType = "success" | "error" | "info" | "warning";
+type ToastType = "success" | "error";
 
 // Create an event emitter for toast messages
 type ToastEvent = {
@@ -32,7 +32,7 @@ export const showToast = (type: ToastType, message: string) => {
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = React.useState(false);
   const [message, setMessage] = React.useState("");
-  const [type, setType] = React.useState<ToastType>("info");
+  const [type, setType] = React.useState<ToastType>("success");
 
   React.useEffect(() => {
     const unsubscribe = toastEventEmitter.subscribe((event) => {
@@ -50,13 +50,13 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
       <ToastPrimitive.Provider swipeDirection="right" duration={3000}>
         <ToastPrimitive.Root
-          className={`ToastRoot ${type}`}
+          className={`ToastRoot ToastRoot__${type}`}
           open={open}
           onOpenChange={setOpen}
         >
           <ToastPrimitive.Title className="ToastTitle">
             <div className="ToastIcon">
-              <SuccessIcon />
+              {type === "success" ? <SuccessIcon /> : <ErrorIcon />}
             </div>
             {message}
           </ToastPrimitive.Title>

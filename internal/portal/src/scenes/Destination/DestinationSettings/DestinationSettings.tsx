@@ -27,18 +27,24 @@ const DestinationSettings = ({ destination }: { destination: any }) => {
         },
       })
       .then((data) => {
-        showToast("success", "Event topics updated");
-        // Mutate the SWR cache with updated destination data
+        showToast("success", "Destination event topics updated.");
         mutate(`destinations/${destination.id}`, data, false);
+      })
+      .catch((error) => {
+        showToast(
+          "error",
+          `${error.message.charAt(0).toUpperCase() + error.message.slice(1)}`
+        );
       });
   };
 
   return (
     <div className="destination-settings">
-      <div>
+      <div className="destination-settings__topics">
         <h2 className="title-l">Event Topics</h2>
         <form onSubmit={handleSubmit}>
           <TopicPicker
+            maxHeight="256px"
             selectedTopics={selectedTopics}
             onTopicsChange={(topics) => {
               setSelectedTopics(topics);
@@ -60,7 +66,7 @@ const DestinationSettings = ({ destination }: { destination: any }) => {
       </div>
       <hr />
       <div>
-        <h2 className="title-l">Configuration & Credentials</h2>
+        <h2 className="title-l">Configuration & Credentials [TODO]</h2>
         <form>
           <p>TODO</p>
           <Button type="submit" disabled={true} primary>
@@ -70,14 +76,14 @@ const DestinationSettings = ({ destination }: { destination: any }) => {
       </div>
       <hr />
       <div>
-        <h2 className="title-l">Disable event destination (TODO)</h2>
+        <h2 className="title-l">Disable event destination [TODO]</h2>
         <p className="body-m">
           Disabling an event destination will prevent it from receiving events.
         </p>
         <Button>Disable</Button>
       </div>
       <div>
-        <h2 className="title-l">Delete event destination (TODO)</h2>
+        <h2 className="title-l">Delete event destination [TODO]</h2>
         <p className="body-m">
           Deleting an event destination is irreversible. All associated events
           will also be deleted.

@@ -13,6 +13,16 @@
     height: 1px;
   }
 
+  h2 {
+    margin: 0;
+  }
+
+  &__topics {
+    h2 {
+      margin-bottom: var(--spacing-4);
+    }
+  }
+
   &__submit-button {
     margin-top: var(--spacing-8);
   }

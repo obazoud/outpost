@@ -12,6 +12,7 @@ interface Topic {
 }
 
 interface TopicPickerProps {
+  maxHeight?: string;
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
 }
@@ -23,7 +24,7 @@ const topics: Topic[] = CONFIGS.TOPICS.split(",").map((topic) => {
   };
 });
 
-const TopicPicker = ({ selectedTopics, onTopicsChange }: TopicPickerProps) => {
+const TopicPicker = ({ maxHeight, selectedTopics, onTopicsChange }: TopicPickerProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     Array.from(new Set(topics.map((topic) => topic.category)))
@@ -99,7 +100,7 @@ const TopicPicker = ({ selectedTopics, onTopicsChange }: TopicPickerProps) => {
   };
 
   return (
-    <div className="topic-picker">
+    <div className="topic-picker" style={{ maxHeight: maxHeight }}>
       <div className="topic-picker__header">
         <SearchInput
           value={searchQuery}

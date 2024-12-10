@@ -7,6 +7,7 @@ import "./Destination.scss";
 import Badge from "../../common/Badge/Badge";
 import CONFIGS from "../../config";
 import DestinationSettings from "./DestinationSettings/DestinationSettings";
+import Events from "./Events/Events";
 
 // Define the tab interface
 interface Tab {
@@ -103,7 +104,7 @@ const Destination = () => {
             path="/settings"
             element={<DestinationSettings destination={destination} />}
           />
-          <Route path="/events" element={<div>Events (TODO)</div>} />
+          <Route path="/events" element={<Events destination={destination} />} />
           <Route
             path="/"
             element={
@@ -182,10 +183,10 @@ const Destination = () => {
                   <h2 className="title-l">Metrics</h2>
                   <div className="metrics-container__metrics">
                     <div className="metrics-container__metric">
-                      <div>TODO</div>
+                      <div>[TODO]</div>
                     </div>
                     <div className="metrics-container__metric">
-                      <div>TODO</div>
+                      <div>[TODO]</div>
                     </div>
                   </div>
                 </div>

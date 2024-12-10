@@ -15,16 +15,6 @@
   outline: none;
 }
 
-.ToastRoot {
-  box-shadow: var(--colors-shadow-menu);
-  background-color: var(--colors-background);
-  border-radius: var(--radius-m);
-  padding: var(--spacing-2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .ToastTitle {
   display: flex;
   align-items: center;
@@ -49,6 +39,30 @@
     fill: var(--colors-foreground-on-hue);
   }
 }
+
+.ToastRoot {
+  box-shadow: var(--colors-shadow-menu);
+  background-color: var(--colors-background);
+  border-radius: var(--radius-m);
+  padding: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &__success {
+    .ToastIcon {
+      background-color: var(--colors-foreground-success);
+    }
+  }
+
+  &__error {
+    .ToastIcon {
+      background-color: var(--colors-foreground-danger);
+    }
+  }
+}
+
+
 
 .ToastClose {
   all: unset;

@@ -4,7 +4,10 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"strings"
 
 	"github.com/gin-contrib/static"
@@ -37,30 +40,30 @@ func AddRoutes(router *gin.Engine, config PortalConfig) {
 		c.String(http.StatusOK, "window.PORTAL_CONFIGS = "+createJSONFromConfigs(config.Configs)+";")
 	})
 
-	// if config.ProxyURL != "" {
-	// 	remote, err := url.Parse(config.ProxyURL)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	proxy := httputil.NewSingleHostReverseProxy(remote)
-	// 	router.NoRoute(func(c *gin.Context) {
-	// 		if strings.HasPrefix(c.Request.URL.Path, "/api") {
-	// 			c.Next()
-	// 			return
-	// 		}
-	// 		if c.Request.Method != "GET" {
-	// 			c.Next()
-	// 			return
-	// 		}
-	// 		log.Println(c.Request.Method, c.Request.URL.Path, c.Request.URL.RawQuery)
-	// 		proxy.ServeHTTP(c.Writer, c.Request)
-	// 	})
-	// } else {
-	embeddedBuildFolder := newStaticFileSystem()
-	fallbackFileSystem := newFallbackFileSystem(embeddedBuildFolder)
-	router.Use(static.Serve("/", embeddedBuildFolder))
-	router.Use(static.Serve("/", fallbackFileSystem))
-	//}
+	if config.ProxyURL != "" {
+		remote, err := url.Parse(config.ProxyURL)
+		if err != nil {
+			panic(err)
+		}
+		proxy := httputil.NewSingleHostReverseProxy(remote)
+		router.NoRoute(func(c *gin.Context) {
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				c.Next()
+				return
+			}
+			if c.Request.Method != "GET" {
+				c.Next()
+				return
+			}
+			log.Println(c.Request.Method, c.Request.URL.Path, c.Request.URL.RawQuery)
+			proxy.ServeHTTP(c.Writer, c.Request)
+		})
+	} else {
+		embeddedBuildFolder := newStaticFileSystem()
+		fallbackFileSystem := newFallbackFileSystem(embeddedBuildFolder)
+		router.Use(static.Serve("/", embeddedBuildFolder))
+		router.Use(static.Serve("/", fallbackFileSystem))
+	}
 }
 
 // staticFileSystem serves files out of the embedded build folder

@@ -31,7 +31,19 @@ export function App() {
           ...init?.headers,
           Authorization: `Bearer ${token}`,
         },
-      }).then((res) => res.json());
+      }).then(async (res) => {
+        if (!res.ok) {
+          let error;
+          try {
+            const data = await res.json();
+            error = new Error(data.message);
+          } catch (e) {
+            error = new Error(res.statusText);
+          }
+          throw error;
+        }
+        return res.json();
+      });
     },
   };
 
