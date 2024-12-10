@@ -30,7 +30,11 @@ type messageHandler struct {
 	retryBackoff   backoff.Backoff
 	retryMaxCount  int
 	idempotence    idempotence.Idempotence
-	registry       destregistry.Registry
+	publisher      Publisher
+}
+
+type Publisher interface {
+	PublishEvent(ctx context.Context, destination *models.Destination, event *models.Event) error
 }
 
 var _ consumer.MessageHandler = (*messageHandler)(nil)
@@ -41,7 +45,7 @@ func NewMessageHandler(
 	logMQ *logmq.LogMQ,
 	entityStore models.EntityStore,
 	logStore models.LogStore,
-	registry destregistry.Registry,
+	publisher Publisher,
 	eventTracer eventtracer.EventTracer,
 	retryScheduler scheduler.Scheduler,
 	retryBackoff backoff.Backoff,
@@ -53,7 +57,7 @@ func NewMessageHandler(
 		logMQ:          logMQ,
 		entityStore:    entityStore,
 		logStore:       logStore,
-		registry:       registry,
+		publisher:      publisher,
 		retryScheduler: retryScheduler,
 		retryBackoff:   retryBackoff,
 		retryMaxCount:  retryMaxCount,
@@ -107,14 +111,8 @@ func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.Deli
 		span.RecordError(errors.New("destination not found"))
 		return err
 	}
-	provider, err := h.registry.GetProvider(destination.Type)
-	if err != nil {
-		logger.Error("failed to get destination provider", zap.Error(err))
-		span.RecordError(err)
-		return err
-	}
 	var finalErr error
-	if err := provider.Publish(ctx, destination, &deliveryEvent.Event); err != nil {
+	if err := h.publisher.PublishEvent(ctx, destination, &deliveryEvent.Event); err != nil {
 		logger.Error("failed to publish event", zap.Error(err))
 		finalErr = err
 		deliveryEvent.Delivery = &models.Delivery{
@@ -162,7 +160,7 @@ func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.Deli
 // say logmq.Publish fails. Should that count as an attempt? What about an error BEFORE deliverying the message?
 // Should we write code to differentiate between these two types of errors (predeliveryErr and postdeliveryErr, for example)?
 func (h *messageHandler) shouldRetry(err error, deliveryEvent models.DeliveryEvent) bool {
-	_, isPublishErr := err.(*destregistry.ErrDestinationPublish)
+	_, isPublishErr := err.(*destregistry.ErrDestinationPublishAttempt)
 	if !isPublishErr {
 		return true
 	}

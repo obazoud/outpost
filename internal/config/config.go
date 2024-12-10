@@ -48,6 +48,8 @@ type Config struct {
 
 	DisableTelemetry bool
 
+	DestinationWebhookHeaderPrefix string
+
 	// Portal config
 	PortalRefererURL             string
 	PortalFaviconURL             string
@@ -75,6 +77,7 @@ var defaultConfig = map[string]any{
 	"LOG_BATCHER_DELAY_THRESHOLD_SECONDS": 5,
 	"LOG_BATCHER_ITEM_COUNT_THRESHOLD":    100,
 	"DESTINATION_METADATA_PATH":           "config/outpost/destinations",
+	"DESTINATION_WEBHOOK_HEADER_PREFIX":   "x-outpost-",
 }
 
 var (
@@ -194,6 +197,8 @@ func Parse(flags Flags) (*Config, error) {
 		DestinationMetadataPath:         viper.GetString("DESTINATION_METADATA_PATH"),
 
 		DisableTelemetry: viper.GetBool("DISABLE_TELEMETRY"),
+
+		DestinationWebhookHeaderPrefix: viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
 
 		// Portal config
 		PortalRefererURL:             viper.GetString("PORTAL_REFERER_URL"),

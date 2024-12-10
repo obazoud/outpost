@@ -46,8 +46,12 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 
 	registry := destregistry.NewRegistry(&destregistry.Config{
 		DestinationMetadataPath: cfg.DestinationMetadataPath,
-	})
-	if err := destregistrydefault.RegisterDefault(registry); err != nil {
+	}, logger)
+	if err := destregistrydefault.RegisterDefault(registry, destregistrydefault.RegisterDefaultDestinationOptions{
+		Webhook: &destregistrydefault.DestWebhookConfig{
+			HeaderPrefix: cfg.DestinationWebhookHeaderPrefix,
+		},
+	}); err != nil {
 		return nil, err
 	}
 

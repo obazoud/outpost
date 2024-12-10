@@ -1,13 +1,12 @@
 package destwebhook
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
@@ -16,78 +15,145 @@ import (
 
 type WebhookDestination struct {
 	*destregistry.BaseProvider
+	timeout      time.Duration
+	headerPrefix string
 }
 
 type WebhookDestinationConfig struct {
 	URL string
 }
 
+type WebhookSecret struct {
+	Key       string    `json:"key"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type WebhookDestinationCredentials struct {
+	Secrets []WebhookSecret
+}
+
 var _ destregistry.Provider = (*WebhookDestination)(nil)
 
-func New(loader *metadata.MetadataLoader) (*WebhookDestination, error) {
+// Option is a functional option for configuring WebhookDestination
+type Option func(*WebhookDestination)
+
+// WithTimeout sets a custom timeout for the webhook requests
+func WithTimeout(seconds int) Option {
+	return func(w *WebhookDestination) {
+		w.timeout = time.Duration(seconds) * time.Second
+	}
+}
+
+// WithHeaderPrefix sets a custom prefix for webhook request headers
+func WithHeaderPrefix(prefix string) Option {
+	return func(w *WebhookDestination) {
+		w.headerPrefix = prefix
+	}
+}
+
+func New(loader *metadata.MetadataLoader, opts ...Option) (*WebhookDestination, error) {
 	base, err := destregistry.NewBaseProvider(loader, "webhook")
 	if err != nil {
 		return nil, err
 	}
-	return &WebhookDestination{BaseProvider: base}, nil
+	destination := &WebhookDestination{BaseProvider: base, timeout: 30 * time.Second, headerPrefix: "x-outpost-"}
+	for _, opt := range opts {
+		opt(destination)
+	}
+	return destination, nil
 }
 
 func (d *WebhookDestination) Validate(ctx context.Context, destination *models.Destination) error {
-	return d.BaseProvider.Validate(ctx, destination)
-}
-
-func (d *WebhookDestination) Publish(ctx context.Context, destination *models.Destination, event *models.Event) error {
-	config, err := d.resolveConfig(ctx, destination)
-	if err != nil {
-		return destregistry.NewErrDestinationPublish(err)
-	}
-	if err := makeRequest(ctx, config.URL, event); err != nil {
-		return destregistry.NewErrDestinationPublish(err)
+	if _, _, err := d.resolveConfig(ctx, destination); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *models.Destination) (*WebhookDestinationConfig, error) {
-	if err := d.BaseProvider.Validate(ctx, destination); err != nil {
+func (d *WebhookDestination) CreatePublisher(ctx context.Context, destination *models.Destination) (destregistry.Publisher, error) {
+	config, creds, err := d.resolveConfig(ctx, destination)
+	if err != nil {
 		return nil, err
 	}
-	return &WebhookDestinationConfig{
-		URL: destination.Config["url"],
+	return &WebhookPublisher{
+		BasePublisher: &destregistry.BasePublisher{},
+		url:           config.URL,
+		headerPrefix:  d.headerPrefix,
+		secrets:       creds.Secrets,
+		timeout:       d.timeout,
 	}, nil
 }
 
-func makeRequest(ctx context.Context, url string, event *models.Event) error {
-	dataBytes, err := json.Marshal(event.Data)
+func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *models.Destination) (*WebhookDestinationConfig, *WebhookDestinationCredentials, error) {
+	if err := d.BaseProvider.Validate(ctx, destination); err != nil {
+		return nil, nil, err
+	}
+
+	// Extract URL from destination config
+	config := &WebhookDestinationConfig{
+		URL: destination.Config["url"],
+	}
+
+	// Parse secrets from destination credentials
+	var creds WebhookDestinationCredentials
+	if secretsJson, ok := destination.Credentials["secrets"]; ok {
+		if err := json.Unmarshal([]byte(secretsJson), &creds.Secrets); err != nil {
+			return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+				Field: "credentials.secrets",
+				Type:  "invalid_format",
+			}})
+		}
+	}
+
+	return config, &creds, nil
+}
+
+type WebhookPublisher struct {
+	*destregistry.BasePublisher
+	url          string
+	headerPrefix string
+	secrets      []WebhookSecret
+	timeout      time.Duration
+}
+
+func (p *WebhookPublisher) Close() error {
+	p.BasePublisher.StartClose()
+	return nil
+}
+
+func (p *WebhookPublisher) Publish(ctx context.Context, event *models.Event) error {
+	if err := p.BasePublisher.StartPublish(); err != nil {
+		return err
+	}
+	defer p.BasePublisher.FinishPublish()
+
+	rawBody, err := json.Marshal(event.Data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal event data: %w", err)
+	}
+
+	// Create a context with timeout
+	ctx, cancel := context.WithTimeout(ctx, p.timeout)
+	defer cancel()
+
+	webhookReq := NewWebhookRequest(p.url, rawBody, event.Metadata, p.headerPrefix, p.secrets)
+	httpReq, err := webhookReq.ToHTTPRequest(ctx)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(dataBytes))
+	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	for key, value := range event.Metadata {
-		req.Header.Set("x-outpost-"+key, value)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
+		return destregistry.NewErrDestinationPublishAttempt(err, "webhook", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		// TODO: improve error handling to store response value
-		// TODO: improve logger
-		log.Println(resp)
-		if bodyBytes, err := io.ReadAll(resp.Body); err == nil {
-			bodyString := string(bodyBytes)
-			log.Println("request error body:", bodyString)
-		}
-		return errors.New("request failed")
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return destregistry.NewErrDestinationPublishAttempt(fmt.Errorf("request failed with status %d: %s", resp.StatusCode, string(bodyBytes)), "webhook", map[string]interface{}{
+			"status": resp.StatusCode,
+			"body":   string(bodyBytes),
+		})
 	}
 
 	return nil
