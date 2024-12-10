@@ -169,7 +169,7 @@ const Destination = () => {
                     <li>
                       <span className="body-m">Status</span>
                       <span className="body-m">
-                        {destination.disabled_at ? (
+                        {!destination.disabled_at ? (
                           <Badge success text="Active" />
                         ) : (
                           <Badge danger text="Disabled" />
