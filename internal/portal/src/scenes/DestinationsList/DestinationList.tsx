@@ -133,7 +133,7 @@ const DestinationList: React.FC = () => {
           ) : null}
         </a>
         <a href={CONFIGS.REFERER_URL} className="subtitle-m">
-          Back to {CONFIGS.ORGANIZATION_NAME} {"->"}
+          Back to {CONFIGS.ORGANIZATION_NAME} →
         </a>
       </header>
       <div className="destination-list">
