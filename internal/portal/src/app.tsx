@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DestinationList from "./scenes/DestinationsList/DestinationList";
 import { SWRConfig } from "swr";
@@ -8,63 +8,61 @@ import "./app.scss";
 import { Loading } from "./common/Icons";
 import ErrorBoundary from "./common/ErrorBoundary/ErrorBoundary";
 import CONFIGS from "./config";
+import Destination from "./scenes/Destination/Destination";
+import { ToastProvider } from "./common/Toast/Toast";
+
+type ApiClient = {
+  fetch: (path: string, init?: RequestInit) => Promise<any>;
+};
+
+export const ApiContext = createContext<ApiClient | null>(null);
 
 export function App() {
   const token = useToken();
   const tenant = useTenant(token ?? undefined);
   useTheme();
+
+  // Create API client with tenant and token
+  const apiClient: ApiClient = {
+    fetch: (path: string, init?: RequestInit) => {
+      return fetch(`http://localhost:3333/api/v1/${tenant?.id}/${path}`, {
+        ...init,
+        headers: {
+          ...init?.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((res) => res.json());
+    },
+  };
+
   return (
-    <>
+    <ToastProvider>
       <div className="layout">
-        <header className="layout__header">
-          <a href="/">
-            {CONFIGS.LOGO ? (
-              CONFIGS.LOGO.indexOf("http") === 0 ? (
-                <img
-                  className="layout__header-logo"
-                  src={CONFIGS.LOGO}
-                  alt={CONFIGS.ORGANIZATION_NAME}
-                />
-              ) : (
-                <div
-                  className="layout__header-logo"
-                  dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
-                />
-              )
-            ) : null}
-          </a>
-          <a href={CONFIGS.REFERER_URL} className="subtitle-m">
-            Back to {CONFIGS.ORGANIZATION_NAME} {"->"}
-          </a>
-        </header>
         <ErrorBoundary>
           {tenant ? (
-            <SWRConfig
-              value={{
-                fetcher: (path: string) =>
-                  fetch(`http://localhost:3333/api/v1/${tenant.id}/${path}`, {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                  }).then((res) => res.json()),
-              }}
-            >
-              <BrowserRouter
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
+            <ApiContext.Provider value={apiClient}>
+              <SWRConfig
+                value={{
+                  fetcher: (path: string) => apiClient.fetch(path),
                 }}
               >
-                <Routes>
-                  <Route path="/" Component={DestinationList} />
-                  <Route path="/new" element={<div>New Destination</div>} />
-                  <Route
-                    path="/destinations/:destination_id"
-                    element={<div>Specific Destination</div>}
-                  />
-                </Routes>
-              </BrowserRouter>
-            </SWRConfig>
+                <BrowserRouter
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                  }}
+                >
+                  <Routes>
+                    <Route path="/" Component={DestinationList} />
+                    <Route path="/new" element={<div>New Destination</div>} />
+                    <Route
+                      path="/destinations/:destination_id/*"
+                      Component={Destination}
+                    />
+                  </Routes>
+                </BrowserRouter>
+              </SWRConfig>
+            </ApiContext.Provider>
           ) : (
             <div>
               <Loading />
@@ -84,7 +82,7 @@ export function App() {
           </a>
         </div>
       )}
-    </>
+    </ToastProvider>
   );
 }
 
@@ -100,7 +98,7 @@ function useToken() {
       window.location.replace("/");
     }
   }, []);
-  
+
   if (!token) {
     window.location.replace(CONFIGS.REFERER_URL);
     return;

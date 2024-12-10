@@ -114,43 +114,66 @@ const DestinationList: React.FC = () => {
     })) || [];
 
   return (
-    <div className="destination-list">
-      <div className="destination-list__header">
-        <span className="subtitle-s muted">&nbsp;</span>
-        <h1 className="title-3xl">Event Destinations</h1>
-        <div className="destination-list__actions">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Filter by type, target or topic"
-          />
-          <Button onClick={console.log}>
-            <FilterIcon /> Status
-          </Button>
-          <Button primary to="/new">
-            <AddIcon /> Add Destination
-          </Button>
-        </div>
-      </div>
-      {destinations && (
-        <>
-          {destinations.length === 0 ? (
-            <div className="destination-list__empty-state">
-              <span className="body-m muted">
-                No event destinations yet. Add your first destination to get
-                started.
-              </span>
-            </div>
-          ) : (
-            <Table
-              columns={table_columns}
-              rows={table_rows}
-              footer_label="event destinations"
+    <>
+      <header className="layout__header">
+        <a href="/">
+          {CONFIGS.LOGO ? (
+            CONFIGS.LOGO.indexOf("http") === 0 ? (
+              <img
+                className="layout__header-logo"
+                src={CONFIGS.LOGO}
+                alt={CONFIGS.ORGANIZATION_NAME}
+              />
+            ) : (
+              <div
+                className="layout__header-logo"
+                dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
+              />
+            )
+          ) : null}
+        </a>
+        <a href={CONFIGS.REFERER_URL} className="subtitle-m">
+          Back to {CONFIGS.ORGANIZATION_NAME} {"->"}
+        </a>
+      </header>
+      <div className="destination-list">
+        <div className="destination-list__header">
+          <span className="subtitle-s muted">&nbsp;</span>
+          <h1 className="title-3xl">Event Destinations</h1>
+          <div className="destination-list__actions">
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Filter by type, target or topic"
             />
-          )}
-        </>
-      )}
-    </div>
+            <Button onClick={console.log}>
+              <FilterIcon /> Status (TODO)
+            </Button>
+            <Button primary to="/new">
+              <AddIcon /> Add Destination
+            </Button>
+          </div>
+        </div>
+        {destinations && (
+          <>
+            {destinations.length === 0 ? (
+              <div className="destination-list__empty-state">
+                <span className="body-m muted">
+                  No event destinations yet. Add your first destination to get
+                  started.
+                </span>
+              </div>
+            ) : (
+              <Table
+                columns={table_columns}
+                rows={table_rows}
+                footer_label="event destinations"
+              />
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

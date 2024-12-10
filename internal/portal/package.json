@@ -5,6 +5,7 @@
     "build": "vite build && touch dist/gitkeep"
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@sentry/react": "^8.42.0",
     "@sentry/vite-plugin": "^2.22.7",

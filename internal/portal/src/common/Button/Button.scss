@@ -1,5 +1,5 @@
 .button {
-  background-color: var(--colors-background-neutral);
+  background-color: var(--colors-background);
   border-radius: var(--radius-m);
   border: none;
   display: flex;
@@ -36,5 +36,22 @@
       border-color: transparent;
       background-color: var(--colors-background-primary-hover);
     }
+  }
+}
+
+.button__disabled {
+  background-color: var(--colors-background-neutral-2);
+  color: var(--colors-foreground-neutral-disabled);
+  box-shadow: var(--colors-shadow-button);
+
+  svg {
+    fill: var(--colors-foreground-neutral-disabled);
+  }
+
+  &:hover {
+    background-color: var(--colors-background-neutral-2);
+    color: var(--colors-foreground-neutral-disabled);
+    box-shadow: var(--colors-shadow-button);
+    cursor: not-allowed;
   }
 }

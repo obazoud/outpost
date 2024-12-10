@@ -14,14 +14,17 @@
 .search_input_icon {
   position: absolute;
   left: var(--spacing-3);
-  top: var(--spacing-2);
+  top: 50%;
+  transform: translateY(-50%);
   fill: var(--colors-foreground-neutral-2);
 }
 
 .search_input_clear {
   position: absolute;
   right: var(--spacing-2);
-  top: var(--spacing-2);
+  top: 50%;
+  transform: translateY(-50%);
+  fill: var(--colors-foreground-neutral-2);
   border: none;
   background: none;
   cursor: pointer;

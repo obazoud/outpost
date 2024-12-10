@@ -10,148 +10,163 @@ $RADIUS_M: 6px !default;
 $COLORS_BACKGROUND_LIGHT: #ffffff !default;
 $COLORS_BACKGROUND_DARK: #1a1a1a !default;
 
-$COLORS_BACKGROUND_HOVER_LIGHT: #F5F5F5 !default;
+$COLORS_BACKGROUND_HOVER_LIGHT: #f5f5f5 !default;
 $COLORS_BACKGROUND_HOVER_DARK: #272725 !default;
 
-$COLORS_BACKGROUND_NEUTRAL_1_LIGHT: #FAFAFA !default;
-$COLORS_BACKGROUND_NEUTRAL_1_DARK: #1D1D1B !default;
+$COLORS_BACKGROUND_NEUTRAL_1_LIGHT: #fafafa !default;
+$COLORS_BACKGROUND_NEUTRAL_1_DARK: #1d1d1b !default;
 
-$COLORS_BACKGROUND_NEUTRAL_2_LIGHT: #F5F5F5 !default;
+$COLORS_BACKGROUND_NEUTRAL_2_LIGHT: #f5f5f5 !default;
 $COLORS_BACKGROUND_NEUTRAL_2_DARK: #222220 !default;
 
-$COLORS_BACKGROUND_NEUTRAL_3_LIGHT: #EBEBEB !default;
+$COLORS_BACKGROUND_NEUTRAL_3_LIGHT: #ebebeb !default;
 $COLORS_NEUTRAL_3_DARK: #353533 !default;
 
 $COLORS_BACKGROUND_NEUTRAL_ELEVATED_LIGHT: #ffffff !default;
-$COLORS_BACKGROUND_NEUTRAL_ELEVATED_DARK: #1D1D1B !default;
+$COLORS_BACKGROUND_NEUTRAL_ELEVATED_DARK: #1d1d1b !default;
 
 /// Primary
 $COLORS_BACKGROUND_PRIMARY_LIGHT: #0044cc !default;
 $COLORS_BACKGROUND_PRIMARY_DARK: #0044cc !default;
 
-$COLORS_BACKGROUND_PRIMARY_HOVER_LIGHT: #0036A3 !default;
-$COLORS_BACKGROUND_PRIMARY_HOVER_DARK: #3369D6 !default;
+$COLORS_BACKGROUND_PRIMARY_HOVER_LIGHT: #0036a3 !default;
+$COLORS_BACKGROUND_PRIMARY_HOVER_DARK: #3369d6 !default;
 
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT: #E5ECFA !default;
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK: #001B52 !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT: #e5ecfa !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK: #001b52 !default;
 
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_LIGHT: #CCDAF5 !default;
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_DARK: #00297A !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_LIGHT: #ccdaf5 !default;
+$COLORS_BACKGROUND_CONTAINER_PRIMARY_HOVER_DARK: #00297a !default;
 
 /// Danger
-$COLORS_BACKGROUND_DANGER_LIGHT: #CC2314 !default;
-$COLORS_BACKGROUND_DANGER_DARK: #A31C10 !default;
+$COLORS_BACKGROUND_DANGER_LIGHT: #cc2314 !default;
+$COLORS_BACKGROUND_DANGER_DARK: #a31c10 !default;
 
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT: #FAE9E7 !default;
-$COLORS_BACKGROUND_CONTAINER_PRIMARY_DARK: #520E08 !default;
+$COLORS_BACKGROUND_CONTAINER_DANGER_LIGHT: #fae9e7 !default;
+$COLORS_BACKGROUND_CONTAINER_DANGER_DARK: #520e08 !default;
 
 /// Success
-$COLORS_BACKGROUND_SUCCESS_LIGHT: #66B38C !default;
-$COLORS_BACKGROUND_SUCCESS_DARK: #004D26 !default;
+$COLORS_BACKGROUND_SUCCESS_LIGHT: #66b38c !default;
+$COLORS_BACKGROUND_SUCCESS_DARK: #004d26 !default;
 
-$COLORS_BACKGROUND_CONTAINER_SUCCESS_LIGHT: #E5F2EC !default;
-$COLORS_BACKGROUND_CONTAINER_SUCCESS_DARK: #00331A !default;
+$COLORS_BACKGROUND_CONTAINER_SUCCESS_LIGHT: #e5f2ec !default;
+$COLORS_BACKGROUND_CONTAINER_SUCCESS_DARK: #00331a !default;
 
 // Foreground Colors
 
 /// Neutral
 $COLORS_FOREGROUND_NEUTRAL_LIGHT: #141412 !default;
-$COLORS_FOREGROUND_NEUTRAL_DARK: #F5F4F1 !default;
+$COLORS_FOREGROUND_NEUTRAL_DARK: #f5f4f1 !default;
 
-$COLORS_FOREGROUND_NEUTRAL_2_LIGHT: #52504A !default;
-$COLORS_FOREGROUND_NEUTRAL_2_DARK: #CCC8B8 !default;
+$COLORS_FOREGROUND_NEUTRAL_2_LIGHT: #52504a !default;
+$COLORS_FOREGROUND_NEUTRAL_2_DARK: #ccc8b8 !default;
 
-$COLORS_FOREGROUND_NEUTRAL_3_LIGHT: #7A786E !default;
-$COLORS_FOREGROUND_NEUTRAL_3_DARK: #7A786E !default;
+$COLORS_FOREGROUND_NEUTRAL_3_LIGHT: #7a786e !default;
+$COLORS_FOREGROUND_NEUTRAL_3_DARK: #7a786e !default;
 
-$COLORS_FOREGROUND_NEUTRAL_DISABLED_LIGHT: #A3A093 !default;
-$COLORS_FOREGROUND_NEUTRAL_DISABLED_DARK: #52504A !default;
+$COLORS_FOREGROUND_NEUTRAL_DISABLED_LIGHT: #a3a093 !default;
+$COLORS_FOREGROUND_NEUTRAL_DISABLED_DARK: #52504a !default;
 
-$COLORS_FOREGROUND_ON_HUE_LIGHT: #FFFFFF !default;
-$COLORS_FOREGROUND_ON_HUE_DARK: #FFFFFF !default;
+$COLORS_FOREGROUND_ON_HUE_LIGHT: #ffffff !default;
+$COLORS_FOREGROUND_ON_HUE_DARK: #ffffff !default;
 
 /// Primary
-$COLORS_FOREGROUND_PRIMARY_LIGHT: #0044CC !default;
-$COLORS_FOREGROUND_PRIMARY_DARK: #668FE0 !default;
+$COLORS_FOREGROUND_PRIMARY_LIGHT: #0044cc !default;
+$COLORS_FOREGROUND_PRIMARY_DARK: #668fe0 !default;
 
-$COLORS_FOREGROUND_CONTAINER_PRIMARY_LIGHT: #0036A3 !default;
-$COLORS_FOREGROUND_CONTAINER_PRIMARY_DARK: #99B4EB !default;
+$COLORS_FOREGROUND_CONTAINER_PRIMARY_LIGHT: #0036a3 !default;
+$COLORS_FOREGROUND_CONTAINER_PRIMARY_DARK: #99b4eb !default;
 
 /// Danger
-$COLORS_FOREGROUND_DANGER_LIGHT: #CC2314 !default;
-$COLORS_FOREGROUND_DANGER_DARK: #E07B72 !default;
+$COLORS_FOREGROUND_DANGER_LIGHT: #cc2314 !default;
+$COLORS_FOREGROUND_DANGER_DARK: #e07b72 !default;
 
 /// Success
 $COLORS_FOREGROUND_SUCCESS_LIGHT: #006633 !default;
-$COLORS_FOREGROUND_SUCCESS_DARK: #99CCB3 !default;
+$COLORS_FOREGROUND_SUCCESS_DARK: #99ccb3 !default;
 
 // Code
-$COLORS_CODE_BOOLEAN_LIGHT: #0036A3 !default;
-$COLORS_CODE_BOOLEAN_DARK: #668FE0 !default;
+$COLORS_CODE_BOOLEAN_LIGHT: #0036a3 !default;
+$COLORS_CODE_BOOLEAN_DARK: #668fe0 !default;
 
 $COLORS_CODE_STRING_LIGHT: #006633 !default;
-$COLORS_CODE_STRING_DARK: #66B38C !default;
+$COLORS_CODE_STRING_DARK: #66b38c !default;
 
-$COLORS_CODE_NULL_LIGHT: #A31C10 !default;
-$COLORS_CODE_NULL_DARK: #E07B72 !default;
+$COLORS_CODE_NULL_LIGHT: #a31c10 !default;
+$COLORS_CODE_NULL_DARK: #e07b72 !default;
 
 $COLORS_CODE_NUMBER_LIGHT: #665200 !default;
-$COLORS_CODE_NUMBER_DARK: #FFE066 !default;
+$COLORS_CODE_NUMBER_DARK: #ffe066 !default;
 
 // Shadows
 
-$COLORS_SHADOW_TOOLTIP_LIGHT: 0px 2px 4px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-$COLORS_SHADOW_TOOLTIP_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 4px 8px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+$COLORS_SHADOW_TOOLTIP_LIGHT: 0px 2px 4px 0px rgba(0, 0, 0, 0.08),
+  0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_TOOLTIP_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+  0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 4px 8px 0px rgba(0, 0, 0, 0.32),
+  0px 0px 0px 1px rgba(255, 255, 255, 0.16);
 
-$COLORS_SHADOW_MENU_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08), 0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-$COLORS_SHADOW_MENU_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 4px 8px 0px rgba(0, 0, 0, 0.32), 0px 8px 16px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+$COLORS_SHADOW_MENU_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08),
+  0px 4px 8px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_MENU_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+  0px 4px 8px 0px rgba(0, 0, 0, 0.32), 0px 8px 16px 0px rgba(0, 0, 0, 0.32),
+  0px 0px 0px 1px rgba(255, 255, 255, 0.16);
 
-$COLORS_SHADOW_DIALOG_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08), 0px 16px 32px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-$COLORS_SHADOW_DIALOG_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 8px 16px 0px rgba(0, 0, 0, 0.32), 0px 16px 32px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+$COLORS_SHADOW_DIALOG_LIGHT: 0px 8px 16px 0px rgba(0, 0, 0, 0.08),
+  0px 16px 32px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_DIALOG_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+  0px 8px 16px 0px rgba(0, 0, 0, 0.32), 0px 16px 32px 0px rgba(0, 0, 0, 0.32),
+  0px 0px 0px 1px rgba(255, 255, 255, 0.16);
 
-$COLORS_SHADOW_BUTTON_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.08), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
-$COLORS_SHADOW_BUTTON_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04), 0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.24);
+$COLORS_SHADOW_BUTTON_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.08),
+  0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_BUTTON_DARK: 0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+  0px 2px 4px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px rgba(255, 255, 255, 0.24);
 
-$COLORS_SHADOW_BUTTON_PRIMARY_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.32), 0px 0px 0px 1px #0036A3;
-$COLORS_SHADOW_BUTTON_PRIMARY_DARK: 0px 1px 2px 0px rgba(0, 0, 0, 0.16), 0px 0px 0px 1px rgba(0, 0, 0, 0.08);
+$COLORS_SHADOW_BUTTON_PRIMARY_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.32),
+  0px 0px 0px 1px #0036a3;
+$COLORS_SHADOW_BUTTON_PRIMARY_DARK: 0px 1px 2px 0px rgba(0, 0, 0, 0.16),
+  0px 0px 0px 1px rgba(0, 0, 0, 0.08);
 
-$COLORS_SHADOW_INPUT_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.04) inset, 0px 0px 0px 1px rgba(0, 0, 0, 0.08) inset;
-$COLORS_SHADOW_INPUT_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset, 0px 0px 0px 1px rgba(255, 255, 255, 0.24) inset;
+$COLORS_SHADOW_INPUT_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.04) inset,
+  0px 0px 0px 1px rgba(0, 0, 0, 0.08) inset;
+$COLORS_SHADOW_INPUT_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset,
+  0px 0px 0px 1px rgba(255, 255, 255, 0.24) inset;
 
 // Outline Colors
 
 $COLORS_OUTLINE_NEUTRAL_LIGHT: #ebebeb !default;
 $COLORS_OUTLINE_NEUTRAL_DARK: #353533 !default;
 
-$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT: #E0E0E0 !default;
-$COLORS_OUTLINE_NEUTRAL_HOVER_DARK: #3E3E3D !default;
+$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT: #e0e0e0 !default;
+$COLORS_OUTLINE_NEUTRAL_HOVER_DARK: #3e3e3d !default;
 
-$COLORS_OUTLINE_PRIMARY_LIGHT: #CCDAF5 !default;
-$COLORS_OUTLINE_PRIMARY_DARK: #0036A3 !default;
+$COLORS_OUTLINE_PRIMARY_LIGHT: #ccdaf5 !default;
+$COLORS_OUTLINE_PRIMARY_DARK: #0036a3 !default;
 
-$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT: #668FE0 !default;
-$COLORS_OUTLINE_PRIMARY_FOCUS_DARK: #668FE0 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS_LIGHT: #668fe0 !default;
+$COLORS_OUTLINE_PRIMARY_FOCUS_DARK: #668fe0 !default;
 
-$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT: #99B4EB !default;
-$COLORS_OUTLINE_PRIMARY_HOVER_DARK: #0044CC !default;
+$COLORS_OUTLINE_PRIMARY_HOVER_LIGHT: #99b4eb !default;
+$COLORS_OUTLINE_PRIMARY_HOVER_DARK: #0044cc !default;
 
-$COLORS_OUTLINE_SUCCESS_LIGHT: #CCE6D9 !default;
+$COLORS_OUTLINE_SUCCESS_LIGHT: #cce6d9 !default;
 $COLORS_OUTLINE_SUCCESS_DARK: #006633 !default;
 
-$COLORS_OUTLINE_DANGER_LIGHT: #F5D3D0 !default;
-$COLORS_OUTLINE_DANGER_DARK: #7A150C !default;
-
+$COLORS_OUTLINE_DANGER_LIGHT: #f5d3d0 !default;
+$COLORS_OUTLINE_DANGER_DARK: #7a150c !default;
 
 // Data Visualization Colors
-$COLORS_DATAVIZ_SUCCESS_LIGHT: #66B38C !default;
-$COLORS_DATAVIZ_SUCCESS_DARK: #004D26 !default;
+$COLORS_DATAVIZ_SUCCESS_LIGHT: #66b38c !default;
+$COLORS_DATAVIZ_SUCCESS_DARK: #004d26 !default;
 
 $COLORS_DATAVIZ_ERROR_LIGHT: #cc2314 !default;
-$COLORS_DATAVIZ_ERROR_DARK: #D64F43 !default;
+$COLORS_DATAVIZ_ERROR_DARK: #d64f43 !default;
 
 :root {
   --base-font-size: #{$BASE_FONT_SIZE};
   --base-grid-multiplier: #{$BASE_GRID_MULTIPLIER};
+  --font-family-monospace: "JetBrains Mono", monospace;
 
   --radius-s: #{$RADIUS_S};
   --radius-m: #{$RADIUS_M};
@@ -185,6 +200,7 @@ $COLORS_DATAVIZ_ERROR_DARK: #D64F43 !default;
   --colors-background-danger: #{$COLORS_BACKGROUND_DANGER_LIGHT};
   --colors-background-success: #{$COLORS_BACKGROUND_SUCCESS_LIGHT};
   --colors-background-container-success: #{$COLORS_BACKGROUND_CONTAINER_SUCCESS_LIGHT};
+  --colors-background-container-danger: #{$COLORS_BACKGROUND_CONTAINER_DANGER_LIGHT};
 
   --colors-outline-neutral: #{$COLORS_OUTLINE_NEUTRAL_LIGHT};
   --colors-outline-neutral-hover: #{$COLORS_OUTLINE_NEUTRAL_HOVER_LIGHT};
@@ -233,7 +249,7 @@ $COLORS_DATAVIZ_ERROR_DARK: #D64F43 !default;
     --colors-background-danger: #{$COLORS_BACKGROUND_DANGER_DARK};
     --colors-background-success: #{$COLORS_BACKGROUND_SUCCESS_DARK};
     --colors-background-container-success: #{$COLORS_BACKGROUND_CONTAINER_SUCCESS_DARK};
-
+    --colors-background-container-danger: #{$COLORS_BACKGROUND_CONTAINER_DANGER_DARK};
     --colors-code-boolean: #{$COLORS_CODE_BOOLEAN_DARK};
     --colors-code-null: #{$COLORS_CODE_NULL_DARK};
     --colors-code-number: #{$COLORS_CODE_NUMBER_DARK};
@@ -306,11 +322,11 @@ body {
 }
 
 .muted {
-  color: var(--colors-foreground-neutral-1);
+  color: var(--colors-foreground-neutral-2);
 }
 
 .muted-variant {
-  color: var(--colors-foreground-neutral-2);
+  color: var(--colors-foreground-neutral-3);
 }
 
 /* Title styles */
@@ -336,24 +352,28 @@ body {
   font-size: var(--font-size-l);
   line-height: var(--line-height-l);
   font-weight: 600;
+  letter-spacing: 0.08px;
 }
 
 .title-m {
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   font-weight: 600;
+  letter-spacing: 0.07px;
 }
 
 .title-s {
   font-size: var(--font-size-s);
   line-height: var(--line-height-s);
   font-weight: 600;
+  letter-spacing: 0.065px;
 }
 
 .title-xs {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-xs);
   font-weight: 600;
+  letter-spacing: 0.06px;
 }
 
 /* Subtitle styles */
@@ -379,24 +399,28 @@ body {
   font-size: var(--font-size-l);
   line-height: var(--line-height-l);
   font-weight: 500;
+  letter-spacing: 0.08px;
 }
 
 .subtitle-m {
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   font-weight: 500;
+  letter-spacing: 0.07px;
 }
 
 .subtitle-s {
   font-size: var(--font-size-s);
   line-height: var(--line-height-s);
   font-weight: 500;
+  letter-spacing: 0.065px;
 }
 
 .subtitle-xs {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-xs);
   font-weight: 500;
+  letter-spacing: 0.06px;
 }
 
 /* Body styles */
@@ -422,24 +446,28 @@ body {
   font-size: var(--font-size-l);
   line-height: var(--line-height-l);
   font-weight: 400;
+  letter-spacing: 0.08px;
 }
 
 .body-m {
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   font-weight: 400;
+  letter-spacing: 0.07px;
 }
 
 .body-s {
   font-size: var(--font-size-s);
   line-height: var(--line-height-s);
   font-weight: 400;
+  letter-spacing: 0.065px;
 }
 
 .body-xs {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-xs);
   font-weight: 400;
+  letter-spacing: 0.06px;
 }
 
 /* Mono styles */
@@ -447,49 +475,53 @@ body {
   font-size: var(--font-size-3xl);
   line-height: var(--line-height-3xl);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
 }
 
 .mono-2xl {
   font-size: var(--font-size-2xl);
   line-height: var(--line-height-2xl);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
 }
 
 .mono-xl {
   font-size: var(--font-size-xl);
   line-height: var(--line-height-xl);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
 }
 
 .mono-l {
   font-size: var(--font-size-l);
   line-height: var(--line-height-l);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
+  letter-spacing: 0.08px;
 }
 
 .mono-m {
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
+  letter-spacing: 0.07px;
 }
 
 .mono-s {
   font-size: var(--font-size-s);
   line-height: var(--line-height-s);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
+  letter-spacing: 0.065px;
 }
 
 .mono-xs {
   font-size: var(--font-size-xs);
   line-height: var(--line-height-xs);
   font-weight: 400;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-monospace);
+  letter-spacing: 0.06px;
 }
 
 input,
@@ -500,8 +532,8 @@ textarea {
   border: none;
   padding: var(--spacing-1--5) var(--spacing-3);
   font-family: inherit;
-  background: var(--colors-background-neutral);
-  color: var(--colors-on-surface-neutral);
+  background: var(--colors-background);
+  color: var(--colors-foreground-neutral);
   box-shadow: var(--colors-shadow-input);
 
   &:hover {
@@ -509,6 +541,6 @@ textarea {
   }
 
   &::placeholder {
-    color: var(--colors-on-surface-secondary);
+    color: var(--colors-foreground-neutral-3);
   }
 }
