@@ -1,0 +1,29 @@
+.destination-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-14);
+  margin-top: var(--spacing-6);
+  margin-bottom: var(--spacing-14);
+  max-width: 840px;
+
+  hr {
+    margin: 0;
+    border: none;
+    background-color: var(--colors-outline-neutral);
+    height: 1px;
+  }
+
+  h2 {
+    margin: 0;
+  }
+
+  &__topics {
+    h2 {
+      margin-bottom: var(--spacing-4);
+    }
+  }
+
+  &__submit-button {
+    margin-top: var(--spacing-8);
+  }
+}

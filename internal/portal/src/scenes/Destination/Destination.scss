@@ -1,0 +1,121 @@
+.header-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-4);
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.08) 100%
+      ),
+      var(--colors-background-neutral-2);
+    background-color: var(--COLORS_BACKGROUND_CONTAINER_PRIMARY_LIGHT);
+    border-radius: var(--radius-m);
+    box-shadow: var(--colors-shadow-button);
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &__content {
+    h1,
+    p {
+      margin: 0;
+    }
+
+    p {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-1);
+    }
+  }
+}
+
+.tabs-container {
+  margin-top: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--spacing-4);
+}
+
+.tab {
+  padding: var(--spacing-2) var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  font-weight: 500;
+  color: var(--colors-foreground-neutral-3);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+
+  &:hover {
+    color: var(--colors-foreground-neutral);
+  }
+
+  &--active {
+    color: var(--colors-foreground-neutral);
+    border-bottom-color: var(--colors-foreground-neutral);
+  }
+}
+
+.content-container {
+  h2 {
+    margin-top: var(--spacing-6);
+    margin-bottom: var(--spacing-4);
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+
+    li {
+      display: flex;
+      align-items: center;
+
+      > span:first-child {
+        width: 140px;
+        color: var(--colors-foreground-neutral-2);
+      }
+
+      > span:last-child {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-1);
+      }
+    }
+  }
+}
+
+.metrics-container {
+  margin-top: var(--spacing-14);
+  margin-bottom: var(--spacing-14);
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-4);
+  }
+
+  &__metrics {
+    display: flex;
+    gap: var(--spacing-6);
+  }
+
+  &__metric {
+    border: 1px solid var(--colors-outline-neutral);
+    height: 348px;
+    width: 100%;
+    background: var(--colors-background);
+    border-radius: var(--radius-m);
+    padding: var(--spacing-6);
+  }
+}

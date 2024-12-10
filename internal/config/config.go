@@ -45,7 +45,18 @@ type Config struct {
 	LogBatcherDelayThresholdSeconds int
 	LogBatcherItemCountThreshold    int
 	DestinationMetadataPath         string
-	DestinationWebhookHeaderPrefix  string
+
+	DisableTelemetry bool
+
+	DestinationWebhookHeaderPrefix string
+
+	// Portal config
+	PortalRefererURL             string
+	PortalFaviconURL             string
+	PortalLogo                   string
+	PortalOrgName                string
+	PortalForceTheme             string
+	PortalDisableOutpostBranding bool
 }
 
 var defaultConfig = map[string]any{
@@ -184,7 +195,18 @@ func Parse(flags Flags) (*Config, error) {
 		LogBatcherDelayThresholdSeconds: mustInt(viper, "LOG_BATCHER_DELAY_THRESHOLD_SECONDS"),
 		LogBatcherItemCountThreshold:    mustInt(viper, "LOG_BATCHER_ITEM_COUNT_THRESHOLD"),
 		DestinationMetadataPath:         viper.GetString("DESTINATION_METADATA_PATH"),
-		DestinationWebhookHeaderPrefix:  viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
+
+		DisableTelemetry: viper.GetBool("DISABLE_TELEMETRY"),
+
+		DestinationWebhookHeaderPrefix: viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
+
+		// Portal config
+		PortalRefererURL:             viper.GetString("PORTAL_REFERER_URL"),
+		PortalFaviconURL:             viper.GetString("PORTAL_FAVICON_URL"),
+		PortalLogo:                   viper.GetString("PORTAL_LOGO"),
+		PortalOrgName:                viper.GetString("PORTAL_ORGANIZATION_NAME"),
+		PortalForceTheme:             viper.GetString("PORTAL_FORCE_THEME"),
+		PortalDisableOutpostBranding: viper.GetBool("PORTAL_DISABLE_OUTPOST_BRANDING"),
 	}
 
 	return config, nil

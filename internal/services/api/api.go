@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -89,6 +91,17 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 			PortalProxyURL: cfg.PortalProxyURL,
 			Topics:         cfg.Topics,
 			Registry:       registry,
+		},
+		map[string]string{
+			"PROXY_URL":                cfg.PortalProxyURL,
+			"REFERER_URL":              cfg.PortalRefererURL,
+			"FAVICON_URL":              cfg.PortalFaviconURL,
+			"LOGO":                     cfg.PortalLogo,
+			"ORGANIZATION_NAME":        cfg.PortalOrgName,
+			"FORCE_THEME":              cfg.PortalForceTheme,
+			"TOPICS":                   strings.Join(cfg.Topics, ","),
+			"DISABLE_OUTPOST_BRANDING": strconv.FormatBool(cfg.PortalDisableOutpostBranding),
+			"DISABLE_TELEMETRY":        strconv.FormatBool(cfg.DisableTelemetry),
 		},
 		logger,
 		redisClient,

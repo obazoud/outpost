@@ -29,6 +29,7 @@ type RouterConfig struct {
 
 func NewRouter(
 	cfg RouterConfig,
+	portalConfigs map[string]string,
 	logger *otelzap.Logger,
 	redisClient *redis.Client,
 	deliveryMQ *deliverymq.DeliveryMQ,
@@ -54,6 +55,7 @@ func NewRouter(
 
 	portal.AddRoutes(r, portal.PortalConfig{
 		ProxyURL: cfg.PortalProxyURL,
+		Configs:  portalConfigs,
 	})
 
 	apiRouter := r.Group("/api/v1")

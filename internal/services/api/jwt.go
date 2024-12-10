@@ -20,7 +20,7 @@ func (_ jsonwebtoken) New(jwtSecret string, tenantID string) (string, error) {
 		"iss": issuer,
 		"sub": tenantID,
 		"iat": now.Unix(),
-		"exp": now.Add(time.Hour).Unix(),
+		"exp": now.Add(24 * time.Hour).Unix(),
 	})
 	return token.SignedString([]byte(jwtSecret))
 }

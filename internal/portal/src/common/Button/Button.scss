@@ -1,0 +1,57 @@
+.button {
+  background-color: var(--colors-background);
+  border-radius: var(--radius-m);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1--5) var(--spacing-3);
+  text-decoration: none;
+  color: var(--colors-foreground-neutral);
+  font-weight: 500;
+  font-size: var(--font-size-m);
+  line-height: var(--line-height-m);
+  box-shadow: var(--colors-shadow-button);
+
+  svg {
+    fill: var(--colors-foreground-neutral-2);
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: var(--colors-background-hover);
+    border-color: var(--colors-outline-neutral-hover);
+  }
+
+  &__primary {
+    background-color: var(--colors-background-primary);
+    color: var(--colors-foreground-on-hue);
+    box-shadow: var(--colors-shadow-button-primary);
+
+    svg {
+      fill: var(--colors-foreground-on-hue);
+    }
+
+    &:hover {
+      border-color: transparent;
+      background-color: var(--colors-background-primary-hover);
+    }
+  }
+}
+
+.button__disabled {
+  background-color: var(--colors-background-neutral-2);
+  color: var(--colors-foreground-neutral-disabled);
+  box-shadow: var(--colors-shadow-button);
+
+  svg {
+    fill: var(--colors-foreground-neutral-disabled);
+  }
+
+  &:hover {
+    background-color: var(--colors-background-neutral-2);
+    color: var(--colors-foreground-neutral-disabled);
+    box-shadow: var(--colors-shadow-button);
+    cursor: not-allowed;
+  }
+}
