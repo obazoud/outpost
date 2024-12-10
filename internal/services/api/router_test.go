@@ -46,6 +46,7 @@ func setupTestRouter(t *testing.T, apiKey, jwtSecret string, funcs ...func(t *te
 			JWTSecret: jwtSecret,
 			Topics:    testutil.TestTopics,
 		},
+		map[string]string{},
 		logger,
 		redisClient,
 		deliveryMQ,
