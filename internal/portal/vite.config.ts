@@ -5,10 +5,10 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 export default defineConfig(({ mode }) => {
   let plugins: UserConfig["plugins"] = [react()];
 
-  if (mode === "production") {
+  if (process.env.SENTRY_AUTH_TOKEN && mode === "production") {
     plugins.push(
       sentryVitePlugin({
-        authToken: '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',
+        authToken: process.env.SENTRY_AUTH_TOKEN,
         org: "hookdeck",
         project: "outpost-portal",
         telemetry: false,
