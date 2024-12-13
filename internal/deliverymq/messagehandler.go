@@ -9,23 +9,26 @@ import (
 	"github.com/hookdeck/outpost/internal/backoff"
 	"github.com/hookdeck/outpost/internal/consumer"
 	"github.com/hookdeck/outpost/internal/destregistry"
-	"github.com/hookdeck/outpost/internal/eventtracer"
 	"github.com/hookdeck/outpost/internal/idempotence"
-	"github.com/hookdeck/outpost/internal/logmq"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/hookdeck/outpost/internal/redis"
 	"github.com/hookdeck/outpost/internal/scheduler"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
+var (
+	errDestinationDisabled = errors.New("destination disabled")
+)
+
 type messageHandler struct {
-	eventTracer    eventtracer.EventTracer
+	eventTracer    DeliveryTracer
 	logger         *otelzap.Logger
-	logMQ          *logmq.LogMQ
-	entityStore    models.EntityStore
-	logStore       models.LogStore
+	logMQ          LogPublisher
+	entityStore    DestinationGetter
+	logStore       EventGetter
 	retryScheduler scheduler.Scheduler
 	retryBackoff   backoff.Backoff
 	retryMaxCount  int
@@ -37,16 +40,30 @@ type Publisher interface {
 	PublishEvent(ctx context.Context, destination *models.Destination, event *models.Event) error
 }
 
-var _ consumer.MessageHandler = (*messageHandler)(nil)
+type LogPublisher interface {
+	Publish(ctx context.Context, deliveryEvent models.DeliveryEvent) error
+}
+
+type DestinationGetter interface {
+	RetrieveDestination(ctx context.Context, tenantID, destID string) (*models.Destination, error)
+}
+
+type EventGetter interface {
+	RetrieveEvent(ctx context.Context, tenantID, eventID string) (*models.Event, error)
+}
+
+type DeliveryTracer interface {
+	Deliver(ctx context.Context, deliveryEvent *models.DeliveryEvent) (context.Context, trace.Span)
+}
 
 func NewMessageHandler(
 	logger *otelzap.Logger,
 	redisClient *redis.Client,
-	logMQ *logmq.LogMQ,
-	entityStore models.EntityStore,
-	logStore models.LogStore,
+	logMQ LogPublisher,
+	entityStore DestinationGetter,
+	logStore EventGetter,
 	publisher Publisher,
-	eventTracer eventtracer.EventTracer,
+	eventTracer DeliveryTracer,
 	retryScheduler scheduler.Scheduler,
 	retryBackoff backoff.Backoff,
 	retryMaxCount int,
@@ -81,18 +98,24 @@ func (h *messageHandler) Handle(ctx context.Context, msg *mqs.Message) error {
 	idempotenceHandler := func(ctx context.Context) error {
 		return h.doHandle(ctx, deliveryEvent)
 	}
-	err := h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), idempotenceHandler)
-	if err != nil {
-		if h.shouldRetry(err, deliveryEvent) {
+	if err := h.idempotence.Exec(ctx, idempotencyKeyFromDeliveryEvent(deliveryEvent), idempotenceHandler); err != nil {
+		shouldScheduleRetry, shouldNack := h.checkError(err, deliveryEvent)
+		if shouldScheduleRetry {
 			if retryErr := h.scheduleRetry(ctx, deliveryEvent); retryErr != nil {
 				finalErr := errors.Join(err, retryErr)
 				msg.Nack()
 				return finalErr
 			}
 		}
+		if shouldNack {
+			msg.Nack()
+		} else {
+			msg.Ack()
+		}
+		return err
 	}
 	msg.Ack()
-	return err
+	return nil
 }
 
 func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
@@ -100,17 +123,13 @@ func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.Deli
 	defer span.End()
 	logger := h.logger.Ctx(ctx)
 	logger.Info("deliverymq handler", zap.String("delivery_event", deliveryEvent.ID))
-	destination, err := h.entityStore.RetrieveDestination(ctx, deliveryEvent.Event.TenantID, deliveryEvent.DestinationID)
+
+	destination, err := h.ensurePublishableDestination(ctx, deliveryEvent)
 	if err != nil {
-		logger.Error("failed to retrieve destination", zap.Error(err))
 		span.RecordError(err)
 		return err
 	}
-	if destination == nil {
-		logger.Error("destination not found")
-		span.RecordError(errors.New("destination not found"))
-		return err
-	}
+
 	var finalErr error
 	if err := h.publisher.PublishEvent(ctx, destination, &deliveryEvent.Event); err != nil {
 		logger.Error("failed to publish event", zap.Error(err))
@@ -148,23 +167,22 @@ func (h *messageHandler) doHandle(ctx context.Context, deliveryEvent models.Deli
 	return finalErr
 }
 
-// shouldRetry checks if the event should be retried.
-// Qualifications:
-// - if the error is an internal error --> should be retried
-// - OR if the error is a publish error + event is eligible for retried + the attempt is less than max retry --> should be retried
-// Clarification between attemp & max retry: Event.Attempt is zero-based numbering. If Event.Attempt is 4, that means the event has failed 5 times.
-// That means 1 original attempt + 4 retries. If max retry is 5, then it should be retried 1 more time. Total attempt will be 6.
-//
-// Question: what to do if there's an "internal error"? How should that count against the attempt count?
-// For example, what if the error happens AFTER deliverying the message (doesn't matter whether it's successful or not),
+// QUESTION: What if an internal error happens AFTER deliverying the message (doesn't matter whether it's successful or not),
 // say logmq.Publish fails. Should that count as an attempt? What about an error BEFORE deliverying the message?
 // Should we write code to differentiate between these two types of errors (predeliveryErr and postdeliveryErr, for example)?
-func (h *messageHandler) shouldRetry(err error, deliveryEvent models.DeliveryEvent) bool {
-	_, isPublishErr := err.(*destregistry.ErrDestinationPublishAttempt)
-	if !isPublishErr {
-		return true
+func (h *messageHandler) checkError(err error, deliveryEvent models.DeliveryEvent) (shouldScheduleRetry, shouldNack bool) {
+	if errors.Is(err, models.ErrDestinationDeleted) || errors.Is(err, errDestinationDisabled) {
+		return false, false // ack
 	}
-	return deliveryEvent.Event.EligibleForRetry && deliveryEvent.Attempt < h.retryMaxCount
+
+	if _, ok := err.(*destregistry.ErrDestinationPublishAttempt); ok {
+		if deliveryEvent.Event.EligibleForRetry && deliveryEvent.Attempt < h.retryMaxCount {
+			return true, false // schedule retry and ack
+		}
+		return false, false // ack and accept failure
+	}
+
+	return false, true // nack for system retry
 }
 
 func (h *messageHandler) scheduleRetry(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
@@ -198,4 +216,25 @@ func (h *messageHandler) ensureDeliveryEvent(ctx context.Context, deliveryEvent 
 
 func idempotencyKeyFromDeliveryEvent(deliveryEvent models.DeliveryEvent) string {
 	return "idempotency:deliverymq:" + deliveryEvent.ID
+}
+
+// ensurePublishableDestination ensures that the destination exists and is in a publishable state.
+// Returns an error if the destination is not found, deleted, disabled, or any other state that
+// would prevent publishing.
+func (h *messageHandler) ensurePublishableDestination(ctx context.Context, deliveryEvent models.DeliveryEvent) (*models.Destination, error) {
+	logger := h.logger.Ctx(ctx)
+	destination, err := h.entityStore.RetrieveDestination(ctx, deliveryEvent.Event.TenantID, deliveryEvent.DestinationID)
+	if err != nil {
+		logger.Error("failed to retrieve destination", zap.Error(err))
+		return nil, err
+	}
+	if destination == nil {
+		logger.Error("destination not found")
+		return nil, models.ErrDestinationNotFound
+	}
+	if destination.DisabledAt != nil {
+		logger.Info("destination is disabled", zap.String("destination_id", destination.ID))
+		return nil, errDestinationDisabled
+	}
+	return destination, nil
 }
