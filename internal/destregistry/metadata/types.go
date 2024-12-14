@@ -3,6 +3,11 @@ package metadata
 
 import "github.com/santhosh-tekuri/jsonschema/v6"
 
+// MetadataLoader loads provider metadata
+type MetadataLoader interface {
+	Load(providerType string) (*ProviderMetadata, error)
+}
+
 type ProviderMetadata struct {
 	// From core.json
 	Type             string        `json:"type"`
@@ -29,4 +34,5 @@ type FieldSchema struct {
 	Description string `json:"description"`
 	Key         string `json:"key"`
 	Required    bool   `json:"required"`
+	Sensitive   bool   `json:"sensitive,omitempty"` // Whether the field value should be obfuscated in API responses
 }

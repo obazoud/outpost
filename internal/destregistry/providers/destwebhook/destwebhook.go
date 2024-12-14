@@ -51,7 +51,7 @@ func WithHeaderPrefix(prefix string) Option {
 	}
 }
 
-func New(loader *metadata.MetadataLoader, opts ...Option) (*WebhookDestination, error) {
+func New(loader metadata.MetadataLoader, opts ...Option) (*WebhookDestination, error) {
 	base, err := destregistry.NewBaseProvider(loader, "webhook")
 	if err != nil {
 		return nil, err
@@ -61,6 +61,29 @@ func New(loader *metadata.MetadataLoader, opts ...Option) (*WebhookDestination, 
 		opt(destination)
 	}
 	return destination, nil
+}
+
+// ObfuscateDestination overrides the base implementation to handle webhook secrets
+func (d *WebhookDestination) ObfuscateDestination(destination *models.Destination) *models.Destination {
+	result := *destination // shallow copy
+	result.Config = make(map[string]string, len(destination.Config))
+	result.Credentials = make(map[string]string, len(destination.Credentials))
+
+	// Copy config values using base provider's logic
+	for key, value := range destination.Config {
+		result.Config[key] = value
+	}
+
+	// Copy credentials as is
+	// NOTE: Webhook secrets are intentionally not obfuscated for now because:
+	// 1. They're needed for secret rotation logic
+	// 2. They're less security-critical than other provider credentials (e.g. AWS keys)
+	// TODO: Implement proper secret obfuscation later if needed
+	for key, value := range destination.Credentials {
+		result.Credentials[key] = value
+	}
+
+	return &result
 }
 
 func (d *WebhookDestination) Validate(ctx context.Context, destination *models.Destination) error {
