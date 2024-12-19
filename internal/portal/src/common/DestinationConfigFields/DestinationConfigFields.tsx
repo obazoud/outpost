@@ -4,6 +4,7 @@ import {
 } from "../../typings/Destination";
 import "./DestinationConfigFields.scss";
 
+// TODO: Figure out how to handle custom validation
 const DestinationConfigFields = ({
   destination,
   type,
@@ -19,8 +20,7 @@ const DestinationConfigFields = ({
             {field.label}
             {field.required && <span className="required">*</span>}
           </label>
-
-          {field.type === "string" && (
+          {field.type === "text" && (
             <input
               type={
                 "sensitive" in field && field.sensitive ? "password" : "text"
@@ -37,7 +37,6 @@ const DestinationConfigFields = ({
               required={field.required}
             />
           )}
-
           {field.description && (
             <p className="description">{field.description}</p>
           )}

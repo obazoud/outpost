@@ -3,7 +3,7 @@
   "config_fields": [
     {
       "key": "queue_url",
-      "type": "string",
+      "type": "text",
       "label": "Queue URL",
       "description": "The URL of your AWS SQS queue",
       "required": true
@@ -12,7 +12,7 @@
   "credential_fields": [
     {
       "key": "key",
-      "type": "string",
+      "type": "text",
       "label": "Access Key ID",
       "description": "AWS Access Key ID",
       "required": true,
@@ -20,7 +20,7 @@
     },
     {
       "key": "secret",
-      "type": "string",
+      "type": "text",
       "label": "Secret Access Key",
       "description": "AWS Secret Access Key",
       "required": true,
@@ -28,7 +28,7 @@
     },
     {
       "key": "session",
-      "type": "string",
+      "type": "text",
       "label": "Session Token",
       "description": "AWS Session Token (optional)",
       "required": false,
