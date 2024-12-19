@@ -9,6 +9,7 @@ import CONFIGS from "../../config";
 import DestinationSettings from "./DestinationSettings/DestinationSettings";
 import Events from "./Events/Events";
 import { Loading } from "../../common/Icons";
+import { Destination as DestinationType } from "../../typings/Destination";
 
 // Define the tab interface
 interface Tab {
@@ -26,7 +27,9 @@ const tabs: Tab[] = [
 const Destination = () => {
   const { destination_id } = useParams();
   const location = useLocation();
-  const { data: destination } = useSWR(`destinations/${destination_id}`);
+  const { data: destination } = useSWR<DestinationType>(
+    `destinations/${destination_id}`
+  );
   const type = useDestinationType(destination?.type);
 
   return (
@@ -93,7 +96,6 @@ const Destination = () => {
               })}
             </nav>
           </div>
-
           <Routes>
             <Route
               path="/settings"
@@ -119,17 +121,19 @@ const Destination = () => {
                           <CopyButton value={destination.config[type.target]} />
                         </span>
                       </li>
-                      <li>
-                        <span className="body-m">Topics</span>
-                        <span className="mono-s">
-                          {destination.topics.length === 1 &&
-                          destination.topics[0] === "*"
-                            ? "All"
-                            : destination.topics
-                                .map((topic) => topic)
-                                .join(", ")}
-                        </span>
-                      </li>
+                      {CONFIGS.TOPICS && (
+                        <li>
+                          <span className="body-m">Topics</span>
+                          <span className="mono-s">
+                            {destination.topics.length === 1 &&
+                            destination.topics[0] === "*"
+                              ? "All"
+                              : destination.topics
+                                  .map((topic) => topic)
+                                  .join(", ")}
+                          </span>
+                        </li>
+                      )}
                       {[
                         ...Object.entries(destination.config),
                         ...Object.entries(destination.credentials),

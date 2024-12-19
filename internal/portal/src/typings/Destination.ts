@@ -11,6 +11,7 @@ interface CredentialField extends ConfigField {
 }
 
 interface DestinationTypeReference {
+  type: string;
   config_fields: ConfigField[];
   credential_fields: CredentialField[];
   instructions: string;
@@ -24,11 +25,13 @@ interface Destination {
   id: string;
   type: string;
   config: Record<string, any>;
+  topics: string[];
   credentials: Record<string, any>;
   label: string;
   description: string;
   target: string;
   disabled_at: string;
+  created_at: string;
 }
 
 export type {
