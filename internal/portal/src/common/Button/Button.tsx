@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
 import { FC, PropsWithChildren } from "react";
 import "./Button.scss";
+import { Loading } from "../Icons";
 
 interface ButtonProps {
-  primary?: boolean;
   to?: string;
   onClick?: () => void;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   className?: string;
+  loading?: boolean;
+  primary?: boolean;
+  danger?: boolean;
 }
 
 const Button: FC<PropsWithChildren<ButtonProps>> = ({
@@ -19,10 +22,14 @@ const Button: FC<PropsWithChildren<ButtonProps>> = ({
   type = "button",
   children,
   className,
+  loading = false,
+  danger = false,
 }) => {
   className = `button${primary ? " button__primary" : ""}${
-    disabled ? " button__disabled" : ""
-  } ${className}`;
+    disabled || loading ? " button__disabled" : ""
+  } ${loading ? " button__loading" : ""} ${danger ? " button__danger" : ""} ${
+    className || ""
+  }`;
 
   if (to) {
     return (
@@ -31,7 +38,7 @@ const Button: FC<PropsWithChildren<ButtonProps>> = ({
         className={className}
         {...(disabled && { onClick: (e) => e.preventDefault() })}
       >
-        {children}
+      <span>{children}</span>
       </Link>
     );
   }
@@ -43,7 +50,12 @@ const Button: FC<PropsWithChildren<ButtonProps>> = ({
       disabled={disabled}
       type={type}
     >
-      {children}
+      <span>{children}</span>
+      {loading && (
+        <div className="button__loading-container">
+          <Loading />
+        </div>
+      )}
     </button>
   );
 };

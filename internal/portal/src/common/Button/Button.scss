@@ -2,9 +2,7 @@
   background-color: var(--colors-background);
   border-radius: var(--radius-m);
   border: none;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
+
   padding: var(--spacing-1--5) var(--spacing-3);
   text-decoration: none;
   color: var(--colors-foreground-neutral);
@@ -12,9 +10,17 @@
   font-size: var(--font-size-m);
   line-height: var(--line-height-m);
   box-shadow: var(--colors-shadow-button);
+  position: relative;
 
-  svg {
-    fill: var(--colors-foreground-neutral-2);
+  > span {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+
+    svg {
+      fill: var(--colors-foreground-neutral-2);
+      max-height: 16px;
+    }
   }
 
   &:hover {
@@ -25,11 +31,13 @@
 
   &__primary {
     background-color: var(--colors-background-primary);
-    color: var(--colors-foreground-on-hue);
     box-shadow: var(--colors-shadow-button-primary);
 
-    svg {
-      fill: var(--colors-foreground-on-hue);
+    > span {
+      color: var(--colors-foreground-on-hue);
+      svg {
+        fill: var(--colors-foreground-on-hue);
+      }
     }
 
     &:hover {
@@ -39,13 +47,24 @@
   }
 }
 
+.button__danger {
+  > span {
+    color: var(--colors-foreground-danger);
+    svg {
+      fill: var(--colors-foreground-danger);
+    }
+  }
+}
+
 .button__disabled {
   background-color: var(--colors-background-neutral-2);
-  color: var(--colors-foreground-neutral-disabled);
   box-shadow: var(--colors-shadow-button);
 
-  svg {
-    fill: var(--colors-foreground-neutral-disabled);
+  > span {
+    color: var(--colors-foreground-neutral-disabled);
+    svg {
+      fill: var(--colors-foreground-neutral-disabled);
+    }
   }
 
   &:hover {
@@ -53,5 +72,26 @@
     color: var(--colors-foreground-neutral-disabled);
     box-shadow: var(--colors-shadow-button);
     cursor: not-allowed;
+  }
+}
+
+.button__loading {
+  > :not(.button__loading-container) {
+    visibility: hidden;
+  }
+}
+
+.button__loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  svg {
+    fill: var(--colors-foreground-neutral-3);
   }
 }
