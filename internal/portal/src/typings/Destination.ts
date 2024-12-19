@@ -1,5 +1,3 @@
-type DestinationType = "rabbitmq" | "aws_sqs" | "webhook";
-
 interface ConfigField {
   type: "text";
   label: string;
@@ -24,13 +22,11 @@ interface DestinationTypeReference {
 
 interface Destination {
   id: string;
-  type: DestinationType;
+  type: string;
   config: Record<string, any>;
   credentials: Record<string, any>;
   label: string;
   description: string;
-  icon: string;
-  instructions: string;
   target: string;
   disabled_at: string;
 }
