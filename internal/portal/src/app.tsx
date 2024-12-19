@@ -1,4 +1,4 @@
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useState, createContext } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DestinationList from "./scenes/DestinationsList/DestinationList";
 import { SWRConfig } from "swr";
@@ -15,7 +15,7 @@ type ApiClient = {
   fetch: (path: string, init?: RequestInit) => Promise<any>;
 };
 
-export const ApiContext = createContext<ApiClient | null>(null);
+export const ApiContext = createContext<ApiClient>({} as ApiClient);
 
 export function App() {
   const token = useToken();
@@ -28,8 +28,9 @@ export function App() {
       return fetch(`http://localhost:3333/api/v1/${tenant?.id}/${path}`, {
         ...init,
         headers: {
-          ...init?.headers,
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          ...init?.headers,
         },
       }).then(async (res) => {
         if (!res.ok) {

@@ -3,7 +3,7 @@
   "config_fields": [
     {
       "key": "url",
-      "type": "string",
+      "type": "text",
       "label": "Webhook URL",
       "description": "The URL to send webhook requests to",
       "required": true
@@ -12,7 +12,7 @@
   "credential_fields": [
     {
       "key": "secrets",
-      "type": "string",
+      "type": "text",
       "label": "Webhook Secrets",
       "description": "JSON array of webhook secrets. Each secret should have: key (string), created_at (ISO 8601 timestamp), and optionally invalid_at (ISO 8601 timestamp) to manually invalidate the secret before the default 24-hour window",
       "required": false,

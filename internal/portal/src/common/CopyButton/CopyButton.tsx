@@ -1,6 +1,7 @@
 import { CopyIcon } from "../Icons";
+import { showToast } from "../Toast/Toast";
 
-import './CopyButton.scss'
+import "./CopyButton.scss";
 
 interface CopyButtonProps {
   value: string;
@@ -32,6 +33,7 @@ const handleCopy = (value: string) => {
   } else {
     copyUsingFallback(value);
   }
+  showToast("success", "Copied to clipboard.");
 };
 
 export const CopyButton = ({ value }: CopyButtonProps) => {
