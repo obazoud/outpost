@@ -42,11 +42,11 @@ const DestinationList: React.FC = () => {
   const table_columns = [
     { header: "Type", width: 160 },
     { header: "Target" },
-    { header: "Topics", width: 120 },
+    CONFIGS.TOPICS ? { header: "Topics", width: 120 } : null,
     { header: "Status", width: 120 },
     { header: "Success Rate", width: 120 },
     { header: "Events (24h)", width: 120 },
-  ];
+  ].filter((column) => column !== null);
 
   const filtered_destinations = destinations?.filter((destination) => {
     const search_value = searchTerm.toLowerCase();
@@ -54,10 +54,7 @@ const DestinationList: React.FC = () => {
       destination.type.toLowerCase().includes(search_value) ||
       destination.config[destination_types[destination.type].target]
         .toLowerCase()
-        .includes(search_value) ||
-      destination.topics.some((topic) =>
-        topic.toLowerCase().includes(search_value)
-      )
+        .includes(search_value)
     );
   });
 
@@ -79,37 +76,39 @@ const DestinationList: React.FC = () => {
         <span className="muted-variant">
           {destination.config[destination_types[destination.type].target]}
         </span>,
-        <Tooltip
-          content={
-            <div className="destination-list__topics-tooltip">
-              {(destination.topics.length > 0 && destination.topics[0] === "*"
-                ? CONFIGS.TOPICS.split(",")
-                : destination.topics
-              )
-                .slice(0, 9)
-                .map((topic) => (
-                  <Badge key={topic} text={topic.trim()} />
-                ))}
-              {(destination.topics[0] === "*"
-                ? CONFIGS.TOPICS.split(",").length
-                : destination.topics.length) > 9 && (
-                <span className="subtitle-s muted">
-                  +{" "}
-                  {(destination.topics[0] === "*"
-                    ? CONFIGS.TOPICS.split(",").length
-                    : destination.topics.length) - 9}{" "}
-                  more
-                </span>
-              )}
-            </div>
-          }
-        >
-          <span className="muted-variant">
-            {destination.topics.length > 0 && destination.topics[0] === "*"
-              ? "All"
-              : destination.topics.length}
-          </span>
-        </Tooltip>,
+        CONFIGS.TOPICS ? (
+          <Tooltip
+            content={
+              <div className="destination-list__topics-tooltip">
+                {(destination.topics.length > 0 && destination.topics[0] === "*"
+                  ? CONFIGS.TOPICS.split(",")
+                  : destination.topics
+                )
+                  .slice(0, 9)
+                  .map((topic) => (
+                    <Badge key={topic} text={topic.trim()} />
+                  ))}
+                {(destination.topics[0] === "*"
+                  ? CONFIGS.TOPICS.split(",").length
+                  : destination.topics.length) > 9 && (
+                  <span className="subtitle-s muted">
+                    +{" "}
+                    {(destination.topics[0] === "*"
+                      ? CONFIGS.TOPICS.split(",").length
+                      : destination.topics.length) - 9}{" "}
+                    more
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <span className="muted-variant">
+              {destination.topics.length > 0 && destination.topics[0] === "*"
+                ? "All"
+                : destination.topics.length}
+            </span>
+          </Tooltip>
+        ) : null,
         destination.disabled_at ? (
           <Badge text="Disabled" />
         ) : (
@@ -117,7 +116,7 @@ const DestinationList: React.FC = () => {
         ),
         <span className="muted-variant">99.5%</span>, // TODO: Replace with actual success rate data
         <span className="muted-variant">100</span>, // TODO: Replace with actual events count
-      ],
+      ].filter((entry) => entry !== null),
       link: `/destinations/${destination.id}`,
     })) || [];
 
@@ -152,7 +151,7 @@ const DestinationList: React.FC = () => {
             <SearchInput
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Filter by type, target or topic"
+              placeholder="Filter by type or target"
             />
             <Button onClick={console.log}>
               <FilterIcon /> Status (TODO)

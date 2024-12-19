@@ -37,6 +37,11 @@
     margin-bottom: var(--spacing-3);
   }
 
+  &__category {
+    margin-top: var(--spacing-3);
+    margin-bottom: var(--spacing-3);
+  }
+
   &__category-toggle {
     display: flex;
     align-items: center;

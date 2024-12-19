@@ -13,6 +13,7 @@ import {
   DestinationTypeReference,
 } from "../../../typings/Destination";
 import DestinationConfigFields from "../../../common/DestinationConfigFields/DestinationConfigFields";
+import CONFIGS from "../../../config";
 
 const DestinationSettings = ({
   destination,
@@ -166,32 +167,36 @@ const DestinationSettings = ({
 
   return (
     <div className="destination-settings">
-      <div className="destination-settings__topics">
-        <h2 className="title-l">Event Topics</h2>
-        <form onSubmit={handleSubmit}>
-          <TopicPicker
-            maxHeight="256px"
-            selectedTopics={selectedTopics}
-            onTopicsChange={(topics) => {
-              setSelectedTopics(topics);
-            }}
-          />
-          <Button
-            className="destination-settings__submit-button"
-            type="submit"
-            disabled={
-              JSON.stringify(selectedTopics) ===
-                JSON.stringify(destination.topics) ||
-              selectedTopics.length === 0
-            }
-            loading={isTopicsSaving}
-            primary
-          >
-            <SaveIcon /> Save
-          </Button>
-        </form>
-      </div>
-      <hr />
+      {CONFIGS.TOPICS && (
+        <>
+          <div className="destination-settings__topics">
+            <h2 className="title-l">Event Topics</h2>
+            <form onSubmit={handleSubmit}>
+              <TopicPicker
+                maxHeight="320px"
+                selectedTopics={selectedTopics}
+                onTopicsChange={(topics) => {
+                  setSelectedTopics(topics);
+                }}
+              />
+              <Button
+                className="destination-settings__submit-button"
+                type="submit"
+                disabled={
+                  JSON.stringify(selectedTopics) ===
+                    JSON.stringify(destination.topics) ||
+                  selectedTopics.length === 0
+                }
+                loading={isTopicsSaving}
+                primary
+              >
+                <SaveIcon /> Save
+              </Button>
+            </form>
+          </div>
+          <hr />
+        </>
+      )}
       <div>
         <h2 className="title-l">Configuration & Credentials</h2>
         <form

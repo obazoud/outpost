@@ -1,11 +1,5 @@
 import useSWR from "swr";
-
-export interface DestinationType {
-  type: string;
-  label: string;
-  icon: string | React.ReactNode;
-  target: string;
-}
+import { DestinationTypeReference } from "./typings/Destination";
 
 const targets = {
   webhook: "url",
@@ -13,8 +7,12 @@ const targets = {
   aws: "queue_url",
 };
 
-export function useDestinationTypes(): Record<string, DestinationType> {
-  const { data } = useSWR<Record<string, DestinationType>>("destination-types");
+export function useDestinationTypes(): Record<
+  string,
+  DestinationTypeReference
+> {
+  const { data } =
+    useSWR<Record<string, DestinationTypeReference>>("destination-types");
   if (!data) {
     return {};
   }
@@ -24,10 +22,17 @@ export function useDestinationTypes(): Record<string, DestinationType> {
       target: targets[type.type as keyof typeof targets],
     };
     return acc;
-  }, {} as Record<string, DestinationType>);
+  }, {} as Record<string, DestinationTypeReference>);
 }
 
-export function useDestinationType(type: string): DestinationType | undefined {
+export function useDestinationType(
+  type: string | undefined
+): DestinationTypeReference | undefined {
   const destination_types = useDestinationTypes();
+
+  if (!type) {
+    return undefined;
+  }
+
   return destination_types[type];
 }

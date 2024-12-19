@@ -16,21 +16,52 @@ interface TopicPickerProps {
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
 }
-const topics: Topic[] = CONFIGS.TOPICS.split(",").map((topic) => {
-  const parts = topic.split(/[.-]/);
-  return {
-    id: topic,
-    category: parts[0],
-  };
-});
 
-const TopicPicker = ({ maxHeight, selectedTopics, onTopicsChange }: TopicPickerProps) => {
+const detectSeparator = (topics: string[]): string => {
+  // Common separators to check
+  const possibleSeparators = ['/', '.', '-'];
+  
+  // Find the first separator that appears in all topics
+  // and is the first occurring separator in each topic
+  return possibleSeparators.find(sep => 
+    topics.every(topic => {
+      const sepIndex = topic.indexOf(sep);
+      if (sepIndex === -1) return false;
+      
+      // Check if any other separator appears before this one
+      const otherSepsIndex = possibleSeparators
+        .filter(s => s !== sep)
+        .map(s => topic.indexOf(s))
+        .filter(idx => idx !== -1);
+        
+      return otherSepsIndex.every(idx => idx === -1 || idx > sepIndex);
+    })
+  ) || '-'; // Fallback to '-' if no consistent separator is found
+};
+
+const topics: Topic[] = (() => {
+  const topicsList = CONFIGS.TOPICS.split(",");
+  const separator = detectSeparator(topicsList);
+  
+  return topicsList.map((topic) => {
+    const parts = topic.split(separator);
+    return {
+      id: topic,
+      category: parts[0],
+    };
+  });
+})();
+
+const TopicPicker = ({
+  maxHeight,
+  selectedTopics,
+  onTopicsChange,
+}: TopicPickerProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     Array.from(new Set(topics.map((topic) => topic.category)))
   );
 
-  const allTopicIds = useMemo(() => topics.map((topic) => topic.id), []);
   const isEverythingSelected = selectedTopics.includes("*");
 
   const toggleSelectAll = () => {
@@ -67,36 +98,33 @@ const TopicPicker = ({ maxHeight, selectedTopics, onTopicsChange }: TopicPickerP
 
   const toggleCategorySelection = (topicsInCategory: Topic[]) => {
     if (isEverythingSelected) {
-      const categoryTopicIds = topicsInCategory.map((t) => t.id);
+      selectedTopics = [];
+    }
+
+    const categoryTopicIds = topicsInCategory.map((t) => t.id);
+    const areAllSelected = categoryTopicIds.every((id) =>
+      selectedTopics.includes(id)
+    );
+
+    if (areAllSelected) {
       onTopicsChange(
-        allTopicIds.filter((id) => !categoryTopicIds.includes(id))
+        selectedTopics.filter((id) => !categoryTopicIds.includes(id))
       );
     } else {
-      const categoryTopicIds = topicsInCategory.map((t) => t.id);
-      const areAllSelected = categoryTopicIds.every((id) =>
-        selectedTopics.includes(id)
-      );
-
-      if (areAllSelected) {
-        onTopicsChange(
-          selectedTopics.filter((id) => !categoryTopicIds.includes(id))
-        );
-      } else {
-        const newSelected = new Set([...selectedTopics, ...categoryTopicIds]);
-        onTopicsChange(Array.from(newSelected));
-      }
+      const newSelected = new Set([...selectedTopics, ...categoryTopicIds]);
+      onTopicsChange(Array.from(newSelected));
     }
   };
 
   const toggleTopic = (topicId: string) => {
     if (isEverythingSelected) {
-      onTopicsChange(allTopicIds.filter((id) => id !== topicId));
-    } else {
-      const newSelected = selectedTopics.includes(topicId)
-        ? selectedTopics.filter((id) => id !== topicId)
-        : [...selectedTopics, topicId];
-      onTopicsChange(newSelected);
+      selectedTopics = [];
     }
+
+    const newSelected = selectedTopics.includes(topicId)
+      ? selectedTopics.filter((id) => id !== topicId)
+      : [...selectedTopics, topicId];
+    onTopicsChange(newSelected);
   };
 
   return (
