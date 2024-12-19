@@ -48,7 +48,15 @@ type Config struct {
 
 	DisableTelemetry bool
 
-	DestinationWebhookHeaderPrefix string
+	DestinationWebhookHeaderPrefix                  string
+	DestinationWebhookDisableDefaultEventIDHeader   bool
+	DestinationWebhookDisableDefaultSignatureHeader bool
+	DestinationWebhookDisableDefaultTimestampHeader bool
+	DestinationWebhookDisableDefaultTopicHeader     bool
+	DestinationWebhookSignatureContentTemplate      string
+	DestinationWebhookSignatureHeaderTemplate       string
+	DestinationWebhookSignatureEncoding             string
+	DestinationWebhookSignatureAlgorithm            string
 
 	// Portal config
 	PortalRefererURL             string
@@ -198,7 +206,16 @@ func Parse(flags Flags) (*Config, error) {
 
 		DisableTelemetry: viper.GetBool("DISABLE_TELEMETRY"),
 
-		DestinationWebhookHeaderPrefix: viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
+		// Destination webhook config
+		DestinationWebhookHeaderPrefix:                  viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
+		DestinationWebhookDisableDefaultEventIDHeader:   viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_EVENT_ID_HEADER"),
+		DestinationWebhookDisableDefaultSignatureHeader: viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_SIGNATURE_HEADER"),
+		DestinationWebhookDisableDefaultTimestampHeader: viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_TIMESTAMP_HEADER"),
+		DestinationWebhookDisableDefaultTopicHeader:     viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_TOPIC_HEADER"),
+		DestinationWebhookSignatureContentTemplate:      viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_CONTENT_TEMPLATE"),
+		DestinationWebhookSignatureHeaderTemplate:       viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_HEADER_TEMPLATE"),
+		DestinationWebhookSignatureEncoding:             viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_ENCODING"),
+		DestinationWebhookSignatureAlgorithm:            viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_ALGORITHM"),
 
 		// Portal config
 		PortalRefererURL:             viper.GetString("PORTAL_REFERER_URL"),
