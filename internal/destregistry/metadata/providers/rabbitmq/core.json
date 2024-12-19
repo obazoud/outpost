@@ -19,7 +19,7 @@
       "key": "routing_key",
       "type": "text",
       "label": "Routing Key",
-      "description": "The routing key for message routing (optional)",
+      "description": "The routing key for message routing",
       "required": false
     }
   ],
