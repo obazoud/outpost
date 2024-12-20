@@ -1,0 +1,11 @@
+.dropdown-content {
+  min-width: 232px;
+  background-color: var(--colors-background);
+  border-radius: var(--radius-m);
+  padding: var(--spacing-1);
+  box-shadow: var(--colors-shadow-menu);
+  display: flex;
+  flex-direction: column;
+  max-height: 300px;
+  overflow-y: auto;
+}

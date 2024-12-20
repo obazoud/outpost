@@ -7,7 +7,7 @@
   color: var(--colors-foreground-neutral);
   font-weight: 500;
   font-size: var(--font-size-m);
-  line-height: var(--line-height-m);
+  line-height: calc(var(--line-height-m) - 2px);
   box-shadow: var(--shadow-elevation-1);
   min-width: var(--line-height-m);
   box-sizing: border-box;

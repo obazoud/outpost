@@ -1,9 +1,12 @@
 .layout {
-  max-width: 1240px;
+  max-width: 1272px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
 
-  padding-left: var(--spacing-4);
-  padding-right: var(--spacing-4);
+  padding-left: calc(var(--base-grid-multiplier) * 24);
+  padding-right: calc(var(--base-grid-multiplier) * 24);
 
   &__header {
     display: flex;

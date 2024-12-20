@@ -1,6 +1,7 @@
 .table {
-  width: 100%;
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-radius: var(--radius-m);
   border: 1px solid var(--colors-outline-neutral);
   background-color: var(--colors-background);
@@ -18,10 +19,17 @@
   }
 
   &__body {
+    overflow-y: auto;
+    flex: 1;
+
     &-row {
       display: grid;
       border-bottom: 1px solid var(--colors-outline-neutral);
       cursor: pointer;
+
+      &:last-child {
+        border-bottom: none;
+      }
 
       &:hover {
         background-color: var(--colors-background-hover);
@@ -55,6 +63,7 @@
   }
 
   &__footer {
+    border-top: 1px solid var(--colors-outline-neutral);
     padding: var(--spacing-4);
     span {
       color: var(--colors-foreground-neutral-2);

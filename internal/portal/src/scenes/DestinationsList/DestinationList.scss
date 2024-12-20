@@ -1,4 +1,11 @@
 .destination-list {
+  flex: 1;
+  margin-bottom: calc(var(--base-grid-multiplier) * 20);
+  overflow-y: hidden;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+
   &__header {
     margin-bottom: var(--spacing-4);
 
@@ -31,4 +38,9 @@
   border: 1px dashed var(--colors-outline-neutral);
   border-radius: var(--radius-m);
   padding: var(--spacing-14);
+}
+
+.dropdown-item {
+  display: block;
+  padding: calc(var(--spacing-2) - 2px) var(--spacing-2);
 }

@@ -43,8 +43,8 @@ const Table: React.FC<TableProps> = ({ columns, rows, footer_label }) => {
             key={`header-${index}`}
             className="table__header-cell subtitle-xs"
             style={{
-              maxWidth: column.maxWidth,
-              minWidth: column.minWidth,
+              maxWidth: column.width,
+              minWidth: column.width,
             }}
           >
             {column.header}
@@ -66,8 +66,8 @@ const Table: React.FC<TableProps> = ({ columns, rows, footer_label }) => {
                 className="table__body-cell"
                 key={`${row.id}-${index}`}
                 style={{
-                  maxWidth: columns[index]?.maxWidth,
-                  minWidth: columns[index]?.minWidth,
+                  maxWidth: columns[index]?.width,
+                  minWidth: columns[index]?.width,
                 }}
               >
                 {row.link ? (
