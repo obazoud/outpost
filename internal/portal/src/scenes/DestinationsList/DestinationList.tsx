@@ -5,39 +5,24 @@ import useSWR from "swr";
 
 import Badge from "../../common/Badge/Badge";
 import Button from "../../common/Button/Button";
-import { AddIcon, FilterIcon } from "../../common/Icons";
+import { AddIcon, FilterIcon, Loading } from "../../common/Icons";
 import SearchInput from "../../common/SearchInput/SearchInput";
 import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
 import { useDestinationTypes } from "../../destination-types";
 import CONFIGS from "../../config";
-
-// TODO: Add empty state
-// TODO: Add loading state
-// TODO: Check behavior for large destination counts
-// TODO: Fetch destination types from the API instead of hardcoding them
-// TODO: Add success rate column
-// TODO: Add events count column
-// TODO: Add status filter
-
-interface Destination {
-  id: string;
-  type: "webhooks";
-  config: {
-    url: string;
-  };
-  topics: string[];
-  disabled_at: string | null;
-}
+import { Destination } from "../../typings/Destination";
+import Dropdown from "../../common/Dropdown/Dropdown";
+import { Checkbox } from "../../common/Checkbox/Checkbox";
 
 const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
   const destination_types = useDestinationTypes();
   const [searchTerm, setSearchTerm] = useState("");
-
-  if (Object.keys(destination_types).length === 0) {
-    return <div>Loading...</div>;
-  }
+  const [selectedStatus, setSelectedStatus] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
 
   const table_columns = [
     { header: "Type", width: 160 },
@@ -48,15 +33,41 @@ const DestinationList: React.FC = () => {
     { header: "Events (24h)", width: 120 },
   ].filter((column) => column !== null);
 
-  const filtered_destinations = destinations?.filter((destination) => {
-    const search_value = searchTerm.toLowerCase();
-    return (
-      destination.type.toLowerCase().includes(search_value) ||
-      destination.config[destination_types[destination.type].target]
-        .toLowerCase()
-        .includes(search_value)
-    );
-  });
+  const filtered_destinations =
+    destination_types && destinations
+      ? destinations.filter((destination) => {
+          const search_value = searchTerm.toLowerCase();
+
+          if (Object.values(selectedStatus).some((value) => value)) {
+            if (selectedStatus.active && selectedStatus.disabled) {
+              // Continue to search term filtering
+            } else if (selectedStatus.active && destination.disabled_at) {
+              return false;
+            } else if (selectedStatus.disabled && !destination.disabled_at) {
+              return false;
+            }
+          }
+
+          if (selectedTopics.length > 0) {
+            const destinationTopics =
+              destination.topics[0] === "*"
+                ? CONFIGS.TOPICS.split(",")
+                : destination.topics;
+            if (
+              !selectedTopics.some((topic) => destinationTopics.includes(topic))
+            ) {
+              return false;
+            }
+          }
+
+          return (
+            destination.type.toLowerCase().includes(search_value) ||
+            destination.config[destination_types[destination.type].target]
+              .toLowerCase()
+              .includes(search_value)
+          );
+        })
+      : [];
 
   const table_rows =
     filtered_destinations?.map((destination) => ({
@@ -114,8 +125,8 @@ const DestinationList: React.FC = () => {
         ) : (
           <Badge text="Active" success />
         ),
-        <span className="muted-variant">99.5%</span>, // TODO: Replace with actual success rate data
-        <span className="muted-variant">100</span>, // TODO: Replace with actual events count
+        <span className="muted-variant">99.5% [TODO]</span>, // TODO: Replace with actual success rate data
+        <span className="muted-variant">100 [TODO]</span>, // TODO: Replace with actual events count
       ].filter((entry) => entry !== null),
       link: `/destinations/${destination.id}`,
     })) || [];
@@ -143,43 +154,105 @@ const DestinationList: React.FC = () => {
           Back to {CONFIGS.ORGANIZATION_NAME} →
         </a>
       </header>
-      <div className="destination-list">
-        <div className="destination-list__header">
-          <span className="subtitle-s muted">&nbsp;</span>
-          <h1 className="title-3xl">Event Destinations</h1>
-          <div className="destination-list__actions">
-            <SearchInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Filter by type or target"
-            />
-            <Button onClick={console.log}>
-              <FilterIcon /> Status (TODO)
-            </Button>
-            <Button primary to="/new">
-              <AddIcon /> Add Destination
-            </Button>
-          </div>
-        </div>
-        {destinations && (
-          <>
-            {destinations.length === 0 ? (
-              <div className="destination-list__empty-state">
-                <span className="body-m muted">
-                  No event destinations yet. Add your first destination to get
-                  started.
-                </span>
-              </div>
-            ) : (
-              <Table
-                columns={table_columns}
-                rows={table_rows}
-                footer_label="event destinations"
+      {destinations && destination_types ? (
+        <div className="destination-list">
+          <div className="destination-list__header">
+            <span className="subtitle-s muted">&nbsp;</span>
+            <h1 className="title-3xl">Event Destinations</h1>
+            <div className="destination-list__actions">
+              <SearchInput
+                value={searchTerm}
+                onChange={setSearchTerm}
+                placeholder="Filter by type or target"
               />
-            )}
-          </>
-        )}
-      </div>
+              <Dropdown
+                trigger="Status"
+                trigger_icon={<FilterIcon />}
+                badge_count={
+                  Object.values(selectedStatus).filter((v) => !!v).length
+                }
+              >
+                <div className="dropdown-item">
+                  <Checkbox
+                    label="Active"
+                    checked={selectedStatus.active}
+                    onChange={() =>
+                      setSelectedStatus({
+                        ...selectedStatus,
+                        active: !selectedStatus.active,
+                      })
+                    }
+                  />
+                </div>
+                <div className="dropdown-item">
+                  <Checkbox
+                    label="Disabled"
+                    checked={selectedStatus.disabled}
+                    onChange={() =>
+                      setSelectedStatus({
+                        ...selectedStatus,
+                        disabled: !selectedStatus.disabled,
+                      })
+                    }
+                  />
+                </div>
+              </Dropdown>
+              <Dropdown
+                trigger="Topics"
+                trigger_icon={<FilterIcon />}
+                badge_count={selectedTopics.length}
+              >
+                <div className="dropdown-item">
+                  <Checkbox
+                    label="All Topics"
+                    checked={selectedTopics.length === 0}
+                    onChange={() => setSelectedTopics([])}
+                  />
+                </div>
+                {CONFIGS.TOPICS.split(",").map((topic) => (
+                  <div className="dropdown-item" key={topic}>
+                    <Checkbox
+                      label={topic.trim()}
+                      checked={selectedTopics.includes(topic.trim())}
+                      onChange={() => {
+                        const topicTrimmed = topic.trim();
+                        setSelectedTopics((prev) =>
+                          prev.includes(topicTrimmed)
+                            ? prev.filter((t) => t !== topicTrimmed)
+                            : [...prev, topicTrimmed]
+                        );
+                      }}
+                    />
+                  </div>
+                ))}
+              </Dropdown>
+              <Button primary to="/new">
+                <AddIcon /> Add Destination
+              </Button>
+            </div>
+          </div>
+          {destinations && (
+            <>
+              {destinations.length === 0 ? (
+                <div className="destination-list__empty-state">
+                  <span className="body-m muted">
+                    No event destinations yet. Add your first destination to get
+                    started.
+                  </span>
+                </div>
+              ) : (
+                <Table
+                  columns={table_columns}
+                  rows={table_rows}
+                  footer_label="event destinations"
+                />
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+        <Loading />
+      )}
     </>
   );
 };
