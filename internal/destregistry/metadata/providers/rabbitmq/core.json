@@ -5,8 +5,9 @@
       "key": "server_url",
       "type": "text",
       "label": "Server URL",
-      "description": "The RabbitMQ server URL (e.g., amqp://localhost:5672)",
-      "required": true
+      "description": "The RabbitMQ server URL (e.g., myrabbitmq.com:5672)",
+      "required": true,
+      "pattern": "^(?:localhost|127\\.0\\.0\\.1|\\[::1\\]|(?:[\\w\\-]+\\.)+[a-z]{2,})(?::\\d{1,5})?$"
     },
     {
       "key": "exchange",
