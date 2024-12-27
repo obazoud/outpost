@@ -3,11 +3,12 @@ package destwebhook
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -45,7 +46,9 @@ type WebhookSecret struct {
 }
 
 type WebhookDestinationCredentials struct {
-	Secrets []WebhookSecret
+	Secret                  string    `json:"secret"`
+	PreviousSecret          string    `json:"previous_secret,omitempty"`
+	PreviousSecretInvalidAt time.Time `json:"previous_secret_invalid_at,omitempty"`
 }
 
 var _ destregistry.Provider = (*WebhookDestination)(nil)
@@ -126,6 +129,10 @@ func New(loader metadata.MetadataLoader, opts ...Option) (*WebhookDestination, e
 	return destination, nil
 }
 
+func (d *WebhookDestination) ComputeTarget(destination *models.Destination) string {
+	return destination.Config["url"]
+}
+
 // ObfuscateDestination overrides the base implementation to handle webhook secrets
 func (d *WebhookDestination) ObfuscateDestination(destination *models.Destination) *models.Destination {
 	result := *destination // shallow copy
@@ -156,30 +163,6 @@ func (d *WebhookDestination) Validate(ctx context.Context, destination *models.D
 	return nil
 }
 
-// GetEncoder returns the appropriate SignatureEncoder for the given encoding
-func GetEncoder(encoding string) SignatureEncoder {
-	switch encoding {
-	case "base64":
-		return Base64Encoder{}
-	case "hex":
-		return HexEncoder{}
-	default:
-		return HexEncoder{} // default to hex
-	}
-}
-
-// GetAlgorithm returns the appropriate SigningAlgorithm for the given algorithm name
-func GetAlgorithm(algorithm string) SigningAlgorithm {
-	switch algorithm {
-	case "hmac-sha1":
-		return NewHmacSHA1()
-	case "hmac-sha256":
-		return NewHmacSHA256()
-	default:
-		return NewHmacSHA256() // default to hmac-sha256
-	}
-}
-
 func (d *WebhookDestination) GetSignatureEncoding() string {
 	return d.encoding
 }
@@ -194,8 +177,25 @@ func (d *WebhookDestination) CreatePublisher(ctx context.Context, destination *m
 		return nil, err
 	}
 
+	// Convert credentials to WebhookSecret format
+	now := time.Now()
+	secrets := []WebhookSecret{
+		{
+			Key:       creds.Secret,
+			CreatedAt: now,
+		},
+	}
+
+	if creds.PreviousSecret != "" {
+		secrets = append(secrets, WebhookSecret{
+			Key:       creds.PreviousSecret,
+			CreatedAt: now.Add(-1 * time.Hour), // Set to 1 hour before current secret
+			InvalidAt: &creds.PreviousSecretInvalidAt,
+		})
+	}
+
 	sm := NewSignatureManager(
-		creds.Secrets,
+		secrets,
 		WithSignatureFormatter(NewSignatureFormatter(d.signatureContentTemplate)),
 		WithHeaderFormatter(NewHeaderFormatter(d.signatureHeaderTemplate)),
 		WithEncoder(GetEncoder(d.encoding)),
@@ -206,7 +206,7 @@ func (d *WebhookDestination) CreatePublisher(ctx context.Context, destination *m
 		BasePublisher:          &destregistry.BasePublisher{},
 		url:                    config.URL,
 		headerPrefix:           d.headerPrefix,
-		secrets:                creds.Secrets,
+		secrets:                secrets,
 		sm:                     sm,
 		disableEventIDHeader:   d.disableEventIDHeader,
 		disableSignatureHeader: d.disableSignatureHeader,
@@ -224,70 +224,117 @@ func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *mod
 		URL: destination.Config["url"],
 	}
 
-	// Parse secrets from destination credentials
-	var creds WebhookDestinationCredentials
-	if secretsJson, ok := destination.Credentials["secrets"]; ok && secretsJson != "" {
-		if err := json.Unmarshal([]byte(secretsJson), &creds.Secrets); err != nil {
+	// Parse credentials directly from map
+	creds := &WebhookDestinationCredentials{
+		Secret:         destination.Credentials["secret"],
+		PreviousSecret: destination.Credentials["previous_secret"],
+	}
+
+	// Parse previous_secret_invalid_at if present
+	if invalidAtStr := destination.Credentials["previous_secret_invalid_at"]; invalidAtStr != "" {
+		invalidAt, err := time.Parse(time.RFC3339, invalidAtStr)
+		if err != nil {
 			return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-				Field: "credentials.secrets",
+				Field: "credentials.previous_secret_invalid_at",
 				Type:  "pattern",
 			}})
 		}
+		creds.PreviousSecretInvalidAt = invalidAt
+	}
 
-		// Validate each secret
-		for i, secret := range creds.Secrets {
-			// Validate required fields
-			if secret.Key == "" {
-				return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-					Field: fmt.Sprintf("credentials.secrets[%d].key", i),
-					Type:  "required",
-				}})
-			}
-			if secret.CreatedAt.IsZero() {
-				return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-					Field: fmt.Sprintf("credentials.secrets[%d].created_at", i),
-					Type:  "required",
-				}})
-			}
+	// If previous secret is provided, validate invalidation time
+	if creds.PreviousSecret != "" && creds.PreviousSecretInvalidAt.IsZero() {
+		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+			Field: "credentials.previous_secret_invalid_at",
+			Type:  "required",
+		}})
+	}
 
-			// Validate invalid_at if provided
-			if secret.InvalidAt != nil {
-				// Check if invalid_at is after created_at
-				if !secret.InvalidAt.After(secret.CreatedAt) {
-					return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-						Field: fmt.Sprintf("credentials.secrets[%d].invalid_at", i),
-						Type:  "invalid_value",
-					}})
-				}
+	return config, creds, nil
+}
+
+// Preprocess sets a default secret if one isn't provided and handles secret rotation
+func (d *WebhookDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination) error {
+	// Initialize credentials map if nil
+	if newDestination.Credentials == nil {
+		newDestination.Credentials = make(map[string]string)
+	}
+
+	// Create new credentials map to ensure clean state
+	newCreds := make(map[string]string)
+
+	// Handle secret rotation if requested
+	if isTruthy(newDestination.Credentials["rotate_secret"]) {
+		// Can't rotate secret if there's no original destination (initial creation)
+		if originalDestination == nil {
+			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+				Field: "credentials.rotate_secret",
+				Type:  "invalid",
+			}})
+		}
+
+		// Get current secret from original destination
+		currentSecret := originalDestination.Credentials["secret"]
+		if currentSecret == "" {
+			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+				Field: "credentials.secret",
+				Type:  "required",
+			}})
+		}
+
+		// Generate new secret
+		newSecret, err := generateSignatureSecret()
+		if err != nil {
+			return err
+		}
+
+		// Build credentials
+		newCreds["secret"] = newSecret
+		newCreds["previous_secret"] = currentSecret
+
+		// Set invalidation time to 24 hours from now if not provided
+		if invalidAt := newDestination.Credentials["previous_secret_invalid_at"]; invalidAt != "" {
+			newCreds["previous_secret_invalid_at"] = invalidAt
+		} else {
+			newCreds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
+		}
+	} else {
+		// Copy existing secret or generate a new one
+		if existingSecret := newDestination.Credentials["secret"]; existingSecret != "" {
+			newCreds["secret"] = existingSecret
+		} else {
+			secret, err := generateSignatureSecret()
+			if err != nil {
+				return err
+			}
+			newCreds["secret"] = secret
+		}
+
+		// Handle previous_secret if provided
+		if previousSecret := newDestination.Credentials["previous_secret"]; previousSecret != "" {
+			newCreds["previous_secret"] = previousSecret
+
+			// Set invalidation time to 24 hours from now if not provided
+			if invalidAt := newDestination.Credentials["previous_secret_invalid_at"]; invalidAt != "" {
+				newCreds["previous_secret_invalid_at"] = invalidAt
+			} else {
+				newCreds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
 			}
 		}
 	}
 
-	return config, &creds, nil
-}
-
-// validateURL checks if a string is a valid URL
-func validateURL(urlStr string) (*url.URL, error) {
-	if urlStr == "" {
-		return nil, fmt.Errorf("URL is empty")
+	// Validate the new credentials
+	if _, _, err := d.resolveConfig(context.Background(), &models.Destination{
+		Type:        newDestination.Type,
+		Config:      newDestination.Config,
+		Credentials: newCreds,
+	}); err != nil {
+		return err
 	}
 
-	parsedURL, err := url.Parse(urlStr)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if scheme is http or https
-	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
-		return nil, fmt.Errorf("URL must use http or https scheme")
-	}
-
-	// Check if host is present
-	if parsedURL.Host == "" {
-		return nil, fmt.Errorf("URL must have a host")
-	}
-
-	return parsedURL, nil
+	// Replace credentials map with new one
+	newDestination.Credentials = newCreds
+	return nil
 }
 
 type WebhookPublisher struct {
@@ -380,6 +427,47 @@ func (p *WebhookPublisher) Format(ctx context.Context, event *models.Event) (*ht
 	return req, nil
 }
 
-func (d *WebhookDestination) ComputeTarget(destination *models.Destination) string {
-	return destination.Config["url"]
+// generateSignatureSecret creates a cryptographically secure random secret suitable for HMAC signatures.
+// The secret is 32 bytes (256 bits) encoded as a hex string.
+func generateSignatureSecret() (string, error) {
+	// Generate a random 32-byte hex string
+	randomBytes := make([]byte, 32)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", fmt.Errorf("failed to generate random secret: %w", err)
+	}
+	return hex.EncodeToString(randomBytes), nil
+}
+
+// GetEncoder returns the appropriate SignatureEncoder for the given encoding
+func GetEncoder(encoding string) SignatureEncoder {
+	switch encoding {
+	case "base64":
+		return Base64Encoder{}
+	case "hex":
+		return HexEncoder{}
+	default:
+		return HexEncoder{} // default to hex
+	}
+}
+
+// GetAlgorithm returns the appropriate SigningAlgorithm for the given algorithm name
+func GetAlgorithm(algorithm string) SigningAlgorithm {
+	switch algorithm {
+	case "hmac-sha1":
+		return NewHmacSHA1()
+	case "hmac-sha256":
+		return NewHmacSHA256()
+	default:
+		return NewHmacSHA256() // default to hmac-sha256
+	}
+}
+
+// isTruthy checks if a string value represents a truthy value
+func isTruthy(value string) bool {
+	switch strings.ToLower(value) {
+	case "true", "1", "on", "yes":
+		return true
+	default:
+		return false
+	}
 }
