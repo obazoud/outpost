@@ -2,7 +2,6 @@ package otel
 
 import (
 	"context"
-	"time"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
@@ -10,6 +9,9 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -20,32 +22,31 @@ func newTraceProvider(ctx context.Context, config *OpenTelemetryConfig) (*trace.
 		return nil, nil
 	}
 
-	var err error
-	var traceExporter trace.SpanExporter
-	if config.Traces.Protocol == OpenTelemetryProtocolGRPC {
-		traceExporter, err = otlptracegrpc.New(ctx,
-			otlptracegrpc.WithInsecure(), // TODO: support TLS
-			otlptracegrpc.WithEndpoint(config.Traces.Endpoint),
-		)
-	} else {
-		traceExporter, err = otlptracehttp.New(ctx,
-			otlptracehttp.WithInsecure(), // TODO: support TLS
-			otlptracehttp.WithEndpointURL(ensureHTTPEndpoint("traces", config.Traces.Endpoint)),
-		)
+	switch config.Traces.Exporter {
+	case "", "otlp":
+		var traceExporter trace.SpanExporter
+		var err error
+
+		if config.Traces.Protocol == "grpc" {
+			traceExporter, err = otlptracegrpc.New(ctx)
+		} else {
+			traceExporter, err = otlptracehttp.New(ctx)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		return trace.NewTracerProvider(trace.WithBatcher(traceExporter)), nil
+	case "console", "stdout":
+		exporter, err := stdouttrace.New()
+		if err != nil {
+			return nil, err
+		}
+		return trace.NewTracerProvider(trace.WithBatcher(exporter)), nil
+	default:
+		return trace.NewTracerProvider(), nil
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	traceProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter,
-			// FIXME
-			// Default is 5s. Set to 1s for demonstrative purposes.
-			trace.WithBatchTimeout(time.Second)),
-	)
-
-	return traceProvider, nil
 }
 
 func newMeterProvider(ctx context.Context, config *OpenTelemetryConfig) (*metric.MeterProvider, error) {
@@ -53,31 +54,31 @@ func newMeterProvider(ctx context.Context, config *OpenTelemetryConfig) (*metric
 		return nil, nil
 	}
 
-	var err error
-	var metricExporter metric.Exporter
-	if config.Metrics.Protocol == OpenTelemetryProtocolGRPC {
-		metricExporter, err = otlpmetricgrpc.New(ctx,
-			otlpmetricgrpc.WithInsecure(), // TODO: support TLS
-			otlpmetricgrpc.WithEndpoint(config.Metrics.Endpoint),
-		)
-	} else {
-		metricExporter, err = otlpmetrichttp.New(ctx,
-			otlpmetrichttp.WithInsecure(), // TODO: support TLS
-			otlpmetrichttp.WithEndpointURL(ensureHTTPEndpoint("metrics", config.Metrics.Endpoint)),
-		)
-	}
+	switch config.Metrics.Exporter {
+	case "", "otlp":
+		var metricExporter metric.Exporter
+		var err error
 
-	if err != nil {
-		return nil, err
-	}
+		if config.Metrics.Protocol == "grpc" {
+			metricExporter, err = otlpmetricgrpc.New(ctx)
+		} else {
+			metricExporter, err = otlpmetrichttp.New(ctx)
+		}
 
-	meterProvider := metric.NewMeterProvider(
-		metric.WithReader(metric.NewPeriodicReader(metricExporter,
-			// FIXME
-			// Default is 1m. Set to 3s for demonstrative purposes.
-			metric.WithInterval(3*time.Second))),
-	)
-	return meterProvider, nil
+		if err != nil {
+			return nil, err
+		}
+
+		return metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(metricExporter))), nil
+	case "console", "stdout":
+		exporter, err := stdoutmetric.New()
+		if err != nil {
+			return nil, err
+		}
+		return metric.NewMeterProvider(metric.WithReader(metric.NewPeriodicReader(exporter))), nil
+	default:
+		return metric.NewMeterProvider(), nil
+	}
 }
 
 func newLoggerProvider(ctx context.Context, config *OpenTelemetryConfig) (*log.LoggerProvider, error) {
@@ -85,37 +86,29 @@ func newLoggerProvider(ctx context.Context, config *OpenTelemetryConfig) (*log.L
 		return nil, nil
 	}
 
-	var err error
-	var logExporter log.Exporter
-	if config.Logs.Protocol == OpenTelemetryProtocolGRPC {
-		logExporter, err = otlploggrpc.New(ctx,
-			otlploggrpc.WithInsecure(), // TODO: support TLS
-			otlploggrpc.WithEndpoint(config.Logs.Endpoint),
-		)
-	} else {
-		logExporter, err = otlploghttp.New(ctx,
-			otlploghttp.WithInsecure(), // TODO: support TLS
-			otlploghttp.WithEndpointURL(ensureHTTPEndpoint("logs", config.Logs.Endpoint)),
-		)
-	}
+	switch config.Logs.Exporter {
+	case "", "otlp":
+		var logExporter log.Exporter
+		var err error
 
-	if err != nil {
-		return nil, err
-	}
+		if config.Logs.Protocol == "grpc" {
+			logExporter, err = otlploggrpc.New(ctx)
+		} else {
+			logExporter, err = otlploghttp.New(ctx)
+		}
 
-	loggerProvider := log.NewLoggerProvider(
-		log.WithProcessor(log.NewBatchProcessor(logExporter)),
-	)
-	return loggerProvider, nil
-}
+		if err != nil {
+			return nil, err
+		}
 
-func ensureHTTPEndpoint(exporterType string, endpoint string) string {
-	fullEndpoint := endpoint
-	if endpoint[:4] != "http" {
-		fullEndpoint = "http://" + endpoint
+		return log.NewLoggerProvider(log.WithProcessor(log.NewBatchProcessor(logExporter))), nil
+	case "console", "stdout":
+		exporter, err := stdoutlog.New()
+		if err != nil {
+			return nil, err
+		}
+		return log.NewLoggerProvider(log.WithProcessor(log.NewBatchProcessor(exporter))), nil
+	default:
+		return log.NewLoggerProvider(), nil
 	}
-	if endpoint[len(endpoint)-len("/v1/"+exporterType):] != "/v1/"+exporterType {
-		fullEndpoint = fullEndpoint + "/v1/" + exporterType
-	}
-	return fullEndpoint
 }
