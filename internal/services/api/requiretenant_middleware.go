@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 
+	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
@@ -10,8 +12,13 @@ import (
 
 func RequireTenantMiddleware(logger *otelzap.Logger, entityStore models.EntityStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tenantID := c.Param("tenantID")
-		tenant, err := entityStore.RetrieveTenant(c.Request.Context(), tenantID)
+		tenantID, exists := c.Get("tenantID")
+		if !exists {
+			c.AbortWithStatus(http.StatusNotFound)
+			return
+		}
+
+		tenant, err := entityStore.RetrieveTenant(c.Request.Context(), tenantID.(string))
 		if err != nil {
 			if err == models.ErrTenantDeleted {
 				c.AbortWithStatus(http.StatusNotFound)
@@ -32,6 +39,7 @@ func RequireTenantMiddleware(logger *otelzap.Logger, entityStore models.EntitySt
 func mustTenantFromContext(c *gin.Context) *models.Tenant {
 	tenant, ok := c.Get("tenant")
 	if !ok {
+		AbortWithError(c, http.StatusInternalServerError, errors.New("tenant not found in context"))
 		return nil
 	}
 	return tenant.(*models.Tenant)
