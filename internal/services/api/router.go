@@ -88,10 +88,14 @@ func NewRouter(
 		APIKeyAuthMiddleware(cfg.APIKey),
 	)
 
-	adminRouter.PUT("/:tenantID", SetTenantIDMiddleware(), tenantHandlers.Upsert)
-	adminRouter.GET("/:tenantID/token", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrieveToken)
-	adminRouter.GET("/:tenantID/portal", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrievePortal)
 	adminRouter.POST("/publish", publishHandlers.Ingest)
+	adminRouter.PUT("/:tenantID", SetTenantIDMiddleware(), tenantHandlers.Upsert)
+
+	// Only register token/portal routes when both apiKey and jwtSecret are set
+	if cfg.APIKey != "" && cfg.JWTSecret != "" {
+		adminRouter.GET("/:tenantID/token", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrieveToken)
+		adminRouter.GET("/:tenantID/portal", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrievePortal)
+	}
 
 	// Generic routes
 	// 1: If tenantID param is present, support both API key and JWT auth
@@ -133,7 +137,7 @@ func NewRouter(
 
 	// Router without tenantID & JWT auth
 	tenantSpecificRouterWithoutTenantID := apiRouter.Group("",
-		TenantJWTAuthMiddleware(cfg.JWTSecret),
+		TenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret),
 		RequireTenantMiddleware(logger, entityStore),
 	)
 
