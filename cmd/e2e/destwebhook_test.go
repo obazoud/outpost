@@ -23,8 +23,8 @@ func (suite *basicSuite) TestDestwebhookPublish() {
 		uuid.New().String(),
 		uuid.New().String(),
 	}
-	secret := "test-secret-1"
-	newSecret := "test-secret-2"
+	secret := "testsecret1234567890abcdefghijklmnop"
+	newSecret := "testsecret0987654321zyxwvutsrqponm"
 	tests := []APITest{
 		{
 			Name: "PUT /:tenantID",
@@ -424,7 +424,7 @@ func (suite *basicSuite) TestDestwebhookSecretRotation() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(http.StatusCreated, resp.StatusCode)
 
-	// Get destination and verify initial state
+	// Get initial secret and verify initial state
 	resp, err = suite.client.Do(suite.AuthRequest(httpclient.Request{
 		Method: httpclient.MethodGET,
 		Path:   "/" + tenantID + "/destinations/" + destinationID,
@@ -470,4 +470,686 @@ func (suite *basicSuite) TestDestwebhookSecretRotation() {
 	suite.Require().NotEmpty(creds["previous_secret_invalid_at"])
 	suite.Require().Equal(initialSecret, creds["previous_secret"])
 	suite.Require().NotEqual(initialSecret, creds["secret"])
+}
+
+func (suite *basicSuite) TestDestwebhookTenantSecretManagement() {
+	tenantID := uuid.New().String()
+	destinationID := uuid.New().String()
+
+	// First create tenant and get JWT token
+	createTenantTests := []APITest{
+		{
+			Name: "PUT /:tenantID to create tenant",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPUT,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), createTenantTests)
+
+	// Get JWT token
+	tokenResp, err := suite.client.Do(suite.AuthRequest(httpclient.Request{
+		Method: httpclient.MethodGET,
+		Path:   "/" + tenantID + "/token",
+	}))
+	suite.Require().NoError(err)
+	suite.Require().Equal(http.StatusOK, tokenResp.StatusCode)
+
+	bodyMap := tokenResp.Body.(map[string]interface{})
+	token := bodyMap["token"].(string)
+	suite.Require().NotEmpty(token)
+
+	// Run tenant-scoped tests
+	tests := []APITest{
+		{
+			Name: "POST /:tenantID/destinations - attempt to create destination with secret (should fail)",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+				Body: map[string]interface{}{
+					"id":     destinationID,
+					"type":   "webhook",
+					"topics": "*",
+					"config": map[string]interface{}{
+						"url": fmt.Sprintf("%s/webhook/%s", suite.mockServerBaseURL, destinationID),
+					},
+					"credentials": map[string]interface{}{
+						"secret": "any-secret",
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.secret": "forbidden",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "POST /:tenantID/destinations - create destination without secret",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+				Body: map[string]interface{}{
+					"id":     destinationID,
+					"type":   "webhook",
+					"topics": "*",
+					"config": map[string]interface{}{
+						"url": fmt.Sprintf("%s/webhook/%s", suite.mockServerBaseURL, destinationID),
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), tests)
+
+	// Get initial secret and verify initial state
+	resp, err := suite.client.Do(suite.AuthJWTRequest(httpclient.Request{
+		Method: httpclient.MethodGET,
+		Path:   "/" + tenantID + "/destinations/" + destinationID,
+	}, token))
+	suite.Require().NoError(err)
+	suite.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	dest := resp.Body.(map[string]interface{})
+	creds := dest["credentials"].(map[string]interface{})
+	initialSecret := creds["secret"].(string)
+	suite.Require().NotEmpty(initialSecret)
+	suite.Require().Nil(creds["previous_secret"])
+	suite.Require().Nil(creds["previous_secret_invalid_at"])
+
+	// Continue with permission tests
+	permissionTests := []APITest{
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to update secret directly",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret": "new-secret",
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.secret": "forbidden",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set previous_secret directly",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret":                     "", // test if empty string is allowed (should be yes)
+						"previous_secret":            "another-secret",
+						"previous_secret_invalid_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.secret": "required",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set previous_secret_invalid_at directly",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"previous_secret_invalid_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.secret": "required",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - rotate secret properly",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"rotate_secret": true,
+					},
+				},
+			}, token),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify rotation worked",
+			Request: suite.AuthJWTRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+			}, token),
+			Expected: APITestExpectation{
+				Validate: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"statusCode": map[string]interface{}{
+							"const": 200,
+						},
+						"body": map[string]interface{}{
+							"type":     "object",
+							"required": []interface{}{"credentials"},
+							"properties": map[string]interface{}{
+								"credentials": map[string]interface{}{
+									"type":     "object",
+									"required": []interface{}{"secret", "previous_secret", "previous_secret_invalid_at"},
+									"properties": map[string]interface{}{
+										"secret": map[string]interface{}{
+											"type":      "string",
+											"minLength": 32,
+											"pattern":   "^[a-zA-Z0-9]+$",
+										},
+										"previous_secret": map[string]interface{}{
+											"type":  "string",
+											"const": initialSecret,
+										},
+										"previous_secret_invalid_at": map[string]interface{}{
+											"type":    "string",
+											"format":  "date-time",
+											"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}",
+										},
+									},
+									"additionalProperties": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), permissionTests)
+
+	// Clean up using admin auth
+	cleanupTests := []APITest{
+		{
+			Name: "DELETE /:tenantID to clean up",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodDELETE,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), cleanupTests)
+}
+
+func (suite *basicSuite) TestDestwebhookAdminSecretManagement() {
+	tenantID := uuid.New().String()
+	destinationID := uuid.New().String()
+	secret := "testsecret1234567890abcdefghijklmnop"
+	newSecret := "testsecret0987654321zyxwvutsrqponm"
+
+	// First group: Test all creation flows
+	createTests := []APITest{
+		{
+			Name: "PUT /:tenantID to create tenant",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPUT,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
+		},
+		{
+			Name: "POST /:tenantID/destinations - create destination without credentials",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+				Body: map[string]interface{}{
+					"id":     destinationID + "-1",
+					"type":   "webhook",
+					"topics": "*",
+					"config": map[string]interface{}{
+						"url": fmt.Sprintf("%s/webhook/%s", suite.mockServerBaseURL, destinationID),
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify auto-generated secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID + "-1",
+			}),
+			Expected: APITestExpectation{
+				Validate: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"statusCode": map[string]interface{}{
+							"const": 200,
+						},
+						"body": map[string]interface{}{
+							"type":     "object",
+							"required": []interface{}{"credentials"},
+							"properties": map[string]interface{}{
+								"credentials": map[string]interface{}{
+									"type":     "object",
+									"required": []interface{}{"secret"},
+									"properties": map[string]interface{}{
+										"secret": map[string]interface{}{
+											"type":      "string",
+											"minLength": 32,
+											"pattern":   "^[a-zA-Z0-9]+$",
+										},
+									},
+									"additionalProperties": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "POST /:tenantID/destinations - create destination with secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+				Body: map[string]interface{}{
+					"id":     destinationID, // Use main destinationID for update tests
+					"type":   "webhook",
+					"topics": "*",
+					"config": map[string]interface{}{
+						"url": fmt.Sprintf("%s/webhook/%s", suite.mockServerBaseURL, destinationID),
+					},
+					"credentials": map[string]interface{}{
+						"secret": secret,
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusCreated,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify custom secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+					Body: map[string]interface{}{
+						"credentials": map[string]interface{}{
+							"secret": secret,
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "POST /:tenantID/destinations - attempt to create with rotate_secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPOST,
+				Path:   "/" + tenantID + "/destinations",
+				Body: map[string]interface{}{
+					"id":     destinationID + "-3",
+					"type":   "webhook",
+					"topics": "*",
+					"config": map[string]interface{}{
+						"url": fmt.Sprintf("%s/webhook/%s", suite.mockServerBaseURL, destinationID),
+					},
+					"credentials": map[string]interface{}{
+						"rotate_secret": true,
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.rotate_secret": "invalid",
+						},
+					},
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), createTests)
+
+	// Second group: Test update flows using the destination with custom secret
+	updateTests := []APITest{
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - update secret directly",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret": newSecret,
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify secret updated",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+					Body: map[string]interface{}{
+						"credentials": map[string]interface{}{
+							"secret": newSecret,
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set invalid previous_secret_invalid_at format",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret":                     newSecret,
+						"previous_secret":            secret,
+						"previous_secret_invalid_at": "invalid-date",
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.previous_secret_invalid_at": "pattern",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set previous_secret without invalid_at",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret":          newSecret,
+						"previous_secret": secret,
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.previous_secret_invalid_at": "required",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set previous_secret_invalid_at without previous_secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret":                     newSecret,
+						"previous_secret_invalid_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.previous_secret": "required",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - set previous_secret directly",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"secret":                     newSecret,
+						"previous_secret":            secret,
+						"previous_secret_invalid_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify previous_secret set",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+			}),
+			Expected: APITestExpectation{
+				Validate: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"statusCode": map[string]interface{}{
+							"const": 200,
+						},
+						"body": map[string]interface{}{
+							"type":     "object",
+							"required": []interface{}{"credentials"},
+							"properties": map[string]interface{}{
+								"credentials": map[string]interface{}{
+									"type":     "object",
+									"required": []interface{}{"secret", "previous_secret", "previous_secret_invalid_at"},
+									"properties": map[string]interface{}{
+										"secret": map[string]interface{}{
+											"type":      "string",
+											"minLength": 32,
+											"pattern":   "^[a-zA-Z0-9]+$",
+										},
+										"previous_secret": map[string]interface{}{
+											"type":  "string",
+											"const": secret,
+										},
+										"previous_secret_invalid_at": map[string]interface{}{
+											"type":    "string",
+											"format":  "date-time",
+											"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}",
+										},
+									},
+									"additionalProperties": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - rotate secret as admin",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"rotate_secret": true,
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+		{
+			Name: "PATCH /:tenantID/destinations/:destinationID - attempt to set previous_secret and previous_secret_invalid_at without secret",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodPATCH,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+				Body: map[string]interface{}{
+					"credentials": map[string]interface{}{
+						"previous_secret":            secret,
+						"previous_secret_invalid_at": time.Now().Add(24 * time.Hour).Format(time.RFC3339),
+					},
+				},
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusUnprocessableEntity,
+					Body: map[string]interface{}{
+						"message": "validation error",
+						"data": map[string]interface{}{
+							"credentials.secret": "required",
+						},
+					},
+				},
+			},
+		},
+		{
+			Name: "GET /:tenantID/destinations/:destinationID - verify rotation worked",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodGET,
+				Path:   "/" + tenantID + "/destinations/" + destinationID,
+			}),
+			Expected: APITestExpectation{
+				Validate: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"statusCode": map[string]interface{}{
+							"const": 200,
+						},
+						"body": map[string]interface{}{
+							"type":     "object",
+							"required": []interface{}{"credentials"},
+							"properties": map[string]interface{}{
+								"credentials": map[string]interface{}{
+									"type":     "object",
+									"required": []interface{}{"secret", "previous_secret", "previous_secret_invalid_at"},
+									"properties": map[string]interface{}{
+										"secret": map[string]interface{}{
+											"type":      "string",
+											"minLength": 32,
+											"pattern":   "^[a-zA-Z0-9]+$",
+										},
+										"previous_secret": map[string]interface{}{
+											"type":  "string",
+											"const": newSecret,
+										},
+										"previous_secret_invalid_at": map[string]interface{}{
+											"type":    "string",
+											"format":  "date-time",
+											"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}",
+										},
+									},
+									"additionalProperties": false,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), updateTests)
+
+	// Clean up
+	cleanupTests := []APITest{
+		{
+			Name: "DELETE /:tenantID to clean up",
+			Request: suite.AuthRequest(httpclient.Request{
+				Method: httpclient.MethodDELETE,
+				Path:   "/" + tenantID,
+			}),
+			Expected: APITestExpectation{
+				Match: &httpclient.Response{
+					StatusCode: http.StatusOK,
+				},
+			},
+		},
+	}
+	suite.RunAPITests(suite.T(), cleanupTests)
 }

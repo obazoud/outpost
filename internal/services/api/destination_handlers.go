@@ -86,7 +86,9 @@ func (h *DestinationHandlers) Create(c *gin.Context) {
 		AbortWithValidationError(c, err)
 		return
 	}
-	if err := h.registry.PreprocessDestination(&destination, nil); err != nil {
+	if err := h.registry.PreprocessDestination(&destination, nil, &destregistry.PreprocessDestinationOpts{
+		Role: mustRoleFromContext(c),
+	}); err != nil {
 		AbortWithValidationError(c, err)
 		return
 	}
@@ -170,7 +172,9 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 
 	// Always preprocess before updating
-	if err := h.registry.PreprocessDestination(&updatedDestination, originalDestination); err != nil {
+	if err := h.registry.PreprocessDestination(&updatedDestination, originalDestination, &destregistry.PreprocessDestinationOpts{
+		Role: mustRoleFromContext(c),
+	}); err != nil {
 		AbortWithValidationError(c, err)
 		return
 	}
@@ -300,11 +304,11 @@ func (h *DestinationHandlers) handleUpsertDestinationError(c *gin.Context, err e
 // ===== Requests =====
 
 type CreateDestinationRequest struct {
-	ID          string            `json:"id" binding:"-"`
-	Type        string            `json:"type" binding:"required"`
-	Topics      models.Topics     `json:"topics" binding:"required"`
-	Config      map[string]string `json:"config" binding:"required"`
-	Credentials map[string]string `json:"credentials" binding:"-"`
+	ID          string             `json:"id" binding:"-"`
+	Type        string             `json:"type" binding:"required"`
+	Topics      models.Topics      `json:"topics" binding:"required"`
+	Config      map[string]string  `json:"config" binding:"required"`
+	Credentials models.Credentials `json:"credentials" binding:"-"`
 }
 
 func (r *CreateDestinationRequest) ToDestination(tenantID string) models.Destination {
@@ -332,4 +336,13 @@ type UpdateDestinationRequest struct {
 	Topics      models.Topics      `json:"topics" binding:"-"`
 	Config      map[string]string  `json:"config" binding:"-"`
 	Credentials models.Credentials `json:"credentials" binding:"-"`
+}
+
+func mustRoleFromContext(c *gin.Context) string {
+	if role, exists := c.Get(authRoleKey); exists {
+		if roleStr, ok := role.(string); ok {
+			return roleStr
+		}
+	}
+	return ""
 }
