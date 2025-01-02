@@ -18,6 +18,31 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
+type AuthScope string
+
+const (
+	AuthScopeAdmin         AuthScope = "admin"
+	AuthScopeTenant        AuthScope = "tenant"
+	AuthScopeAdminOrTenant AuthScope = "admin_or_tenant"
+)
+
+type RouteMode string
+
+const (
+	RouteModeAlways RouteMode = "always" // Register route regardless of mode
+	RouteModePortal RouteMode = "portal" // Only register when portal is enabled (both apiKey and jwtSecret set)
+)
+
+type RouteDefinition struct {
+	Method             string
+	Path               string
+	Handler            gin.HandlerFunc
+	AuthScope          AuthScope
+	Mode               RouteMode
+	AllowTenantFromJWT bool // Allow tenant ID to be sourced from JWT token instead of URL param
+	Middlewares        []gin.HandlerFunc
+}
+
 type RouterConfig struct {
 	Hostname       string
 	APIKey         string
@@ -33,11 +58,50 @@ type routeDefinition struct {
 	handlers []gin.HandlerFunc
 }
 
-// registerRoutes registers routes to the given router
-func registerRoutes(router *gin.RouterGroup, routes []routeDefinition) {
+// registerRoutes registers routes to the given router based on route definitions and config
+func registerRoutes(router *gin.RouterGroup, cfg RouterConfig, routes []RouteDefinition, logger *otelzap.Logger, entityStore models.EntityStore) {
+	isPortalMode := cfg.APIKey != "" && cfg.JWTSecret != ""
+
 	for _, route := range routes {
-		router.Handle(route.method, route.path, route.handlers...)
+		// Skip portal routes if not in portal mode
+		if route.Mode == RouteModePortal && !isPortalMode {
+			continue
+		}
+
+		// Register the main route (with :tenantID if present in path)
+		handlers := buildMiddlewareChain(cfg, route)
+		router.Handle(route.Method, route.Path, handlers...)
+
+		// If allowed, register additional route without :tenantID prefix for JWT auth
+		if route.AllowTenantFromJWT && strings.Contains(route.Path, "/:tenantID") {
+			withoutParam := route
+			withoutParam.Path = strings.TrimPrefix(route.Path, "/:tenantID")
+			handlers = buildMiddlewareChain(cfg, withoutParam)
+			router.Handle(withoutParam.Method, withoutParam.Path, handlers...)
+		}
 	}
+}
+
+func buildMiddlewareChain(cfg RouterConfig, def RouteDefinition) []gin.HandlerFunc {
+	chain := make([]gin.HandlerFunc, 0)
+
+	// Add auth middleware based on scope
+	switch def.AuthScope {
+	case AuthScopeAdmin:
+		chain = append(chain, APIKeyAuthMiddleware(cfg.APIKey))
+	case AuthScopeTenant:
+		chain = append(chain, TenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret))
+	case AuthScopeAdminOrTenant:
+		chain = append(chain, APIKeyOrTenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret))
+	}
+
+	// Add custom middlewares
+	chain = append(chain, def.Middlewares...)
+
+	// Add the main handler
+	chain = append(chain, def.Handler)
+
+	return chain
 }
 
 func NewRouter(
@@ -72,6 +136,7 @@ func NewRouter(
 	})
 
 	apiRouter := r.Group("/api/v1")
+	apiRouter.Use(SetTenantIDMiddleware())
 
 	apiRouter.GET("/healthz", func(c *gin.Context) {
 		c.String(http.StatusOK, "OK")
@@ -83,74 +148,229 @@ func NewRouter(
 	logHandlers := NewLogHandlers(logger, logStore)
 	topicHandlers := NewTopicHandlers(logger, cfg.Topics)
 
-	// Admin router is a router group with the API key auth mechanism.
-	adminRouter := apiRouter.Group("/",
-		APIKeyAuthMiddleware(cfg.APIKey),
-	)
-
-	adminRouter.POST("/publish", publishHandlers.Ingest)
-	adminRouter.PUT("/:tenantID", SetTenantIDMiddleware(), tenantHandlers.Upsert)
-
-	// Only register token/portal routes when both apiKey and jwtSecret are set
-	if cfg.APIKey != "" && cfg.JWTSecret != "" {
-		adminRouter.GET("/:tenantID/token", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrieveToken)
-		adminRouter.GET("/:tenantID/portal", SetTenantIDMiddleware(), RequireTenantMiddleware(logger, entityStore), tenantHandlers.RetrievePortal)
+	// Admin routes
+	adminRoutes := []RouteDefinition{
+		{
+			Method:             http.MethodPost,
+			Path:               "/publish",
+			Handler:            publishHandlers.Ingest,
+			AuthScope:          AuthScopeAdmin,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: false,
+		},
+		{
+			Method:             http.MethodPut,
+			Path:               "/:tenantID",
+			Handler:            tenantHandlers.Upsert,
+			AuthScope:          AuthScopeAdmin,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: false,
+		},
 	}
 
-	// Generic routes
-	// 1: If tenantID param is present, support both API key and JWT auth
-	// 2: If tenantID param is not present, also support both API key and JWT auth
-	tenantAgnosticRoutes := []routeDefinition{
-		{http.MethodGet, "/destination-types", []gin.HandlerFunc{destinationHandlers.ListProviderMetadata}},
-		{http.MethodGet, "/destination-types/:type", []gin.HandlerFunc{destinationHandlers.RetrieveProviderMetadata}},
-		{http.MethodGet, "/topics", []gin.HandlerFunc{topicHandlers.List}},
+	// Portal routes
+	portalRoutes := []RouteDefinition{
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/token",
+			Handler:            tenantHandlers.RetrieveToken,
+			AuthScope:          AuthScopeAdmin,
+			Mode:               RouteModePortal,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/portal",
+			Handler:            tenantHandlers.RetrievePortal,
+			AuthScope:          AuthScopeAdmin,
+			Mode:               RouteModePortal,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
 	}
 
-	// Tenant-specific routes
-	// 1: If tenantID param is present, support both API key and JWT auth
-	// 2: If tenantID param is not present, support only JWT auth
-	tenantSpecificRoutes := []routeDefinition{
+	// Routes that work with both auth methods
+	tenantAgnosticRoutes := []RouteDefinition{
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/destination-types",
+			Handler:            destinationHandlers.ListProviderMetadata,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/destination-types/:type",
+			Handler:            destinationHandlers.RetrieveProviderMetadata,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/topics",
+			Handler:            topicHandlers.List,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+		},
+	}
+
+	// Routes that require tenant context
+	tenantSpecificRoutes := []RouteDefinition{
 		// Tenant routes
-		{http.MethodGet, "", []gin.HandlerFunc{tenantHandlers.Retrieve}},
-		{http.MethodDelete, "", []gin.HandlerFunc{tenantHandlers.Delete}},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID",
+			Handler:            tenantHandlers.Retrieve,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodDelete,
+			Path:               "/:tenantID",
+			Handler:            tenantHandlers.Delete,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
 
 		// Destination routes
-		{http.MethodGet, "/destinations", []gin.HandlerFunc{destinationHandlers.List}},
-		{http.MethodPost, "/destinations", []gin.HandlerFunc{destinationHandlers.Create}},
-		{http.MethodGet, "/destinations/:destinationID", []gin.HandlerFunc{destinationHandlers.Retrieve}},
-		{http.MethodPatch, "/destinations/:destinationID", []gin.HandlerFunc{destinationHandlers.Update}},
-		{http.MethodDelete, "/destinations/:destinationID", []gin.HandlerFunc{destinationHandlers.Delete}},
-		{http.MethodPut, "/destinations/:destinationID/enable", []gin.HandlerFunc{destinationHandlers.Enable}},
-		{http.MethodPut, "/destinations/:destinationID/disable", []gin.HandlerFunc{destinationHandlers.Disable}},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/destinations",
+			Handler:            destinationHandlers.List,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodPost,
+			Path:               "/:tenantID/destinations",
+			Handler:            destinationHandlers.Create,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/destinations/:destinationID",
+			Handler:            destinationHandlers.Retrieve,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodPatch,
+			Path:               "/:tenantID/destinations/:destinationID",
+			Handler:            destinationHandlers.Update,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodDelete,
+			Path:               "/:tenantID/destinations/:destinationID",
+			Handler:            destinationHandlers.Delete,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodPut,
+			Path:               "/:tenantID/destinations/:destinationID/enable",
+			Handler:            destinationHandlers.Enable,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodPut,
+			Path:               "/:tenantID/destinations/:destinationID/disable",
+			Handler:            destinationHandlers.Disable,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
 
 		// Event routes
-		{http.MethodGet, "/events", []gin.HandlerFunc{logHandlers.ListEvent}},
-		{http.MethodGet, "/events/:eventID", []gin.HandlerFunc{logHandlers.RetrieveEvent}},
-		{http.MethodGet, "/events/:eventID/deliveries", []gin.HandlerFunc{logHandlers.ListDeliveryByEvent}},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/events",
+			Handler:            logHandlers.ListEvent,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/events/:eventID",
+			Handler:            logHandlers.RetrieveEvent,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
+		{
+			Method:             http.MethodGet,
+			Path:               "/:tenantID/events/:eventID/deliveries",
+			Handler:            logHandlers.ListDeliveryByEvent,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+			Middlewares: []gin.HandlerFunc{
+				RequireTenantMiddleware(logger, entityStore),
+			},
+		},
 	}
 
-	// Tenant router with either API key or JWT auth
-	tenantParamRouter := apiRouter.Group("/:tenantID",
-		SetTenantIDMiddleware(),
-		APIKeyOrTenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret),
-	)
+	// Register all routes to a single router
+	apiRoutes := []RouteDefinition{} // combine all routes
+	apiRoutes = append(apiRoutes, adminRoutes...)
+	apiRoutes = append(apiRoutes, portalRoutes...)
+	apiRoutes = append(apiRoutes, tenantAgnosticRoutes...)
+	apiRoutes = append(apiRoutes, tenantSpecificRoutes...)
 
-	// Router without tenantID & JWT auth
-	tenantSpecificRouterWithoutTenantID := apiRouter.Group("",
-		TenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret),
-		RequireTenantMiddleware(logger, entityStore),
-	)
-
-	// Router without tenantID params with both API key and JWT auth
-	tenantAgnosticRouterWithAuth := apiRouter.Group("",
-		APIKeyOrTenantJWTAuthMiddleware(cfg.APIKey, cfg.JWTSecret),
-	)
-
-	// Register routes to both routers
-	registerRoutes(tenantParamRouter, tenantAgnosticRoutes)
-	registerRoutes(tenantParamRouter.Group("", RequireTenantMiddleware(logger, entityStore)), tenantSpecificRoutes)
-	registerRoutes(tenantAgnosticRouterWithAuth, tenantAgnosticRoutes)
-	registerRoutes(tenantSpecificRouterWithoutTenantID, tenantSpecificRoutes)
+	registerRoutes(apiRouter, cfg, apiRoutes, logger, entityStore)
 
 	return r
 }
