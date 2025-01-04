@@ -124,16 +124,24 @@ export default function CreateDestination() {
   const createDestination = (values: Record<string, any>) => {
     setIsCreating(true);
 
+    const destination_type = destinations?.find((d) => d.type === values.type);
+
     apiClient
       .fetch(`destinations`, {
         method: "POST",
         body: JSON.stringify({
-          ...values,
           type: values.type,
           topics: values.topics.split(","),
           config: Object.fromEntries(
-            Object.entries(values).filter(
-              ([key]) => !["type", "topics"].includes(key)
+            Object.entries(values).filter(([key]) =>
+              destination_type?.config_fields.some((field) => field.key === key)
+            )
+          ),
+          credentials: Object.fromEntries(
+            Object.entries(values).filter(([key]) =>
+              destination_type?.credential_fields.some(
+                (field) => field.key === key
+              )
             )
           ),
         }),
