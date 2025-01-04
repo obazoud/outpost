@@ -13,7 +13,7 @@
       "key": "endpoint",
       "type": "text",
       "label": "Endpoint",
-      "description": "Optional custom endpoint for AWS SQS",
+      "description": "Custom endpoint for AWS SQS",
       "required": false,
       "pattern": "^https?:\\/\\/(?:localhost|127\\.0\\.0\\.1|\\[::1\\]|(?:[\\w\\-]+\\.)+[a-z]{2,})(?::\\d{1,5})?(?:\\/[\\w\\-\\/\\.~:?#\\[\\]@!$&'\\(\\)*+,;=]*)?$"
     }
@@ -33,14 +33,6 @@
       "label": "Secret Access Key",
       "description": "AWS Secret Access Key",
       "required": true,
-      "sensitive": true
-    },
-    {
-      "key": "session",
-      "type": "text",
-      "label": "Session Token",
-      "description": "AWS Session Token (optional)",
-      "required": false,
       "sensitive": true
     }
   ]

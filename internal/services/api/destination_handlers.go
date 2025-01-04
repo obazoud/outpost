@@ -137,11 +137,11 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 	if input.Config != nil {
 		shouldRevalidate = true
-		updatedDestination.Config = input.Config
+		updatedDestination.Config = mergeStringMaps(originalDestination.Config, input.Config)
 	}
 	if input.Credentials != nil {
 		shouldRevalidate = true
-		updatedDestination.Credentials = input.Credentials
+		updatedDestination.Credentials = mergeStringMaps(originalDestination.Credentials, input.Credentials)
 	}
 	if shouldRevalidate {
 		if err := h.registry.ValidateDestination(c.Request.Context(), &updatedDestination); err != nil {
@@ -305,4 +305,15 @@ type UpdateDestinationRequest struct {
 	Topics      models.Topics      `json:"topics" binding:"-"`
 	Config      map[string]string  `json:"config" binding:"-"`
 	Credentials models.Credentials `json:"credentials" binding:"-"`
+}
+
+func mergeStringMaps(original, input map[string]string) map[string]string {
+	merged := make(map[string]string)
+	for k, v := range original {
+		merged[k] = v
+	}
+	for k, v := range input {
+		merged[k] = v
+	}
+	return merged
 }

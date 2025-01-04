@@ -8,11 +8,12 @@ import Badge from "../../common/Badge/Badge";
 import CONFIGS from "../../config";
 import DestinationSettings from "./DestinationSettings/DestinationSettings";
 import Events from "./Events/Events";
-import { Loading } from "../../common/Icons";
+import { HelpIcon, Loading } from "../../common/Icons";
 import {
   Destination as DestinationType,
   DestinationTypeReference,
 } from "../../typings/Destination";
+import Button from "../../common/Button/Button";
 
 // Define the tab interface
 interface Tab {
@@ -60,6 +61,16 @@ const Destination = () => {
           </Link>{" "}
           <span className="subtitle-m">/</span>
           <span className="subtitle-m">{type?.label || "..."}</span>
+          <Routes>
+            <Route
+              path="/settings"
+              element={
+                <Button className="layout__header-breadcrumbs-button" minimal>
+                  <HelpIcon /> Configuration guidance
+                </Button>
+              }
+            />
+          </Routes>
         </div>
       </header>
       {!type || !destination ? (
@@ -179,7 +190,7 @@ const Destination = () => {
                           {!destination.disabled_at ? (
                             <Badge success text="Active" />
                           ) : (
-                            <Badge danger text="Disabled" />
+                            <Badge text="Disabled" />
                           )}
                         </span>
                       </li>
@@ -229,6 +240,10 @@ function DestinationDetailsField(props: {
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+  }
+
+  if (!props.value) {
+    return null;
   }
 
   return (

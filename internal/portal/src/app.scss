@@ -42,6 +42,12 @@
     span, a {
       color: var(--colors-foreground-neutral-3);
     }
+
+    &-button {
+      margin-left: auto;
+      margin-top: calc(var(--spacing-2) * -1);
+      margin-bottom: calc(var(--spacing-2) * -1);
+    }
   }
 }
 

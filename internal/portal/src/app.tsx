@@ -10,6 +10,7 @@ import ErrorBoundary from "./common/ErrorBoundary/ErrorBoundary";
 import CONFIGS from "./config";
 import Destination from "./scenes/Destination/Destination";
 import { ToastProvider } from "./common/Toast/Toast";
+import CreateDestination from "./scenes/CreateDestination/CreateDestination";
 
 type ApiClient = {
   fetch: (path: string, init?: RequestInit) => Promise<any>;
@@ -49,53 +50,53 @@ export function App() {
   };
 
   return (
-    <ToastProvider>
-      <div className="layout">
-        <ErrorBoundary>
-          {tenant ? (
-            <ApiContext.Provider value={apiClient}>
-              <SWRConfig
-                value={{
-                  fetcher: (path: string) => apiClient.fetch(path),
-                }}
-              >
-                <BrowserRouter
-                  future={{
-                    v7_startTransition: true,
-                    v7_relativeSplatPath: true,
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <ToastProvider>
+        <div className="layout">
+          <ErrorBoundary>
+            {tenant ? (
+              <ApiContext.Provider value={apiClient}>
+                <SWRConfig
+                  value={{
+                    fetcher: (path: string) => apiClient.fetch(path),
                   }}
                 >
                   <Routes>
                     <Route path="/" Component={DestinationList} />
-                    <Route path="/new" element={<div>New Destination</div>} />
+                    <Route path="/new/*" Component={CreateDestination} />
                     <Route
                       path="/destinations/:destination_id/*"
                       Component={Destination}
                     />
                   </Routes>
-                </BrowserRouter>
-              </SWRConfig>
-            </ApiContext.Provider>
-          ) : (
-            <div>
-              <Loading />
-            </div>
-          )}
-        </ErrorBoundary>
-      </div>
-      {!CONFIGS.DISABLE_OUTPOST_BRANDING && (
-        <div className="powered-by subtitle-s">
-          Powered by{" "}
-          <a
-            href="https://github.com/hookdeck/outpost"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Outpost
-          </a>
+                </SWRConfig>
+              </ApiContext.Provider>
+            ) : (
+              <div>
+                <Loading />
+              </div>
+            )}
+          </ErrorBoundary>
         </div>
-      )}
-    </ToastProvider>
+        {!CONFIGS.DISABLE_OUTPOST_BRANDING && (
+          <div className="powered-by subtitle-s">
+            Powered by{" "}
+            <a
+              href="https://github.com/hookdeck/outpost"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Outpost
+            </a>
+          </div>
+        )}
+      </ToastProvider>
+    </BrowserRouter>
   );
 }
 
