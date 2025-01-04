@@ -58,6 +58,7 @@ const DestinationConfigFields = ({
                 type={
                   "sensitive" in field && field.sensitive ? "password" : "text"
                 }
+                placeholder={''}
                 id={field.key}
                 name={field.key}
                 defaultValue={

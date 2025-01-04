@@ -3,7 +3,7 @@ import Button from "../../common/Button/Button";
 import { CloseIcon, Loading } from "../../common/Icons";
 import Badge from "../../common/Badge/Badge";
 import { useNavigate } from "react-router-dom";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ApiContext } from "../../app";
 import { showToast } from "../../common/Toast/Toast";
 import useSWR, { mutate } from "swr";
@@ -16,10 +16,27 @@ const steps = [
     title: "Select event topics",
     sidebar_shortname: "Event topics",
     description: "Select the event topics you want to send to your destination",
-    FormFields: ({ defaultValue }: { defaultValue: Record<string, any> }) => {
+    isValid: (values: Record<string, any>) => {
+      if (values.topics?.length > 0) {
+        return true;
+      }
+      return false;
+    },
+    FormFields: ({
+      defaultValue,
+      onChange,
+    }: {
+      defaultValue: Record<string, any>;
+      onChange: (value: Record<string, any>) => void;
+    }) => {
       const [selectedTopics, setSelectedTopics] = useState<string[]>(
         defaultValue.topics ? defaultValue.topics.split(",") : []
       );
+
+      useEffect(() => {
+        onChange({ topics: selectedTopics });
+      }, [selectedTopics]);
+
       return (
         <>
           <TopicPicker
@@ -27,10 +44,10 @@ const steps = [
             onTopicsChange={setSelectedTopics}
           />
           <input
+            readOnly
             type="text"
             name="topics"
             hidden
-            readOnly
             required
             value={selectedTopics.length > 0 ? selectedTopics.join(",") : ""}
           />
@@ -44,6 +61,12 @@ const steps = [
     sidebar_shortname: "Destination type",
     description:
       "Select the destination type you want to send to your destination",
+    isValid: (values: Record<string, any>) => {
+      if (!values.type) {
+        return false;
+      }
+      return true;
+    },
     FormFields: ({
       destinations,
       defaultValue,
@@ -104,7 +127,7 @@ const steps = [
         />
       );
     },
-    action: "Create Event Destination",
+    action: "Create Destination",
   },
 ];
 
@@ -117,6 +140,7 @@ export default function CreateDestination() {
   const [isCreating, setIsCreating] = useState(false);
   const { data: destinations } =
     useSWR<DestinationTypeReference[]>(`destination-types`);
+  const [isValid, setIsValid] = useState(false);
 
   const currentStep = steps[currentStepIndex];
   const nextStep = steps[currentStepIndex + 1] || null;
@@ -162,12 +186,6 @@ export default function CreateDestination() {
       });
   };
 
-  const [isConfigFormValid, setIsConfigFormValid] = useState(false);
-
-  const handleConfigFormValidation = (e: React.FormEvent<HTMLFormElement>) => {
-    setIsConfigFormValid(e.currentTarget.checkValidity());
-  };
-
   return (
     <div className="create-destination">
       <div className="create-destination__sidebar">
@@ -199,7 +217,16 @@ export default function CreateDestination() {
         <p className="body-m muted">{currentStep.description}</p>
         <form
           key={currentStepIndex}
-          onChange={handleConfigFormValidation}
+          onChange={(e) => {
+            const formData = new FormData(e.currentTarget);
+            const values = Object.fromEntries(formData.entries());
+
+            if (currentStep.isValid) {
+              setIsValid(currentStep.isValid(values));
+            } else {
+              setIsValid(e.currentTarget.checkValidity());
+            }
+          }}
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
@@ -219,6 +246,11 @@ export default function CreateDestination() {
               <currentStep.FormFields
                 defaultValue={stepValues}
                 destinations={destinations}
+                onChange={(values) => {
+                  if (currentStep.isValid) {
+                    setIsValid(currentStep.isValid(values));
+                  }
+                }}
               />
             ) : (
               <div>
@@ -228,7 +260,7 @@ export default function CreateDestination() {
           </div>
           <div className="create-destination__step__actions">
             <Button
-              disabled={!isConfigFormValid}
+              disabled={!isValid}
               primary
               type="submit"
               loading={isCreating}

@@ -133,8 +133,10 @@ $COLORS_SHADOW_INPUT_LIGHT: 0px 1px 2px 0px rgba(0, 0, 0, 0.04) inset,
 $COLORS_SHADOW_INPUT_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset,
   0px 0px 0px 1px rgba(255, 255, 255, 0.24) inset;
 
-$COLORS_SHADOW_INPUT_DANGER_LIGHT: 0px 2px 2px 0px rgba(0, 0, 0, 0.12) inset, 0px 0px 0px 1px #CC2314 inset;
-$COLORS_SHADOW_INPUT_DANGER_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset, 0px 0px 0px 1px #CC2314 inset;
+$COLORS_SHADOW_INPUT_DANGER_LIGHT: 0px 2px 2px 0px rgba(0, 0, 0, 0.12) inset,
+  0px 0px 0px 1px #cc2314 inset;
+$COLORS_SHADOW_INPUT_DANGER_DARK: 0px 2px 4px 0px rgba(0, 0, 0, 0.32) inset,
+  0px 0px 0px 1px #cc2314 inset;
 
 // Outline Colors
 
@@ -553,7 +555,7 @@ textarea {
     color: var(--colors-foreground-neutral-2);
   }
 
-  &:invalid:not(:focus) {
+  &:invalid:not(:focus):not(:placeholder-shown) {
     background-color: var(--colors-background-container-danger);
     box-shadow: var(--colors-shadow-input-danger);
   }
