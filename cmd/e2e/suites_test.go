@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/outpost/cmd/e2e/configs"
 	"github.com/hookdeck/outpost/cmd/e2e/httpclient"
 	"github.com/hookdeck/outpost/internal/app"
@@ -47,6 +48,14 @@ func (s *e2eSuite) AuthRequest(req httpclient.Request) httpclient.Request {
 		req.Headers = map[string]string{}
 	}
 	req.Headers["Authorization"] = fmt.Sprintf("Bearer %s", s.config.APIKey)
+	return req
+}
+
+func (s *e2eSuite) AuthJWTRequest(req httpclient.Request, token string) httpclient.Request {
+	if req.Headers == nil {
+		req.Headers = map[string]string{}
+	}
+	req.Headers["Authorization"] = fmt.Sprintf("Bearer %s", token)
 	return req
 }
 
@@ -111,6 +120,7 @@ type basicSuite struct {
 func (suite *basicSuite) SetupSuite() {
 	t := suite.T()
 	t.Cleanup(testinfra.Start(t))
+	gin.SetMode(gin.TestMode)
 	mockServerBaseURL := testinfra.GetMockServer(t)
 	suite.e2eSuite = e2eSuite{
 		ctx:               context.Background(),

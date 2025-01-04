@@ -230,6 +230,21 @@ func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *mod
 		PreviousSecret: destination.Credentials["previous_secret"],
 	}
 
+	// Skip validation if no relevant credentials are passed
+	if destination.Credentials["secret"] == "" &&
+		destination.Credentials["previous_secret"] == "" &&
+		destination.Credentials["previous_secret_invalid_at"] == "" {
+		return config, creds, nil
+	}
+
+	// If any credentials are passed, secret is required
+	if creds.Secret == "" {
+		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+			Field: "credentials.secret",
+			Type:  "required",
+		}})
+	}
+
 	// Parse previous_secret_invalid_at if present
 	if invalidAtStr := destination.Credentials["previous_secret_invalid_at"]; invalidAtStr != "" {
 		invalidAt, err := time.Parse(time.RFC3339, invalidAtStr)
@@ -250,90 +265,201 @@ func (d *WebhookDestination) resolveConfig(ctx context.Context, destination *mod
 		}})
 	}
 
+	// If previous_secret_invalid_at is provided, validate previous_secret
+	if !creds.PreviousSecretInvalidAt.IsZero() && creds.PreviousSecret == "" {
+		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
+			Field: "credentials.previous_secret",
+			Type:  "required",
+		}})
+	}
+
 	return config, creds, nil
 }
 
+// rotateSecret handles secret rotation and returns clean credentials
+func (d *WebhookDestination) rotateSecret(newDest, origDest *models.Destination) (map[string]string, error) {
+	if origDest == nil {
+		return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+			{
+				Field: "credentials.rotate_secret",
+				Type:  "invalid",
+			},
+		})
+	}
+
+	if origDest.Credentials["secret"] == "" {
+		return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+			{
+				Field: "credentials.secret",
+				Type:  "required",
+			},
+		})
+	}
+
+	creds := make(map[string]string)
+
+	// Store the current secret as the previous secret
+	creds["previous_secret"] = origDest.Credentials["secret"]
+
+	// Generate a new secret
+	secret, err := generateSignatureSecret()
+	if err != nil {
+		return nil, err
+	}
+	creds["secret"] = secret
+
+	// Keep custom invalidation time if provided, otherwise set default
+	if newDest.Credentials["previous_secret_invalid_at"] != "" {
+		creds["previous_secret_invalid_at"] = newDest.Credentials["previous_secret_invalid_at"]
+	} else {
+		creds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
+	}
+
+	return creds, nil
+}
+
+// updateSecret handles non-rotation updates and returns clean credentials
+func (d *WebhookDestination) updateSecret(newDest, origDest *models.Destination, opts *destregistry.PreprocessDestinationOpts) (map[string]string, error) {
+	creds := make(map[string]string)
+
+	if opts.Role != "admin" {
+		// For tenants, first check if they're trying to modify any credential fields
+		if origDest != nil && origDest.Credentials != nil {
+			// Updating existing destination - must match original values
+			if newDest.Credentials["secret"] != "" && newDest.Credentials["secret"] != origDest.Credentials["secret"] {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.secret",
+						Type:  "forbidden",
+					},
+				})
+			}
+			if newDest.Credentials["previous_secret"] != "" && newDest.Credentials["previous_secret"] != origDest.Credentials["previous_secret"] {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.previous_secret",
+						Type:  "forbidden",
+					},
+				})
+			}
+			if newDest.Credentials["previous_secret_invalid_at"] != "" && newDest.Credentials["previous_secret_invalid_at"] != origDest.Credentials["previous_secret_invalid_at"] {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.previous_secret_invalid_at",
+						Type:  "forbidden",
+					},
+				})
+			}
+			// Copy original values
+			for _, key := range []string{"secret", "previous_secret", "previous_secret_invalid_at"} {
+				if value := origDest.Credentials[key]; value != "" {
+					creds[key] = value
+				}
+			}
+		} else {
+			// First time creation - can't set any credentials
+			if newDest.Credentials["secret"] != "" {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.secret",
+						Type:  "forbidden",
+					},
+				})
+			}
+			if newDest.Credentials["previous_secret"] != "" {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.previous_secret",
+						Type:  "forbidden",
+					},
+				})
+			}
+			if newDest.Credentials["previous_secret_invalid_at"] != "" {
+				return nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+					{
+						Field: "credentials.previous_secret_invalid_at",
+						Type:  "forbidden",
+					},
+				})
+			}
+		}
+	} else {
+		// Admin can set any values
+		for _, key := range []string{"secret", "previous_secret", "previous_secret_invalid_at"} {
+			if value := newDest.Credentials[key]; value != "" {
+				creds[key] = value
+			}
+		}
+	}
+
+	return creds, nil
+}
+
+// ensureInitializedCredentials ensures credentials are initialized for new destinations
+func (d *WebhookDestination) ensureInitializedCredentials(creds map[string]string) (map[string]string, error) {
+	// If there are any credentials already, return them as is
+	if creds["secret"] != "" || creds["previous_secret"] != "" || creds["previous_secret_invalid_at"] != "" {
+		return creds, nil
+	}
+
+	// Otherwise generate a new secret
+	secret, err := generateSignatureSecret()
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{
+		"secret": secret,
+	}, nil
+}
+
+// validateAndSanitizeCredentials performs final validation and cleanup
+func (d *WebhookDestination) validateAndSanitizeCredentials(creds map[string]string) (map[string]string, error) {
+	// Set default previous_secret_invalid_at if previous_secret is set but invalid_at is not
+	if creds["previous_secret"] != "" && creds["previous_secret_invalid_at"] == "" {
+		creds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
+	}
+
+	// Clean up any extra fields
+	cleanCreds := make(map[string]string)
+	for _, key := range []string{"secret", "previous_secret", "previous_secret_invalid_at"} {
+		if value := creds[key]; value != "" {
+			cleanCreds[key] = value
+		}
+	}
+
+	return cleanCreds, nil
+}
+
 // Preprocess sets a default secret if one isn't provided and handles secret rotation
-func (d *WebhookDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination) error {
-	// Initialize credentials map if nil
+func (d *WebhookDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
+	// Initialize credentials if nil
 	if newDestination.Credentials == nil {
 		newDestination.Credentials = make(map[string]string)
 	}
 
-	// Create new credentials map to ensure clean state
-	newCreds := make(map[string]string)
-
-	// Handle secret rotation if requested
+	// Get clean credentials based on operation type
+	var cleanCredentials map[string]string
+	var err error
 	if isTruthy(newDestination.Credentials["rotate_secret"]) {
-		// Can't rotate secret if there's no original destination (initial creation)
-		if originalDestination == nil {
-			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-				Field: "credentials.rotate_secret",
-				Type:  "invalid",
-			}})
-		}
-
-		// Get current secret from original destination
-		currentSecret := originalDestination.Credentials["secret"]
-		if currentSecret == "" {
-			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{{
-				Field: "credentials.secret",
-				Type:  "required",
-			}})
-		}
-
-		// Generate new secret
-		newSecret, err := generateSignatureSecret()
-		if err != nil {
-			return err
-		}
-
-		// Build credentials
-		newCreds["secret"] = newSecret
-		newCreds["previous_secret"] = currentSecret
-
-		// Set invalidation time to 24 hours from now if not provided
-		if invalidAt := newDestination.Credentials["previous_secret_invalid_at"]; invalidAt != "" {
-			newCreds["previous_secret_invalid_at"] = invalidAt
-		} else {
-			newCreds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
-		}
+		cleanCredentials, err = d.rotateSecret(newDestination, originalDestination)
 	} else {
-		// Copy existing secret or generate a new one
-		if existingSecret := newDestination.Credentials["secret"]; existingSecret != "" {
-			newCreds["secret"] = existingSecret
-		} else {
-			secret, err := generateSignatureSecret()
-			if err != nil {
-				return err
-			}
-			newCreds["secret"] = secret
-		}
-
-		// Handle previous_secret if provided
-		if previousSecret := newDestination.Credentials["previous_secret"]; previousSecret != "" {
-			newCreds["previous_secret"] = previousSecret
-
-			// Set invalidation time to 24 hours from now if not provided
-			if invalidAt := newDestination.Credentials["previous_secret_invalid_at"]; invalidAt != "" {
-				newCreds["previous_secret_invalid_at"] = invalidAt
-			} else {
-				newCreds["previous_secret_invalid_at"] = time.Now().Add(24 * time.Hour).Format(time.RFC3339)
-			}
+		cleanCredentials, err = d.updateSecret(newDestination, originalDestination, opts)
+		// For new destinations, ensure credentials are initialized if needed
+		if err == nil && originalDestination == nil {
+			cleanCredentials, err = d.ensureInitializedCredentials(cleanCredentials)
 		}
 	}
-
-	// Validate the new credentials
-	if _, _, err := d.resolveConfig(context.Background(), &models.Destination{
-		Type:        newDestination.Type,
-		Config:      newDestination.Config,
-		Credentials: newCreds,
-	}); err != nil {
+	if err != nil {
 		return err
 	}
 
-	// Replace credentials map with new one
-	newDestination.Credentials = newCreds
+	// Final validation and sanitization
+	cleanCredentials, err = d.validateAndSanitizeCredentials(cleanCredentials)
+	if err != nil {
+		return err
+	}
+
+	newDestination.Credentials = cleanCredentials
 	return nil
 }
 
