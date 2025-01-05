@@ -10,22 +10,5 @@
       "pattern": "^https?:\\/\\/(?:localhost|127\\.0\\.0\\.1|\\[::1\\]|(?:[\\w\\-]+\\.)+[a-z]{2,})(?::\\d{1,5})?(?:\\/[\\w\\-\\/\\.~:?#\\[\\]@!$&'\\(\\)*+,;=]*)?$"
     }
   ],
-  "credential_fields": [
-    {
-      "key": "secret",
-      "type": "text",
-      "label": "Secret",
-      "description": "The current webhook secret used for signature verification. If not provided, a random one will be generated.",
-      "disabled": true,
-      "required": false,
-      "sensitive": true
-    },
-    {
-      "key": "rotate_secret",
-      "type": "checkbox",
-      "label": "Rotate Secret",
-      "description": "Set to 'true' to rotate the current secret. Current secret becomes previous_secret and a new secret is generated.",
-      "required": false
-    }
-  ]
+  "credential_fields": []
 }
