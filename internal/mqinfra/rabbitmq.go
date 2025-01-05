@@ -3,9 +3,11 @@ package mqinfra
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/rabbitmq/amqp091-go"
+	"github.com/spf13/viper"
 )
 
 type infraRabbitMQ struct {
@@ -28,7 +30,6 @@ func (infra *infraRabbitMQ) Declare(ctx context.Context) error {
 	}
 	defer ch.Close()
 
-	dlx := infra.cfg.RabbitMQ.Exchange + ".dlx"
 	dlq := infra.cfg.RabbitMQ.Queue + ".dlq"
 
 	// Declare target exchange & queue
@@ -50,16 +51,17 @@ func (infra *infraRabbitMQ) Declare(ctx context.Context) error {
 		false,                    // exclusive
 		false,                    // no-wait
 		amqp091.Table{
-			"x-queue-type":           "quorum",
-			"x-dead-letter-exchange": dlx,
-			"x-delivery-limit":       infra.cfg.Policy.RetryLimit,
+			"x-queue-type":              "quorum",
+			"x-delivery-limit":          infra.cfg.Policy.RetryLimit,
+			"x-dead-letter-exchange":    infra.cfg.RabbitMQ.Exchange,
+			"x-dead-letter-routing-key": dlq,
 		}, // arguments
 	); err != nil {
 		return err
 	}
 	if err := ch.QueueBind(
 		infra.cfg.RabbitMQ.Queue,    // queue name
-		"",                          // routing key
+		infra.cfg.RabbitMQ.Queue,    // routing key
 		infra.cfg.RabbitMQ.Exchange, // exchange
 		false,
 		nil,
@@ -67,18 +69,7 @@ func (infra *infraRabbitMQ) Declare(ctx context.Context) error {
 		return err
 	}
 
-	// Declare dead-letter exchange & queue
-	if err := ch.ExchangeDeclare(
-		dlx,     // name
-		"topic", // type
-		true,    // durable
-		false,   // auto-deleted
-		false,   // internal
-		false,   // no-wait
-		nil,     // arguments
-	); err != nil {
-		return err
-	}
+	// Declare dead-letter queue
 	if _, err := ch.QueueDeclare(
 		dlq,   // name
 		true,  // durable
@@ -92,9 +83,9 @@ func (infra *infraRabbitMQ) Declare(ctx context.Context) error {
 		return err
 	}
 	if err := ch.QueueBind(
-		dlq, // queue name
-		"",  // routing key
-		dlx, // exchange
+		dlq,                         // queue name
+		dlq,                         // routing key
+		infra.cfg.RabbitMQ.Exchange, // exchange
 		false,
 		nil,
 	); err != nil {
@@ -120,7 +111,6 @@ func (infra *infraRabbitMQ) TearDown(ctx context.Context) error {
 	}
 	defer ch.Close()
 
-	dlx := infra.cfg.RabbitMQ.Exchange + ".dlx"
 	dlq := infra.cfg.RabbitMQ.Queue + ".dlq"
 
 	if _, err := ch.QueueDelete(
@@ -128,13 +118,6 @@ func (infra *infraRabbitMQ) TearDown(ctx context.Context) error {
 		false,                    // ifUnused
 		false,                    // ifEmpty
 		false,                    // noWait
-	); err != nil {
-		return err
-	}
-	if err := ch.ExchangeDelete(
-		infra.cfg.RabbitMQ.Exchange, // name
-		false,                       // ifUnused
-		false,                       // noWait
 	); err != nil {
 		return err
 	}
@@ -147,11 +130,35 @@ func (infra *infraRabbitMQ) TearDown(ctx context.Context) error {
 		return err
 	}
 	if err := ch.ExchangeDelete(
-		dlx,   // name
-		false, // ifUnused
-		false, // noWait
+		infra.cfg.RabbitMQ.Exchange, // name
+		false,                       // ifUnused
+		false,                       // noWait
 	); err != nil {
 		return err
 	}
 	return nil
+}
+
+type rabbitMQParser struct {
+	viper *viper.Viper
+}
+
+func (p *rabbitMQParser) parseQueue(queueType string) (*mqs.QueueConfig, error) {
+	serverURL := p.viper.GetString("RABBITMQ_SERVER_URL")
+	if serverURL == "" {
+		return nil, errors.New("RABBITMQ_SERVER_URL is not set")
+	}
+
+	queue := p.viper.GetString(fmt.Sprintf("RABBITMQ_%s_QUEUE", queueType))
+	if queue == "" {
+		return nil, fmt.Errorf("RABBITMQ_%s_QUEUE is not set", queueType)
+	}
+
+	return &mqs.QueueConfig{
+		RabbitMQ: &mqs.RabbitMQConfig{
+			ServerURL: serverURL,
+			Exchange:  p.viper.GetString("RABBITMQ_EXCHANGE"),
+			Queue:     queue,
+		},
+	}, nil
 }
