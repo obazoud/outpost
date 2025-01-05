@@ -90,7 +90,7 @@ const steps = [
               }
             />
             <div className="destination-type-content">
-              <h3 className="subtitle-m">
+              <h3 className="subtitle-l">
                 <span
                   className="destination-type-content__icon"
                   dangerouslySetInnerHTML={{ __html: destination.icon }}

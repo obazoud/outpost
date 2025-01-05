@@ -127,8 +127,8 @@
       align-items: center;
       svg {
         display: inline-block;
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
       }
     }
 
@@ -137,6 +137,7 @@
       align-items: center;
       gap: var(--spacing-2);
       margin: 0;
+      margin-bottom: var(--spacing-1);
     }
 
     p {
