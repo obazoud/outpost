@@ -12,6 +12,7 @@ interface ButtonProps {
   loading?: boolean;
   primary?: boolean;
   danger?: boolean;
+  minimal?: boolean;
 }
 
 const Button: FC<PropsWithChildren<ButtonProps>> = ({
@@ -24,12 +25,13 @@ const Button: FC<PropsWithChildren<ButtonProps>> = ({
   className,
   loading = false,
   danger = false,
+  minimal = false,
 }) => {
   className = `button${primary ? " button__primary" : ""}${
     disabled || loading ? " button__disabled" : ""
   } ${loading ? " button__loading" : ""} ${danger ? " button__danger" : ""} ${
-    className || ""
-  }`;
+    minimal ? " button__minimal" : ""
+  } ${className || ""}`;
 
   if (to) {
     return (
@@ -38,7 +40,7 @@ const Button: FC<PropsWithChildren<ButtonProps>> = ({
         className={className}
         {...(disabled && { onClick: (e) => e.preventDefault() })}
       >
-      <span>{children}</span>
+        <span>{children}</span>
       </Link>
     );
   }

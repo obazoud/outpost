@@ -4,9 +4,14 @@ import "./Tooltip.scss";
 interface TooltipProps {
   children: React.ReactNode;
   content: React.ReactNode;
+  align?: "start" | "center" | "end";
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ children, content }) => {
+const Tooltip: React.FC<TooltipProps> = ({
+  children,
+  content,
+  align = "start",
+}) => {
   return (
     <RadixTooltip.Provider delayDuration={200}>
       <RadixTooltip.Root>
@@ -16,7 +21,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content }) => {
         <RadixTooltip.Portal>
           <RadixTooltip.Content
             side="bottom"
-            align="start"
+            align={align}
             className="tooltip-content"
             sideOffset={4}
           >
