@@ -1,0 +1,4 @@
+- Migrating to Outpost
+- Deployment - target cloud / VPC specific
+- Scaling - maybe this can be generic guidance?
+- Building an ED dashboard - use the User portal as a reference for suggested structure
