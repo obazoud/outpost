@@ -70,6 +70,29 @@ TODO
 
 ### Event Destination Types
 
+Destinations must be asynchronous and not run any business logic to be eligible. Multiple “Event Gateways” and message buses are supported at release.
+
+- Webhooks
+- Hookdeck Event Gateway
+- AWS SQS
+- AWS EventBridge
+- GCP PubSub
+- RabbitMQ
+- Kafka
+
+<details>
+<summary>Future Roadmap</summary>
+
+- Azure EventGrid
+- Azure Service Bus
+- MQTT
+- Segment & other CDPs
+- Zapier & other no code tools
+- S3 API
+</details>
+
+### Getting Destination Types
+
 Destinations can be registered either through the tenant-facing portal or with the API. When using the API, you need to build your own UI to capture user input on the destination configuration. Since each destination requires a specific configuration, the `GET /destination-types` endpoint provides a JSON schema for each destination type.
 
 For example, for the `webhook` type:
