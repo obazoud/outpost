@@ -6,12 +6,31 @@ Outpost is built and maintained by the Hookdeck. It’s written in Golang and di
 
 Outpost has minimal dependencies (Redis, Clickhouse and one of the support message bus), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low cost operation.
 
+Outpost supports features required to provide a best in class event destinations developer experience:
+
+- Large choice of destinations including Webhooks, Hookdeck Event Gateway, AWS SQS, GCP PubSub, RabbitMQ, and Kafka 
+- Fanning out events to multiple destinations
+- Sending events to specific destinations
+- Destination connection instructions & authentication flows
+- Event topics and topics-based subscriptions
+- Automatic retries with exponential back-off
+- Manual retries via Portal or API
+- Alerts for failing destinations with debouncing
+- Auto-disabling of failed destinations after too many failures
+- Ability to view and list events, including request and responses
+- User portal to configure destinations & inspect events
+- Opt-out webhook best practices, such as headers for idempotency, timestamp and signature
+- Webhook signature secret rotation
+- Webhook signature format compatibility and “bring your own secrets”
+- OTEL telemetry for essential performance metric observability
+- Event cross-system referencing for supported destinations to display status, metadata and deep linking
+
 ## Get Started
 
 - [Outpost with RabbitMQ quickstart](1-get-started/1-rabbitmq.md)
 - [Outpost with Localstack (for AWS) quickstart](1-get-started/2-localstack.md)
 
-## Learn More
+## Overview
 
 Explore the Outpost architecture, core concepts, and see the benchmark results.
 
