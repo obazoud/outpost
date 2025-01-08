@@ -6,7 +6,7 @@ Outpost is built and maintained by the Hookdeck. It’s written in Golang and di
 
 Outpost has minimal dependencies (Redis, Clickhouse and one of the support message bus), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low cost operation.
 
-Outpost supports features required to provide a best in class event destinations developer experience:
+Outpost supports features required to provide a best-in-class event destinations developer experience:
 
 - Large choice of event destination types
 - Fanning out events to multiple destinations
