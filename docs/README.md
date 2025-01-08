@@ -8,7 +8,7 @@ Outpost has minimal dependencies (Redis, Clickhouse and one of the support messa
 
 Outpost supports features required to provide a best in class event destinations developer experience:
 
-- Large choice of destinations including Webhooks, Hookdeck Event Gateway, AWS SQS, GCP PubSub, RabbitMQ, and Kafka 
+- Large choice of event destination types
 - Fanning out events to multiple destinations
 - Sending events to specific destinations
 - Destination connection instructions & authentication flows
