@@ -2,6 +2,37 @@
 
 The API is a REST-based JSON API that can be publicly exposed or only available on your internal network / VPC, depending on your network topology.
 
+## Table of Contents
+
+- [Authentication](#authentication)
+  - [Admin API Key](#admin-api-key)
+  - [JWT Token](#jwt-token)
+- [Tenants](#tenants)
+  - [Tenant Object](#tenant-object)
+  - [`PUT` `/:tenant_id`](#put-tenant_id)
+  - [`GET` `/:tenant_id`](#get-tenant_id)
+  - [`GET` `/:tenant_id/portal`](#get-tenant_idportal)
+  - [`GET` `/:tenant_id/token`](#get-tenant_idtoken)
+  - [`DELETE` `/:tenant_id`](#delete-tenant_id)
+- [Destinations](#destinations)
+  - [Destination Object](#destination-object)
+  - [`GET` `/:tenant_id/destinations`](#get-tenant_iddestinations)
+  - [`POST` `/:tenant_id/destinations`](#post-tenant_iddestinations)
+  - [`PATCH` `/:tenant_id/destinations/:destination_id`](#patch-tenant_iddestinationsdestination_id)
+  - [`PUT` `/:tenant_id/destinations/:destination_id/enable`](#put-tenant_iddestinationsdestination_idenable)
+  - [`PUT` `/:tenant_id/destinations/:destination_id/disable`](#put-tenant_iddestinationsdestination_iddisable)
+  - [`DELETE` `/:tenant_id/destinations/:destination_id`](#delete-tenant_iddestinationsdestination_id)
+- [Publish](#publish)
+  - [`POST` `/api/v1/publish`](#post-apiv1publish)
+- [Schemas](#schemas)
+  - [`GET` `/destination-types`](#get-destination-types)
+  - [`GET` `/destination-types/:type`](#get-destination-typestype)
+- [Events API](#events-api)
+  - [`GET` `/:tenant_id/destination/:destination_id/events`](#get-tenant_iddestinationdestination_idevents)
+  - [`GET` `/:tenant_id/destination/:destination_id/events/:event_id`](#get-tenant_iddestinationdestination_ideventsevent_id)
+  - [`GET` `/:tenant_id/destination/:destination_id/events/:event_id/deliveries`](#get-tenant_iddestinationdestination_ideventsevent_iddeliveries)
+  - [`POST` `/:tenant_id/destination/:destination_id/events/:event_id/retry`](#post-tenant_iddestinationdestination_ideventsevent_idretry)
+
 ## Authentication
 
 ### Admin API Key
@@ -12,7 +43,7 @@ The API uses bearer token authentication with a token of your choice configured 
 
 The API can also be authenticated using a per tenant token that’s valid for 24 hours. When using the a JWT token the `/:tenant_id` of each API endpoints is inferred to be the authenticated token and is not necessary.
 
-## Tenant API
+## Tenants
 
 The API segments resources per `tenant`. A tenant represents a user/team/organization in your product. The provided value determines the tenant's ID, which can be any string representation.
 
@@ -50,7 +81,7 @@ Empty body
 
 ### `GET` `/:tenant_id`
 
-Returns the tenant 
+Get a tenant.
 
 #### Response
     
@@ -62,7 +93,6 @@ Returns the tenant
   "created_at": "2024-01-01T00:00:00Z"
 }
 ```
-    
 
 ### `GET` `/:tenant_id/portal`
 
@@ -110,7 +140,7 @@ Empty body
 }
 ```
 
-## Destinations API
+## Destinations
 
 ### Destination Object
 
@@ -288,7 +318,7 @@ Empty body
     
 ```json
 {
-  "id": "des_12345" // Control plane generated ID
+  "id": "des_12345", // Control plane generated ID
   "type": "webhooks", // Type of the destination
   "topics": "*", // Topics of events this destination is eligible for
   "config": { // Destination type specific configuration. Schema of depends on type
@@ -317,13 +347,59 @@ Empty body
   "success": true
 }
 ```
-    
 
-## Schemas API
+## Publish
+
+Publish events on one or more topics.
+
+### `POST` `/api/v1/publish`
+
+Publish an event.
+
+#### Request
+
+```json
+{
+  "tenant_id": "<TENANT_ID>",
+  "topic": "topic.name", // Topic defined in TOPICS environment variable
+  "eligible_for_retry": true | false, // Should event delivery be retried
+  "metadata": Payload // can by any JSON payload,
+  "data": Payload // can by any JSON payload
+}
+```
+
+#### Response
+
+Empty body
+
+#### Example
+
+```sh
+curl --location 'localhost:3333/api/v1/publish' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>' \
+--data '{
+    "tenant_id": "<TENANT_ID>",
+    "topic": "user.created",
+    "eligible_for_retry": true,
+    "metadata": {
+        "meta": "data"
+    },
+    "data": {
+        "user_id": "userid"
+    }
+}'
+```
+
+## Schemas
 
 ### `GET` `/destination-types` 
 
 Runs a list of JSON-based input schemas for each destination type.
+
+#### Request
+
+No parameters.
 
 #### Response
     
