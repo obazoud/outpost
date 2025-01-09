@@ -77,40 +77,69 @@ func (m *mockEventGetter) RetrieveEvent(ctx context.Context, tenantID, eventID s
 }
 
 type mockLogPublisher struct {
-	err error
+	err        error
+	deliveries []models.DeliveryEvent
 }
 
 func newMockLogPublisher(err error) *mockLogPublisher {
-	return &mockLogPublisher{err: err}
+	return &mockLogPublisher{
+		err:        err,
+		deliveries: make([]models.DeliveryEvent, 0),
+	}
 }
 
 func (m *mockLogPublisher) Publish(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
+	m.deliveries = append(m.deliveries, deliveryEvent)
 	return m.err
 }
 
 type mockRetryScheduler struct {
-	schedules []string
-	taskIDs   []string
+	schedules    []string
+	taskIDs      []string
+	canceled     []string
+	scheduleResp []error
+	cancelResp   []error
+	scheduleIdx  int
+	cancelIdx    int
 }
 
 func newMockRetryScheduler() *mockRetryScheduler {
 	return &mockRetryScheduler{
-		schedules: make([]string, 0),
-		taskIDs:   make([]string, 0),
+		schedules:    make([]string, 0),
+		taskIDs:      make([]string, 0),
+		canceled:     make([]string, 0),
+		scheduleResp: make([]error, 0),
+		cancelResp:   make([]error, 0),
 	}
 }
 
-func (m *mockRetryScheduler) Schedule(ctx context.Context, message string, delay time.Duration, opts ...scheduler.ScheduleOption) error {
-	m.schedules = append(m.schedules, message)
+func (m *mockRetryScheduler) Schedule(ctx context.Context, task string, delay time.Duration, opts ...scheduler.ScheduleOption) error {
+	m.schedules = append(m.schedules, task)
 
 	// Capture the task ID by applying the option
-	var taskID string
 	if len(opts) > 0 {
 		options := &scheduler.ScheduleOptions{}
 		opts[0](options)
-		taskID = options.ID
+		if options.ID != "" {
+			m.taskIDs = append(m.taskIDs, options.ID)
+		}
 	}
-	m.taskIDs = append(m.taskIDs, taskID)
+
+	if m.scheduleIdx < len(m.scheduleResp) {
+		err := m.scheduleResp[m.scheduleIdx]
+		m.scheduleIdx++
+		return err
+	}
+	return nil
+}
+
+func (m *mockRetryScheduler) Cancel(ctx context.Context, taskID string) error {
+	m.canceled = append(m.canceled, taskID)
+	if m.cancelIdx < len(m.cancelResp) {
+		err := m.cancelResp[m.cancelIdx]
+		m.cancelIdx++
+		return err
+	}
 	return nil
 }
 
