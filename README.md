@@ -47,7 +47,7 @@ Outpost is a self-hosted and open-source infrastructure that enables event produ
 - **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
 - **User alerts**: Allow customers to manage event delivery alerts.
 - **OpenTelemetry**: OTel standardized traces, metrics, and logs.
-- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka. Extend to support other destinations types.
+- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka.
 - **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
 
 ## Quickstart
