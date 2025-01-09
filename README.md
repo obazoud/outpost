@@ -20,9 +20,21 @@
 
 # Open Source Event Destinations Infrastructure
 
-Outpost is a self-hosted and open-source product that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+<div align="center">
 
-Learn more about Event Destinations in the [Event Destinations Manifesto](https://event-destinations-website.vercel.app/).
+[Documentation](#documentation)
+·
+[Report a bug](issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%F0%9F%90%9B+Bug+Report%3A+)
+·
+[Request a feature](issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+)
+·
+[Join our Slack](https://hookdeck.com/slack)
+
+</div>
+
+Outpost is a self-hosted and open-source infrastructure that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+
+<!-- Learn more about Event Destinations in the [Event Destinations Manifesto](https://eventdestinations.org). -->
 
 ## Features
 
@@ -127,7 +139,15 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 
 ## Documentation
 
-TODO
+- [Get Started](docs/1-get-started/)
+    - [Outpost with RabbitMQ quickstart](docs/1-get-started/1-rabbitmq.md)
+    - [Outpost with Localstack quickstart](docs/1-get-started/2-localstack.md) (for AWS)
+- [Overview](docs/2-overview/)
+- [Features](docs/3-features/)
+- [Guides](docs/4-guides/)
+- [References](docs/5-references/)
+    - [API Reference](docs/5-references/1-api.md)
+    - [Configuration Reference](docs/5-references/2-configuration.md)
 
 ## Contributing
 
