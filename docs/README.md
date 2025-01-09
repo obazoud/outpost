@@ -2,7 +2,7 @@
 
 Outpost is the first open source and self-hostable implementation of “Event Destinations” that enables delivery of your platform events directly to your user’s preferred event destinations. It supports destinations such Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, GCP Pub/Sub, AWS EventBridge, and Kafka.
 
-Outpost is built and maintained by the Hookdeck. It’s written in Golang and distributed as a binary and Docker container under the Apache-2.0 licence.
+Outpost is built and maintained by [Hookdeck](https://hookdeck.com?ref=github-outpost). It’s written in Golang and distributed as a binary and Docker container under the Apache-2.0 license.
 
 Outpost has minimal dependencies (Redis, Clickhouse and one of the support message bus), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low-cost operation.
 
@@ -19,7 +19,7 @@ Explore the Outpost architecture, core concepts, and see the benchmark results.
 
 ## Features
 
-Outpost supports features required to provide a best-in-class event destinations developer experience:
+Outpost supports features required to provide a best-in-class event destinations developer experience for event producers and consumers:
 
 - Large choice of event destination types
 - Fanning out events to multiple destinations
@@ -36,14 +36,12 @@ Outpost supports features required to provide a best-in-class event destinations
 - Opt-out webhook best practices, such as headers for idempotency, timestamp and signature
 - Webhook signature secret rotation
 - Webhook signature format compatibility and “bring your own secrets”
-- OTEL telemetry for essential performance metric observability
+- OpenTelemetry for essential performance metric observability
 - Event cross-system referencing for supported destinations to display status, metadata and deep linking
 
 [Learn more &rarr;](3-features/README.md)
 
 ## Guides
-
-TODO: link to some specific guides
 
 [Explore all the guides &rarr;](4-guides/README.md)
 

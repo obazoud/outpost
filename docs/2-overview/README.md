@@ -12,11 +12,11 @@
 
 ## Architecture
 
-Event Destination is deployed with three services:
+Outpost is deployed with three services:
 
-- **API Service** captures events and exposes the necessary APIs to configure tenants and destinations.
-- **Delivery Service is r**esponsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.
-- **Log Service** enables storing and retrieving events, their status, and their responses.
+- **API Service**: captures events and exposes the necessary APIs to configure tenants and destinations.
+- **Delivery Service**: is responsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.
+- **Log Service**: enables storing and retrieving events, their status, and their responses.
 
 ![Outpost Architecture](images/architecture.png)
 

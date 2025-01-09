@@ -28,7 +28,7 @@
 ·
 [Request a feature](issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+)
 ·
-[Join our Slack](https://hookdeck.com/slack)
+[Join our Slack](https://hookdeck.com/slack?ref=github-outpost)
 
 </div>
 
