@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/models"
+	"github.com/hookdeck/outpost/internal/util/maputil"
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
@@ -158,17 +159,11 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}
 	if input.Config != nil {
 		shouldRevalidate = true
-		updatedDestination.Config = input.Config
+		updatedDestination.Config = maputil.MergeStringMaps(originalDestination.Config, input.Config)
 	}
 	if input.Credentials != nil {
 		shouldRevalidate = true
-		updatedDestination.Credentials = input.Credentials
-	}
-	if shouldRevalidate {
-		if err := h.registry.ValidateDestination(c.Request.Context(), &updatedDestination); err != nil {
-			AbortWithValidationError(c, err)
-			return
-		}
+		updatedDestination.Credentials = maputil.MergeStringMaps(originalDestination.Credentials, input.Credentials)
 	}
 
 	// Always preprocess before updating
@@ -177,6 +172,13 @@ func (h *DestinationHandlers) Update(c *gin.Context) {
 	}); err != nil {
 		AbortWithValidationError(c, err)
 		return
+	}
+
+	if shouldRevalidate {
+		if err := h.registry.ValidateDestination(c.Request.Context(), &updatedDestination); err != nil {
+			AbortWithValidationError(c, err)
+			return
+		}
 	}
 
 	// Update destination.
