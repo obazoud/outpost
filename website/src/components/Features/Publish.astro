@@ -1,0 +1,105 @@
+<div class="wrapper">
+  <div class="card">
+    {
+      `{
+  "event_id": "12345",
+  "event_type": "user_signup",
+  "timestamp": "2024-12-18T15:30:00Z",
+  "data": {
+    "user_id": "98765",
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "role": "customer"
+  },
+  "metadata": {
+    "referrer": "google",
+    "campaign": "holiday_promo",
+    "device": {
+      "type": "mobile",
+      "os": "iOS",
+      "browser": "Safari",
+      "browser_version": "17.1"
+    }
+  }
+}`
+        .split("\n")
+        .map((line, i) => {
+          const [key, value] = line.split(': "');
+          return (
+            <span class="line">
+              <span class="regular-s index">{i + 1}</span>
+              <span class="key regular-s">{value ? `${key}: ` : key}</span>
+              {value ? <span class="value regular-s">"{value}</span> : ""}
+            </span>
+          );
+        })
+    }
+  </div>
+</div>
+
+<style>
+  .wrapper {
+    flex: 1;
+    position: relative;
+    padding-left: var(--spacing-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    overflow: hidden;
+    padding-top: 1px;
+
+    &:before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% + 1px);
+      background: linear-gradient(
+        180deg,
+        rgba(20, 20, 18, 0.5) 0%,
+        #141412 100%
+      );
+    }
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 0;
+    padding: var(--spacing-6);
+    box-shadow:
+      0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+      0px 2px 4px 0px rgba(0, 0, 0, 0.32),
+      0px 4px 8px 0px rgba(0, 0, 0, 0.32),
+      0px 0px 0px 1px rgba(255, 255, 255, 0.16);
+
+    border-radius: 0;
+    border-top-left-radius: 6px;
+  }
+
+  .line {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+
+    .index {
+      text-align: right;
+      margin-right: var(--spacing-4);
+      color: var(--foreground-neutral-3);
+    }
+
+    .key {
+      color: var(--foreground-neutral-2);
+      white-space: pre;
+    }
+
+    .value {
+      color: var(--foreground-success);
+      text-wrap: nowrap;
+    }
+  }
+</style>

@@ -1,0 +1,49 @@
+---
+import "../global.scss";
+import Nav from "../components/Nav.astro";
+import Hero from "../components/Hero.astro";
+import Manifesto from "../components/Manifesto.astro";
+import Cta from "../components/Cta.astro";
+import Features from "../components/Features.astro";
+import Depedancies from "../components/Depedancies.astro";
+import Footer from "../components/Footer.astro";
+
+const title = "Outpost";
+const description =
+  "Deliver platform events directly to your user’s preferred event destinations: Webhooks, Hookdeck, AWS SQS, RabbitMQ, GCP Pub/Sub, Amazon EventBridge, and Kafka.";
+const tags = [
+  "outpost",
+  "webhooks",
+  "send webhooks",
+  "event delivery",
+  "event destinations",
+  "event platform",
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="tags" content={tags.join(",")} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..600&family=JetBrains+Mono:wght@400..600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <Nav />
+    <Hero />
+    <Manifesto />
+    <Features />
+    <Depedancies />
+    <Cta />
+    <Footer />
+  </body>
+</html>
