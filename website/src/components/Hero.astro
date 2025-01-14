@@ -1,7 +1,8 @@
 ---
-import { Image } from 'astro:assets';
-import heroIllustrationImg from '../assets/hero-illustration.png';
+import { Image } from "astro:assets";
+import heroIllustrationImg from "../assets/hero-illustration.png";
 ---
+
 <section>
   <div class="intro">
     <h1 class="bold-4xl">Open source <br />event destination infrastructure</h1>
@@ -27,7 +28,10 @@ import heroIllustrationImg from '../assets/hero-illustration.png';
   <section>
     <div class="container">
       <div class="container-illustration">
-        <Image src={heroIllustrationImg} alt="A visual representation of Outpost sending events to user destinations" />
+        <Image
+          src={heroIllustrationImg}
+          alt="A visual representation of Outpost sending events to user destinations"
+        />
         <div class="illustration-wrapper-container">
           <div class="illustration-box">
             <div class="illustration-box-heading">
@@ -40,8 +44,15 @@ import heroIllustrationImg from '../assets/hero-illustration.png';
             </div>
           </div>
         </div>
+
+        <div class="dots dots-left"></div>
+        <div class="dots dots-right"></div>
       </div>
       <div class="container-highlight">
+        <div class="dots dots-left"></div>
+        <div class="dots dots-right"></div>
+        <div class="dots dots-bottom-left"></div>
+        <div class="dots dots-bottom-right"></div>
         <div class="container-highlight-item">
           <h3 class="bold-m">
             <svg
@@ -119,6 +130,9 @@ import heroIllustrationImg from '../assets/hero-illustration.png';
 
     h1 {
       margin: 0;
+      text-shadow:
+        0px 8px 16px rgba(0, 0, 0, 0.32),
+        0px 16px 32px rgba(0, 0, 0, 0.32);
     }
 
     p {
@@ -150,7 +164,6 @@ import heroIllustrationImg from '../assets/hero-illustration.png';
 
   .illustration-section {
     position: relative;
-    overflow: hidden;
     &:after {
       content: "";
       position: absolute;
@@ -231,6 +244,7 @@ import heroIllustrationImg from '../assets/hero-illustration.png';
     grid-template-columns: 1fr 1fr 1fr;
     border: 1px solid var(--outline-neutral);
     border-top: none;
+    position: relative;
 
     @media (max-width: 1064px) {
       display: flex;

@@ -2,23 +2,22 @@
   <div class="card">
     {
       `{
-  "event_id": "12345",
-  "event_type": "user_signup",
+  "event_id": "9dfcc6e7-6787-47fc-9a0d-127bc35a2f72",
+  "event_type": "order.created",
   "timestamp": "2024-12-18T15:30:00Z",
   "data": {
-    "user_id": "98765",
-    "name": "John Doe",
-    "email": "johndoe@example.com",
-    "role": "customer"
-  },
-  "metadata": {
-    "referrer": "google",
-    "campaign": "holiday_promo",
-    "device": {
-      "type": "mobile",
-      "os": "iOS",
-      "browser": "Safari",
-      "browser_version": "17.1"
+    "id": "123700234734",
+    "status": "pending_payment",
+    "total": 10000,
+    "subtotal": 9000,
+    "tax": 1000,
+    "currency": "USD",
+    "shipping_address": {
+      "line1": "123 Main St",
+      "line2": "Apt 1",
+      "city": "San Francisco",
+      "state": "CA",
+      "zip": "94101"
     }
   }
 }`
@@ -64,12 +63,14 @@
   }
 
   .card {
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
     gap: 0;
     padding: var(--spacing-6);
+    padding-bottom: 0;
     box-shadow:
       0px -1px 0px 0px rgba(255, 255, 255, 0.04),
       0px 2px 4px 0px rgba(0, 0, 0, 0.32),
