@@ -43,7 +43,7 @@ func run(mainContext context.Context, cfg *config.Config) error {
 		otelzap.WithMinLevel(zap.InfoLevel), // TODO: allow configuration
 	)
 
-	chDB, err := clickhouse.New(cfg.ClickHouse)
+	chDB, err := clickhouse.New(cfg.ClickHouse.ToConfig())
 	if err != nil {
 		return err
 	}
@@ -53,8 +53,8 @@ func run(mainContext context.Context, cfg *config.Config) error {
 	}
 
 	if err := infra.Declare(mainContext, infra.Config{
-		DeliveryMQ: cfg.DeliveryQueueConfig,
-		LogMQ:      cfg.LogQueueConfig,
+		DeliveryMQ: cfg.MQs.GetDeliveryQueueConfig(),
+		LogMQ:      cfg.MQs.GetLogQueueConfig(),
 	}); err != nil {
 		return err
 	}
@@ -63,8 +63,8 @@ func run(mainContext context.Context, cfg *config.Config) error {
 	ctx, cancel := context.WithCancel(mainContext)
 
 	// Set up OpenTelemetry.
-	if cfg.OpenTelemetry != nil {
-		otelShutdown, err := otel.SetupOTelSDK(ctx, cfg.OpenTelemetry)
+	if cfg.OpenTelemetry.ToConfig() != nil {
+		otelShutdown, err := otel.SetupOTelSDK(ctx, cfg.OpenTelemetry.ToConfig())
 		if err != nil {
 			cancel()
 			return err
@@ -121,23 +121,24 @@ func constructServices(
 	wg *sync.WaitGroup,
 	logger *otelzap.Logger,
 ) ([]Service, error) {
+	serviceType := cfg.MustGetService()
 	services := []Service{}
 
-	if cfg.Service == config.ServiceTypeAPI || cfg.Service == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeAPI || serviceType == config.ServiceTypeSingular {
 		service, err := api.NewService(ctx, wg, cfg, logger)
 		if err != nil {
 			return nil, err
 		}
 		services = append(services, service)
 	}
-	if cfg.Service == config.ServiceTypeDelivery || cfg.Service == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeDelivery || serviceType == config.ServiceTypeSingular {
 		service, err := delivery.NewService(ctx, wg, cfg, logger, nil)
 		if err != nil {
 			return nil, err
 		}
 		services = append(services, service)
 	}
-	if cfg.Service == config.ServiceTypeLog || cfg.Service == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeLog || serviceType == config.ServiceTypeSingular {
 		service, err := log.NewService(ctx, wg, cfg, logger, nil)
 		if err != nil {
 			return nil, err
