@@ -2,8 +2,8 @@
 
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/outpost-white.svg">
-    <img alt="Outpost logo" src="images/outpost-black.svg" width="40%">
+    <source media="(prefers-color-scheme: dark)" srcset="images/outpost-dark.svg">
+    <img alt="Outpost logo" src="images/outpost-light.svg" width="40%">
   </picture>
 </div>
 
