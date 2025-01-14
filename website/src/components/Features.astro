@@ -101,6 +101,10 @@ import Alert from "./Features/Alert.astro";
         </p>
       </div>
     </div>
+    <div class="dots dots-left"></div>
+    <div class="dots dots-right"></div>
+    <div class="dots dots-bottom-left"></div>
+    <div class="dots dots-bottom-right"></div>
   </div>
 </section>
 
@@ -128,6 +132,7 @@ import Alert from "./Features/Alert.astro";
     grid-template-columns: repeat(3, 1fr);
     grid-auto-rows: minmax(200px, auto);
     border: 1px solid var(--outline-neutral);
+    position: relative;
   }
 
   .feature-item-content {
@@ -278,8 +283,9 @@ import Alert from "./Features/Alert.astro";
       border-right: none !important;
       border-left: none !important;
       border-bottom: 1px solid var(--outline-neutral) !important;
+      position: relative;
     }
-    
+
     .feature-item:last-child {
       border-bottom: none !important;
     }

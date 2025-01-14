@@ -1,6 +1,10 @@
 <section>
   <div class="wrapper">
     <div class="column">
+      <div class="dots dots-left"></div>
+      <div class="dots dots-right"></div>
+      <div class="dots dots-bottom-left"></div>
+      <div class="dots dots-bottom-right"></div>
       <div class="column-header">
         <h2 class="bold-2xl">Built on</h2>
       </div>
@@ -53,6 +57,8 @@
       </div>
     </div>
     <div class="column">
+      <div class="dots dots-right"></div>
+      <div class="dots dots-bottom-right"></div>
       <div class="column-header">
         <h2 class="bold-2xl">Deploy with</h2>
       </div>
@@ -136,8 +142,17 @@
     border: 1px solid var(--outline-neutral);
   }
 
+  .column {
+    position: relative;
+  }
+
   .column:first-child {
     border-right: 1px dashed var(--outline-neutral);
+
+    @media (max-width: 744px) {
+      border-right: none;
+      border-bottom: 1px dashed var(--outline-neutral);
+    }
   }
 
   .column-header {

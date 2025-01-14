@@ -78,8 +78,8 @@
     --font-size-4xl: 32px;
     --font-line-height-4xl: 40px;
 
-    --font-size-xl: 20px;
-    --font-line-height-xl: 32px;
+    --font-size-2xl: 20px;
+    --font-line-height-2xl: 32px;
 
     --font-size-l: 16px;
     --font-line-height-l: 24px;
@@ -365,5 +365,37 @@ nav {
     border-color: var(--outline-neutral-2);
     background: var(--background-neutral-2);
     color: var(--foreground-neutral-3);
+  }
+}
+
+.dots {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  background: var(--background);
+  box-shadow: 0px -1px 0px 0px rgba(255, 255, 255, 0.04),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.5),
+    0px 0px 0px 1px rgba(255, 255, 255, 0.24);
+  z-index: 1;
+
+  &-left {
+    left: -4px;
+    top: -4px;
+  }
+
+  &-right {
+    right: -4px;
+    top: -4px;
+  }
+
+  &-bottom-left {
+    bottom: -4px;
+    left: -4px;
+  }
+
+  &-bottom-right {
+    bottom: -4px;
+    right: -4px;
   }
 }
