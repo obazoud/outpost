@@ -199,6 +199,10 @@ import heroIllustrationImg from "../assets/hero-illustration.png";
     position: relative;
     z-index: 0;
 
+    @media (max-width: 744px) {
+      display: none;
+    }
+
     img {
       max-width: 100%;
       height: auto;
@@ -249,6 +253,10 @@ import heroIllustrationImg from "../assets/hero-illustration.png";
     @media (max-width: 1064px) {
       display: flex;
       flex-direction: column;
+    }
+
+    @media (max-width: 744px) {
+      border-top: 1px solid var(--outline-neutral);
     }
 
     .container-highlight-item {
