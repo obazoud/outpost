@@ -1,3 +1,7 @@
+---
+import { Image } from 'astro:assets';
+import heroIllustrationImg from '../assets/hero-illustration.png';
+---
 <section>
   <div class="intro">
     <h1 class="bold-4xl">Open source <br />event destination infrastructure</h1>
@@ -23,7 +27,7 @@
   <section>
     <div class="container">
       <div class="container-illustration">
-        <img src="/images/hero-illustration.svg" alt="Your Cloud / VPC" />
+        <Image src={heroIllustrationImg} alt="A visual representation of Outpost sending events to user destinations" />
         <div class="illustration-wrapper-container">
           <div class="illustration-box">
             <div class="illustration-box-heading">
