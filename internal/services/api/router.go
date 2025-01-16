@@ -50,6 +50,7 @@ type RouterConfig struct {
 	Topics       []string
 	Registry     destregistry.Registry
 	PortalConfig portal.PortalConfig
+	GinMode      string
 }
 
 type routeDefinition struct {
@@ -113,7 +114,21 @@ func NewRouter(
 	logStore models.LogStore,
 	publishmqEventHandler publishmq.EventHandler,
 ) http.Handler {
-	r := gin.Default()
+	// Only set mode from config if we're not in test mode
+	if gin.Mode() != gin.TestMode {
+		gin.SetMode(cfg.GinMode)
+	}
+
+	r := gin.New()
+	// Core middlewares
+	r.Use(gin.Recovery())
+	r.Use(otelgin.Middleware(cfg.ServiceName))
+	r.Use(MetricsMiddleware())
+	r.Use(LoggerMiddleware(logger))
+	r.Use(LatencyMiddleware()) // LatencyMiddleware must be after Metrics & Logger to fully capture latency first
+
+	// Application logic
+	r.Use(ErrorHandlerMiddleware())
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -124,10 +139,6 @@ func NewRouter(
 			return name
 		})
 	}
-
-	r.Use(otelgin.Middleware(cfg.ServiceName))
-	r.Use(MetricsMiddleware())
-	r.Use(ErrorHandlerMiddleware(logger))
 
 	portal.AddRoutes(r, cfg.PortalConfig)
 

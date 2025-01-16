@@ -34,7 +34,9 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func run(mainContext context.Context, cfg *config.Config) error {
-	zapLogger, err := zap.NewProduction()
+	zapConfig := zap.NewProductionConfig()
+	zapConfig.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	zapLogger, err := zapConfig.Build()
 	if err != nil {
 		return err
 	}
