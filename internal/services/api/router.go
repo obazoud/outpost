@@ -44,12 +44,12 @@ type RouteDefinition struct {
 }
 
 type RouterConfig struct {
-	Hostname       string
-	APIKey         string
-	JWTSecret      string
-	PortalProxyURL string
-	Topics         []string
-	Registry       destregistry.Registry
+	ServiceName  string
+	APIKey       string
+	JWTSecret    string
+	Topics       []string
+	Registry     destregistry.Registry
+	PortalConfig portal.PortalConfig
 }
 
 type routeDefinition struct {
@@ -59,7 +59,7 @@ type routeDefinition struct {
 }
 
 // registerRoutes registers routes to the given router based on route definitions and config
-func registerRoutes(router *gin.RouterGroup, cfg RouterConfig, routes []RouteDefinition, logger *otelzap.Logger, entityStore models.EntityStore) {
+func registerRoutes(router *gin.RouterGroup, cfg RouterConfig, routes []RouteDefinition) {
 	isPortalMode := cfg.APIKey != "" && cfg.JWTSecret != ""
 
 	for _, route := range routes {
@@ -106,7 +106,6 @@ func buildMiddlewareChain(cfg RouterConfig, def RouteDefinition) []gin.HandlerFu
 
 func NewRouter(
 	cfg RouterConfig,
-	portalConfigs map[string]string,
 	logger *otelzap.Logger,
 	redisClient *redis.Client,
 	deliveryMQ *deliverymq.DeliveryMQ,
@@ -126,14 +125,11 @@ func NewRouter(
 		})
 	}
 
-	r.Use(otelgin.Middleware(cfg.Hostname))
+	r.Use(otelgin.Middleware(cfg.ServiceName))
 	r.Use(MetricsMiddleware())
 	r.Use(ErrorHandlerMiddleware(logger))
 
-	portal.AddRoutes(r, portal.PortalConfig{
-		ProxyURL: cfg.PortalProxyURL,
-		Configs:  portalConfigs,
-	})
+	portal.AddRoutes(r, cfg.PortalConfig)
 
 	apiRouter := r.Group("/api/v1")
 	apiRouter.Use(SetTenantIDMiddleware())
@@ -145,6 +141,7 @@ func NewRouter(
 	tenantHandlers := NewTenantHandlers(logger, cfg.JWTSecret, entityStore)
 	destinationHandlers := NewDestinationHandlers(logger, entityStore, cfg.Topics, cfg.Registry)
 	publishHandlers := NewPublishHandlers(logger, publishmqEventHandler)
+	retryHandlers := NewRetryHandlers(logger, entityStore, logStore, deliveryMQ)
 	logHandlers := NewLogHandlers(logger, logStore)
 	topicHandlers := NewTopicHandlers(logger, cfg.Topics)
 
@@ -361,6 +358,16 @@ func NewRouter(
 				RequireTenantMiddleware(logger, entityStore),
 			},
 		},
+
+		// Retry routes
+		{
+			Method:             http.MethodPost,
+			Path:               "/:tenantID/destinations/:destinationID/events/:eventID/retry",
+			Handler:            retryHandlers.Retry,
+			AuthScope:          AuthScopeAdminOrTenant,
+			Mode:               RouteModeAlways,
+			AllowTenantFromJWT: true,
+		},
 	}
 
 	// Register all routes to a single router
@@ -370,7 +377,7 @@ func NewRouter(
 	apiRoutes = append(apiRoutes, tenantAgnosticRoutes...)
 	apiRoutes = append(apiRoutes, tenantSpecificRoutes...)
 
-	registerRoutes(apiRouter, cfg, apiRoutes, logger, entityStore)
+	registerRoutes(apiRouter, cfg, apiRoutes)
 
 	return r
 }

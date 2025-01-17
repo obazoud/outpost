@@ -94,6 +94,7 @@ type DeliveryEvent struct {
 	Event         Event
 	Delivery      *Delivery
 	Telemetry     *DeliveryEventTelemetry
+	Manual        bool // Indicates if this is a manual retry
 }
 
 var _ mqs.IncomingMessage = &DeliveryEvent{}
@@ -110,6 +111,14 @@ func (e *DeliveryEvent) ToMessage() (*mqs.Message, error) {
 	return &mqs.Message{Body: data}, nil
 }
 
+// GetRetryID returns the ID used for scheduling retries.
+// We use Event.ID instead of DeliveryEvent.ID because:
+// 1. Each event should only have one scheduled retry at a time
+// 2. Event.ID is always accessible, while DeliveryEvent.ID may require additional queries in retry scenarios
+func (e *DeliveryEvent) GetRetryID() string {
+	return e.Event.ID
+}
+
 func NewDeliveryEvent(event Event, destinationID string) DeliveryEvent {
 	return DeliveryEvent{
 		ID:            uuid.New().String(),
@@ -117,6 +126,12 @@ func NewDeliveryEvent(event Event, destinationID string) DeliveryEvent {
 		Event:         event,
 		Attempt:       0,
 	}
+}
+
+func NewManualDeliveryEvent(event Event, destinationID string) DeliveryEvent {
+	deliveryEvent := NewDeliveryEvent(event, destinationID)
+	deliveryEvent.Manual = true
+	return deliveryEvent
 }
 
 const (

@@ -8,7 +8,13 @@ import (
 
 	"github.com/hookdeck/outpost/internal/models"
 	mqs "github.com/hookdeck/outpost/internal/mqs"
+	"github.com/hookdeck/outpost/internal/scheduler"
 )
+
+// scheduleOptions mirrors the private type in scheduler package
+type scheduleOptions struct {
+	id string
+}
 
 type mockPublisher struct {
 	responses []error
@@ -71,35 +77,71 @@ func (m *mockEventGetter) RetrieveEvent(ctx context.Context, tenantID, eventID s
 }
 
 type mockLogPublisher struct {
-	err error
+	err        error
+	deliveries []models.DeliveryEvent
 }
 
 func newMockLogPublisher(err error) *mockLogPublisher {
-	return &mockLogPublisher{err: err}
+	return &mockLogPublisher{
+		err:        err,
+		deliveries: make([]models.DeliveryEvent, 0),
+	}
 }
 
 func (m *mockLogPublisher) Publish(ctx context.Context, deliveryEvent models.DeliveryEvent) error {
+	m.deliveries = append(m.deliveries, deliveryEvent)
 	return m.err
 }
 
 type mockRetryScheduler struct {
-	schedules []string
+	schedules    []string
+	taskIDs      []string
+	canceled     []string
+	scheduleResp []error
+	cancelResp   []error
+	scheduleIdx  int
+	cancelIdx    int
 }
 
 func newMockRetryScheduler() *mockRetryScheduler {
-	return &mockRetryScheduler{schedules: make([]string, 0)}
+	return &mockRetryScheduler{
+		schedules:    make([]string, 0),
+		taskIDs:      make([]string, 0),
+		canceled:     make([]string, 0),
+		scheduleResp: make([]error, 0),
+		cancelResp:   make([]error, 0),
+	}
 }
 
-func (m *mockRetryScheduler) Schedule(ctx context.Context, message string, delay time.Duration) error {
-	m.schedules = append(m.schedules, message)
+func (m *mockRetryScheduler) Schedule(ctx context.Context, task string, delay time.Duration, opts ...scheduler.ScheduleOption) error {
+	m.schedules = append(m.schedules, task)
+
+	// Capture the task ID by applying the option
+	if len(opts) > 0 {
+		options := &scheduler.ScheduleOptions{}
+		opts[0](options)
+		if options.ID != "" {
+			m.taskIDs = append(m.taskIDs, options.ID)
+		}
+	}
+
+	if m.scheduleIdx < len(m.scheduleResp) {
+		err := m.scheduleResp[m.scheduleIdx]
+		m.scheduleIdx++
+		return err
+	}
 	return nil
 }
 
-func (m *mockRetryScheduler) Monitor(ctx context.Context) error { return nil }
-
-func (m *mockRetryScheduler) Init(ctx context.Context) error { return nil }
-
-func (m *mockRetryScheduler) Shutdown() error { return nil }
+func (m *mockRetryScheduler) Cancel(ctx context.Context, taskID string) error {
+	m.canceled = append(m.canceled, taskID)
+	if m.cancelIdx < len(m.cancelResp) {
+		err := m.cancelResp[m.cancelIdx]
+		m.cancelIdx++
+		return err
+	}
+	return nil
+}
 
 type mockMessage struct {
 	id     string

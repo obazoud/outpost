@@ -44,17 +44,17 @@ func NewService(ctx context.Context,
 
 	cleanupFuncs := []func(){}
 
-	redisClient, err := redis.New(ctx, cfg.Redis)
+	redisClient, err := redis.New(ctx, cfg.Redis.ToConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	chDB, err := clickhouse.New(cfg.ClickHouse)
+	chDB, err := clickhouse.New(cfg.ClickHouse.ToConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	logMQ := logmq.New(logmq.WithQueue(cfg.LogQueueConfig))
+	logMQ := logmq.New(logmq.WithQueue(cfg.MQs.GetLogQueueConfig()))
 	cleanupLogMQ, err := logMQ.Init(ctx)
 	if err != nil {
 		return nil, err
@@ -63,26 +63,14 @@ func NewService(ctx context.Context,
 
 	if handler == nil {
 		registry := destregistry.NewRegistry(&destregistry.Config{
-			DestinationMetadataPath: cfg.DestinationMetadataPath,
+			DestinationMetadataPath: cfg.Destinations.MetadataPath,
 			DeliveryTimeout:         time.Duration(cfg.DeliveryTimeoutSeconds) * time.Second,
 		}, logger)
-		if err := destregistrydefault.RegisterDefault(registry, destregistrydefault.RegisterDefaultDestinationOptions{
-			Webhook: &destregistrydefault.DestWebhookConfig{
-				HeaderPrefix:                  cfg.DestinationWebhookHeaderPrefix,
-				DisableDefaultEventIDHeader:   cfg.DestinationWebhookDisableDefaultEventIDHeader,
-				DisableDefaultSignatureHeader: cfg.DestinationWebhookDisableDefaultSignatureHeader,
-				DisableDefaultTimestampHeader: cfg.DestinationWebhookDisableDefaultTimestampHeader,
-				DisableDefaultTopicHeader:     cfg.DestinationWebhookDisableDefaultTopicHeader,
-				SignatureContentTemplate:      cfg.DestinationWebhookSignatureContentTemplate,
-				SignatureHeaderTemplate:       cfg.DestinationWebhookSignatureHeaderTemplate,
-				SignatureEncoding:             cfg.DestinationWebhookSignatureEncoding,
-				SignatureAlgorithm:            cfg.DestinationWebhookSignatureAlgorithm,
-			},
-		}); err != nil {
+		if err := destregistrydefault.RegisterDefault(registry, cfg.Destinations.ToConfig()); err != nil {
 			return nil, err
 		}
 		var eventTracer eventtracer.EventTracer
-		if cfg.OpenTelemetry == nil {
+		if cfg.OpenTelemetry.ToConfig() == nil {
 			eventTracer = eventtracer.NewNoopEventTracer()
 		} else {
 			eventTracer = eventtracer.NewEventTracer()
@@ -93,13 +81,13 @@ func NewService(ctx context.Context,
 			models.WithMaxDestinationsPerTenant(cfg.MaxDestinationsPerTenant),
 		)
 		logStore := models.NewLogStore(chDB)
-		deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.DeliveryQueueConfig))
+		deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.MQs.GetDeliveryQueueConfig()))
 		cleanupDeliveryMQ, err := deliveryMQ.Init(ctx)
 		if err != nil {
 			return nil, err
 		}
 		cleanupFuncs = append(cleanupFuncs, cleanupDeliveryMQ)
-		retryScheduler := deliverymq.NewRetryScheduler(deliveryMQ, cfg.Redis)
+		retryScheduler := deliverymq.NewRetryScheduler(deliveryMQ, cfg.Redis.ToConfig())
 		if err := retryScheduler.Init(ctx); err != nil {
 			return nil, err
 		}
@@ -128,7 +116,7 @@ func NewService(ctx context.Context,
 		Logger:      logger,
 		RedisClient: redisClient,
 		Handler:     handler,
-		DeliveryMQ:  deliverymq.New(deliverymq.WithQueue(cfg.DeliveryQueueConfig)),
+		DeliveryMQ:  deliverymq.New(deliverymq.WithQueue(cfg.MQs.GetDeliveryQueueConfig())),
 		consumerOptions: &consumerOptions{
 			concurreny: cfg.DeliveryMaxConcurrency,
 		},

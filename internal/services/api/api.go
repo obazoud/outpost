@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -45,47 +43,32 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 	wg.Add(1)
 
 	registry := destregistry.NewRegistry(&destregistry.Config{
-		DestinationMetadataPath: cfg.DestinationMetadataPath,
+		DestinationMetadataPath: cfg.Destinations.MetadataPath,
 		DeliveryTimeout:         time.Duration(cfg.DeliveryTimeoutSeconds) * time.Second,
 	}, logger)
-	if err := destregistrydefault.RegisterDefault(registry, destregistrydefault.RegisterDefaultDestinationOptions{
-		Webhook: &destregistrydefault.DestWebhookConfig{
-			HeaderPrefix:                  cfg.DestinationWebhookHeaderPrefix,
-			DisableDefaultEventIDHeader:   cfg.DestinationWebhookDisableDefaultEventIDHeader,
-			DisableDefaultSignatureHeader: cfg.DestinationWebhookDisableDefaultSignatureHeader,
-			DisableDefaultTimestampHeader: cfg.DestinationWebhookDisableDefaultTimestampHeader,
-			DisableDefaultTopicHeader:     cfg.DestinationWebhookDisableDefaultTopicHeader,
-			SignatureContentTemplate:      cfg.DestinationWebhookSignatureContentTemplate,
-			SignatureHeaderTemplate:       cfg.DestinationWebhookSignatureHeaderTemplate,
-			SignatureEncoding:             cfg.DestinationWebhookSignatureEncoding,
-			SignatureAlgorithm:            cfg.DestinationWebhookSignatureAlgorithm,
-		},
-	}); err != nil {
+	if err := destregistrydefault.RegisterDefault(registry, cfg.Destinations.ToConfig()); err != nil {
 		return nil, err
 	}
 
-	deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.DeliveryQueueConfig))
+	deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.MQs.GetDeliveryQueueConfig()))
 	cleanupDeliveryMQ, err := deliveryMQ.Init(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	redisClient, err := redis.New(ctx, cfg.Redis)
+	redisClient, err := redis.New(ctx, cfg.Redis.ToConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	var logStore models.LogStore
-	if cfg.ClickHouse != nil {
-		chDB, err := clickhouse.New(cfg.ClickHouse)
-		if err != nil {
-			return nil, err
-		}
-		logStore = models.NewLogStore(chDB)
+	chDB, err := clickhouse.New(cfg.ClickHouse.ToConfig())
+	if err != nil {
+		return nil, err
 	}
+	logStore := models.NewLogStore(chDB)
 
 	var eventTracer eventtracer.EventTracer
-	if cfg.OpenTelemetry == nil {
+	if cfg.OpenTelemetry.ToConfig() == nil {
 		eventTracer = eventtracer.NewNoopEventTracer()
 	} else {
 		eventTracer = eventtracer.NewEventTracer()
@@ -98,23 +81,12 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 	eventHandler := publishmq.NewEventHandler(logger, redisClient, deliveryMQ, entityStore, eventTracer, cfg.Topics)
 	router := NewRouter(
 		RouterConfig{
-			Hostname:       cfg.Hostname,
-			APIKey:         cfg.APIKey,
-			JWTSecret:      cfg.APIJWTSecret,
-			PortalProxyURL: cfg.PortalProxyURL,
-			Topics:         cfg.Topics,
-			Registry:       registry,
-		},
-		map[string]string{
-			"PROXY_URL":                cfg.PortalProxyURL,
-			"REFERER_URL":              cfg.PortalRefererURL,
-			"FAVICON_URL":              cfg.PortalFaviconURL,
-			"LOGO":                     cfg.PortalLogo,
-			"ORGANIZATION_NAME":        cfg.PortalOrgName,
-			"FORCE_THEME":              cfg.PortalForceTheme,
-			"TOPICS":                   strings.Join(cfg.Topics, ","),
-			"DISABLE_OUTPOST_BRANDING": strconv.FormatBool(cfg.PortalDisableOutpostBranding),
-			"DISABLE_TELEMETRY":        strconv.FormatBool(cfg.DisableTelemetry),
+			ServiceName:  cfg.OpenTelemetry.GetServiceName(),
+			APIKey:       cfg.APIKey,
+			JWTSecret:    cfg.APIJWTSecret,
+			Topics:       cfg.Topics,
+			Registry:     registry,
+			PortalConfig: cfg.GetPortalConfig(),
 		},
 		logger,
 		redisClient,
@@ -125,7 +97,7 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 	)
 
 	// deliverymqRetryScheduler
-	deliverymqRetryScheduler := deliverymq.NewRetryScheduler(deliveryMQ, cfg.Redis)
+	deliverymqRetryScheduler := deliverymq.NewRetryScheduler(deliveryMQ, cfg.Redis.ToConfig())
 	if err := deliverymqRetryScheduler.Init(ctx); err != nil {
 		return nil, err
 	}
@@ -134,16 +106,18 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 	service.logger = logger
 	service.redisClient = redisClient
 	service.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Port),
+		Addr:    fmt.Sprintf(":%d", cfg.APIPort),
 		Handler: router,
 	}
-	service.publishMQ = publishmq.New(publishmq.WithQueue(cfg.PublishQueueConfig))
 	service.deliveryMQ = deliveryMQ
 	service.entityStore = entityStore
 	service.eventHandler = eventHandler
 	service.deliverymqRetryScheduler = deliverymqRetryScheduler
 	service.consumerOptions = &consumerOptions{
 		concurreny: cfg.PublishMaxConcurrency,
+	}
+	if cfg.PublishMQ.GetQueueConfig() != nil {
+		service.publishMQ = publishmq.New(publishmq.WithQueue(cfg.PublishMQ.GetQueueConfig()))
 	}
 
 	go func() {

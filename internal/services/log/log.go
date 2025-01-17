@@ -37,18 +37,14 @@ func NewService(ctx context.Context,
 	logger *otelzap.Logger,
 	handler consumer.MessageHandler,
 ) (*LogService, error) {
-	if cfg.ClickHouse == nil {
-		return nil, errors.New("missing clickhouse configuration")
-	}
-
 	wg.Add(1)
 
-	redisClient, err := redis.New(ctx, cfg.Redis)
+	redisClient, err := redis.New(ctx, cfg.Redis.ToConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	chDB, err := clickhouse.New(cfg.ClickHouse)
+	chDB, err := clickhouse.New(cfg.ClickHouse.ToConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -57,8 +53,8 @@ func NewService(ctx context.Context,
 	var deliveryBatcher *batcher.Batcher[*models.Delivery]
 	if handler == nil {
 		batcherCfg := batcherConfig{
-			ItemCountThreshold: cfg.LogBatcherItemCountThreshold,
-			DelayThreshold:     time.Duration(cfg.LogBatcherDelayThresholdSeconds) * time.Second,
+			ItemCountThreshold: cfg.LogBatchSize,
+			DelayThreshold:     time.Duration(cfg.LogBatchThresholdSeconds) * time.Second,
 		}
 		batcher, err := makeBatcher(ctx, logger, models.NewLogStore(chDB), batcherCfg)
 		if err != nil {
@@ -71,7 +67,7 @@ func NewService(ctx context.Context,
 	service := &LogService{}
 	service.logger = logger
 	service.redisClient = redisClient
-	service.logMQ = logmq.New(logmq.WithQueue(cfg.LogQueueConfig))
+	service.logMQ = logmq.New(logmq.WithQueue(cfg.MQs.GetLogQueueConfig()))
 	service.consumerOptions = &consumerOptions{
 		concurreny: cfg.DeliveryMaxConcurrency,
 	}

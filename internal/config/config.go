@@ -2,304 +2,292 @@ package config
 
 import (
 	"errors"
-	"log"
-	"net/url"
-	"os"
-	"sort"
-	"strconv"
+	"fmt"
 	"strings"
 
+	"github.com/caarlos0/env/v9"
 	"github.com/hookdeck/outpost/internal/clickhouse"
-	"github.com/hookdeck/outpost/internal/mqinfra"
-	"github.com/hookdeck/outpost/internal/mqs"
-	"github.com/hookdeck/outpost/internal/otel"
-	"github.com/hookdeck/outpost/internal/publishmq"
 	"github.com/hookdeck/outpost/internal/redis"
 	"github.com/joho/godotenv"
-	v "github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 const (
 	Namespace = "Outpost"
 )
 
-type Config struct {
-	Service  ServiceType
-	Hostname string
+func getConfigLocations() []string {
+	return []string{
+		// Relative paths
+		".env",
+		".outpost.yaml",
+		"config/outpost.yaml",
+		"config/outpost/config.yaml",
+		"config/outpost/.env",
 
-	OpenTelemetry *otel.OpenTelemetryConfig
-
-	// API
-	Port         int
-	APIKey       string
-	APIJWTSecret string
-
-	// Application
-	AESEncryptionSecret string
-	Topics              []string
-
-	// Infrastructure
-	Redis      *redis.RedisConfig
-	ClickHouse *clickhouse.ClickHouseConfig
-	// MQs
-	PublishQueueConfig  *mqs.QueueConfig
-	DeliveryQueueConfig *mqs.QueueConfig
-	LogQueueConfig      *mqs.QueueConfig
-
-	// Consumers
-	PublishMaxConcurrency  int
-	DeliveryMaxConcurrency int
-	LogMaxConcurrency      int
-
-	// Delivery Retry
-	RetryIntervalSeconds int
-	RetryMaxLimit        int
-
-	// Event Delivery
-	MaxDestinationsPerTenant int
-	DeliveryTimeoutSeconds   int
-
-	// Destination Registry
-	DestinationMetadataPath string
-
-	// Log batcher configuration
-	LogBatcherDelayThresholdSeconds int
-	LogBatcherItemCountThreshold    int
-
-	DisableTelemetry bool
-
-	// Destwebhook
-	DestinationWebhookHeaderPrefix                  string
-	DestinationWebhookDisableDefaultEventIDHeader   bool
-	DestinationWebhookDisableDefaultSignatureHeader bool
-	DestinationWebhookDisableDefaultTimestampHeader bool
-	DestinationWebhookDisableDefaultTopicHeader     bool
-	DestinationWebhookSignatureContentTemplate      string
-	DestinationWebhookSignatureHeaderTemplate       string
-	DestinationWebhookSignatureEncoding             string
-	DestinationWebhookSignatureAlgorithm            string
-
-	// Portal config
-	PortalRefererURL             string
-	PortalFaviconURL             string
-	PortalLogo                   string
-	PortalOrgName                string
-	PortalForceTheme             string
-	PortalDisableOutpostBranding bool
-
-	// Dev
-	PortalProxyURL string
+		// Container-friendly absolute paths
+		"/config/outpost.yaml",
+		"/config/outpost/config.yaml",
+		"/config/outpost/.env",
+	}
 }
 
-var defaultConfig = map[string]any{
+type Config struct {
+	validated bool // tracks whether Validate() has been called successfully
+
+	Service       string              `yaml:"service" env:"SERVICE"`
+	OpenTelemetry OpenTelemetryConfig `yaml:"otel"`
+
+	// API
+	APIPort      int    `yaml:"api_port" env:"API_PORT"`
+	APIKey       string `yaml:"api_key" env:"API_KEY"`
+	APIJWTSecret string `yaml:"api_jwt_secret" env:"API_JWT_SECRET"`
+
+	// Application
+	AESEncryptionSecret string   `yaml:"aes_encryption_secret" env:"AES_ENCRYPTION_SECRET"`
+	Topics              []string `yaml:"topics" env:"TOPICS" envSeparator:","`
+
 	// Infrastructure
-	"PORT":           3333,
-	"REDIS_HOST":     "127.0.0.1",
-	"REDIS_PORT":     6379,
-	"REDIS_PASSWORD": "",
-	"REDIS_DATABASE": 0,
-	// MQs
-	"DELIVERY_RABBITMQ_EXCHANGE": "outpost",
-	"DELIVERY_RABBITMQ_QUEUE":    "outpost.delivery",
-	"LOG_RABBITMQ_EXCHANGE":      "outpost_logs",
-	"LOG_RABBITMQ_QUEUE":         "outpost_logs.log",
-	// MQ Publishers
-	"DELIVERY_RETRY_LIMIT": 5,
-	"LOG_RETRY_LIMIT":      5,
+	Redis      RedisConfig      `yaml:"redis"`
+	ClickHouse ClickHouseConfig `yaml:"clickhouse"`
+	MQs        MQsConfig        `yaml:"mqs"`
+
+	// PublishMQ
+	PublishMQ PublishMQConfig `yaml:"publishmq"`
+
 	// Consumers
-	"PUBLISH_MAX_CONCURRENCY":  1,
-	"DELIVERY_MAX_CONCURRENCY": 1,
-	"LOG_MAX_CONCURRENCY":      1,
+	PublishMaxConcurrency  int `yaml:"publish_max_concurrency" env:"PUBLISH_MAX_CONCURRENCY"`
+	DeliveryMaxConcurrency int `yaml:"delivery_max_concurrency" env:"DELIVERY_MAX_CONCURRENCY"`
+	LogMaxConcurrency      int `yaml:"log_max_concurrency" env:"LOG_MAX_CONCURRENCY"`
+
 	// Delivery Retry
-	"RETRY_INTERVAL_SECONDS": 30,
-	"MAX_RETRY_LIMIT":        10,
+	RetryIntervalSeconds int `yaml:"retry_interval_seconds" env:"RETRY_INTERVAL_SECONDS"`
+	RetryMaxLimit        int `yaml:"retry_max_limit" env:"MAX_RETRY_LIMIT"`
+
 	// Event Delivery
-	"DELIVERY_TIMEOUT_SECONDS": 5,
+	MaxDestinationsPerTenant int `yaml:"max_destinations_per_tenant" env:"MAX_DESTINATIONS_PER_TENANT"`
+	DeliveryTimeoutSeconds   int `yaml:"delivery_timeout_seconds" env:"DELIVERY_TIMEOUT_SECONDS"`
+
+	// Destination Registry
+	DestinationMetadataPath string `yaml:"destination_metadata_path" env:"DESTINATION_METADATA_PATH"`
+
 	// Log batcher configuration
-	"LOG_BATCH_THRESHOLD_SECONDS": 10,
-	"LOG_BATCH_SIZE":              1000,
-	// Misc
-	"MAX_DESTINATIONS_PER_TENANT": 20,
-	"DESTINATION_METADATA_PATH":   "config/outpost/destinations",
-	// Destination webhook config
-	"DESTINATION_WEBHOOK_HEADER_PREFIX": "x-outpost-",
+	LogBatchThresholdSeconds int `yaml:"log_batch_threshold_seconds" env:"LOG_BATCH_THRESHOLD_SECONDS"`
+	LogBatchSize             int `yaml:"log_batch_size" env:"LOG_BATCH_SIZE"`
+
+	DisableTelemetry bool `yaml:"disable_telemetry" env:"DISABLE_TELEMETRY"`
+
+	// Destinations
+	Destinations DestinationsConfig `yaml:"destinations"`
+
+	// Portal
+	Portal PortalConfig `yaml:"portal"`
 }
 
 var (
-	ErrMismatchedServiceType = errors.New("service type mismatch")
+	ErrMismatchedServiceType = errors.New("config validation error: service type mismatch")
+	ErrInvalidServiceType    = errors.New("config validation error: invalid service type")
+	ErrMissingRedis          = errors.New("config validation error: redis configuration is required")
+	ErrMissingClickHouse     = errors.New("config validation error: clickhouse configuration is required")
+	ErrMissingMQs            = errors.New("config validation error: message queue configuration is required")
+	ErrMissingAESSecret      = errors.New("config validation error: AES encryption secret is required")
+	ErrInvalidPortalProxyURL = errors.New("config validation error: invalid portal proxy url")
 )
 
-func Parse(flags Flags) (*Config, error) {
-	var err error
-
-	// Use a local Viper instance to avoid leaking configuration to global scope
-	viper := v.New()
-
-	hostname, err := os.Hostname()
-	if err != nil {
-		return nil, err
+func (c *Config) InitDefaults() {
+	c.APIPort = 3333
+	c.OpenTelemetry = OpenTelemetryConfig{}
+	c.Redis = RedisConfig{
+		Host: "127.0.0.1",
+		Port: 6379,
 	}
-
-	// Load .env file to environment variables
-	err = godotenv.Load()
-	if err != nil {
-		// Ignore error if file does not exist
+	c.ClickHouse = ClickHouseConfig{
+		Database: "outpost",
 	}
-
-	// Set default config values
-	for key, value := range defaultConfig {
-		viper.SetDefault(key, value)
-	}
-
-	// Parse custom config file if provided
-	if flags.Config != "" {
-		viper.SetConfigFile(flags.Config)
-		if err := viper.ReadInConfig(); err != nil {
-			return nil, err
-		}
-	}
-
-	// Bind environemnt variable to viper
-	viper.AutomaticEnv()
-
-	// Parse service type from flag & env
-	service, err := parseService(viper, flags)
-	if err != nil {
-		return nil, err
-	}
-
-	openTelemetry, err := parseOpenTelemetryConfig(viper)
-	if err != nil {
-		return nil, err
-	}
-
-	var clickHouseConfig *clickhouse.ClickHouseConfig
-	if viper.GetString("CLICKHOUSE_ADDR") != "" {
-		clickHouseConfig = &clickhouse.ClickHouseConfig{
-			Addr:     viper.GetString("CLICKHOUSE_ADDR"),
-			Username: viper.GetString("CLICKHOUSE_USERNAME"),
-			Password: viper.GetString("CLICKHOUSE_PASSWORD"),
-			Database: viper.GetString("CLICKHOUSE_DATABASE"),
-		}
-	}
-
-	// MQs
-	publishConfig, err := publishmq.ParseConfig(viper)
-	if err != nil {
-		return nil, err
-	}
-	mqinfraConfig, err := mqinfra.ParseConfig(viper)
-	if err != nil {
-		return nil, err
-	}
-
-	portalProxyURL := viper.GetString("PORTAL_PROXY_URL")
-	if portalProxyURL != "" {
-		if _, err := url.Parse(portalProxyURL); err != nil {
-			return nil, err
-		}
-	}
-
-	// Initialize config values
-	config := &Config{
-		Hostname:                 hostname,
-		Service:                  *service,
-		Port:                     getPort(viper),
-		APIKey:                   viper.GetString("API_KEY"),
-		APIJWTSecret:             viper.GetString("API_JWT_SECRET"),
-		AESEncryptionSecret:      viper.GetString("AES_ENCRYPTION_SECRET"),
-		PortalProxyURL:           portalProxyURL,
-		Topics:                   parseTopics(viper),
-		MaxDestinationsPerTenant: mustInt(viper, "MAX_DESTINATIONS_PER_TENANT"),
-		Redis: &redis.RedisConfig{
-			Host:     viper.GetString("REDIS_HOST"),
-			Port:     mustInt(viper, "REDIS_PORT"),
-			Password: viper.GetString("REDIS_PASSWORD"),
-			Database: mustInt(viper, "REDIS_DATABASE"),
+	c.MQs = MQsConfig{
+		RabbitMQ: RabbitMQConfig{
+			Exchange:      "outpost",
+			DeliveryQueue: "outpost-delivery",
+			LogQueue:      "outpost-log",
 		},
-		ClickHouse:                      clickHouseConfig,
-		OpenTelemetry:                   openTelemetry,
-		PublishQueueConfig:              publishConfig.MQ,
-		DeliveryQueueConfig:             mqinfraConfig.DeliveryMQ,
-		LogQueueConfig:                  mqinfraConfig.LogMQ,
-		PublishMaxConcurrency:           mustInt(viper, "PUBLISH_MAX_CONCURRENCY"),
-		DeliveryMaxConcurrency:          mustInt(viper, "DELIVERY_MAX_CONCURRENCY"),
-		LogMaxConcurrency:               mustInt(viper, "LOG_MAX_CONCURRENCY"),
-		RetryIntervalSeconds:            mustInt(viper, "RETRY_INTERVAL_SECONDS"),
-		RetryMaxLimit:                   mustInt(viper, "MAX_RETRY_LIMIT"),
-		DeliveryTimeoutSeconds:          mustInt(viper, "DELIVERY_TIMEOUT_SECONDS"),
-		LogBatcherDelayThresholdSeconds: mustInt(viper, "LOG_BATCH_THRESHOLD_SECONDS"),
-		LogBatcherItemCountThreshold:    mustInt(viper, "LOG_BATCH_SIZE"),
-		DestinationMetadataPath:         viper.GetString("DESTINATION_METADATA_PATH"),
+		AWSSQS: AWSSQSConfig{
+			DeliveryQueue: "outpost-delivery",
+			LogQueue:      "outpost-log",
+		},
+		DeliveryRetryLimit: 5,
+		LogRetryLimit:      5,
+	}
+	c.PublishMaxConcurrency = 1
+	c.DeliveryMaxConcurrency = 1
+	c.LogMaxConcurrency = 1
+	c.RetryIntervalSeconds = 30
+	c.RetryMaxLimit = 10
+	c.MaxDestinationsPerTenant = 20
+	c.DeliveryTimeoutSeconds = 5
+	c.LogBatchThresholdSeconds = 10
+	c.LogBatchSize = 1000
 
-		DisableTelemetry: viper.GetBool("DISABLE_TELEMETRY"),
+	// Set defaults for Destinations config
+	c.Destinations = DestinationsConfig{
+		MetadataPath: "config/outpost/destinations",
+		Webhook: DestinationWebhookConfig{
+			HeaderPrefix: "x-outpost-",
+		},
+	}
+}
 
-		// Destination webhook config
-		DestinationWebhookHeaderPrefix:                  viper.GetString("DESTINATION_WEBHOOK_HEADER_PREFIX"),
-		DestinationWebhookDisableDefaultEventIDHeader:   viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_EVENT_ID_HEADER"),
-		DestinationWebhookDisableDefaultSignatureHeader: viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_SIGNATURE_HEADER"),
-		DestinationWebhookDisableDefaultTimestampHeader: viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_TIMESTAMP_HEADER"),
-		DestinationWebhookDisableDefaultTopicHeader:     viper.GetBool("DESTINATION_WEBHOOK_DISABLE_DEFAULT_TOPIC_HEADER"),
-		DestinationWebhookSignatureContentTemplate:      viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_CONTENT_TEMPLATE"),
-		DestinationWebhookSignatureHeaderTemplate:       viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_HEADER_TEMPLATE"),
-		DestinationWebhookSignatureEncoding:             viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_ENCODING"),
-		DestinationWebhookSignatureAlgorithm:            viper.GetString("DESTINATION_WEBHOOK_SIGNATURE_ALGORITHM"),
+func (c *Config) parseConfigFile(flagPath string, osInterface OSInterface) error {
+	// Get config file path from flag or env
+	configPath := flagPath
+	if envPath := osInterface.Getenv("CONFIG"); envPath != "" {
+		if configPath != "" && configPath != envPath {
+			return fmt.Errorf("conflicting config paths: flag=%s env=%s", configPath, envPath)
+		}
+		configPath = envPath
+	}
 
-		// Portal config
-		PortalRefererURL:             viper.GetString("PORTAL_REFERER_URL"),
-		PortalFaviconURL:             viper.GetString("PORTAL_FAVICON_URL"),
-		PortalLogo:                   viper.GetString("PORTAL_LOGO"),
-		PortalOrgName:                viper.GetString("PORTAL_ORGANIZATION_NAME"),
-		PortalForceTheme:             viper.GetString("PORTAL_FORCE_THEME"),
-		PortalDisableOutpostBranding: viper.GetBool("PORTAL_DISABLE_OUTPOST_BRANDING"),
+	// If no explicit config path, try default locations
+	if configPath == "" {
+		for _, loc := range getConfigLocations() {
+			if _, err := osInterface.Stat(loc); err == nil {
+				configPath = loc
+				break
+			}
+		}
+	}
+
+	if configPath == "" {
+		return nil
+	}
+
+	data, err := osInterface.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("error reading config file: %w", err)
+	}
+
+	// Skip empty files
+	if len(data) == 0 {
+		return nil
+	}
+
+	// Parse based on file extension
+	if strings.HasSuffix(strings.ToLower(configPath), ".env") {
+		envMap, err := godotenv.Read(configPath)
+		if err != nil {
+			return fmt.Errorf("error loading .env file: %w", err)
+		}
+		if err := env.ParseWithOptions(c, env.Options{
+			Environment: envMap,
+		}); err != nil {
+			return fmt.Errorf("error parsing .env file: %w", err)
+		}
+	} else {
+		if err := yaml.Unmarshal(data, c); err != nil {
+			return fmt.Errorf("error parsing yaml config: %w", err)
+		}
+	}
+	return nil
+}
+
+func (c *Config) parseEnvVariables(osInterface OSInterface) error {
+	// For testing, use the mock environment
+	if _, ok := osInterface.(*defaultOSImpl); !ok {
+		// Build environment map from all env vars
+		envMap := make(map[string]string)
+		for _, env := range osInterface.Environ() {
+			if i := strings.Index(env, "="); i >= 0 {
+				envMap[env[:i]] = env[i+1:]
+			}
+		}
+		return env.ParseWithOptions(c, env.Options{Environment: envMap})
+	}
+
+	// For real OS, use env.Parse directly
+	return env.Parse(c)
+}
+
+// GetService returns ServiceType with error checking
+func (c *Config) GetService() (ServiceType, error) {
+	return ServiceTypeFromString(c.Service)
+}
+
+// MustGetService returns ServiceType without error checking - panics if called before validation
+func (c *Config) MustGetService() ServiceType {
+	if !c.validated {
+		panic("MustGetService called before validation")
+	}
+	// We can skip error checking since validation ensures this is valid
+	svc, _ := ServiceTypeFromString(c.Service)
+	return svc
+}
+
+// ParseWithoutValidation parses the config without validation
+func ParseWithoutValidation(flags Flags, osInterface OSInterface) (*Config, error) {
+	var config Config
+
+	// Initialize defaults
+	config.InitDefaults()
+
+	// Parse config file (lower priority)
+	if err := config.parseConfigFile(flags.Config, osInterface); err != nil {
+		return nil, err
+	}
+
+	// Parse environment variables (highest priority)
+	if err := config.parseEnvVariables(osInterface); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
+// Parse is the main entry point for parsing and validating config
+func Parse(flags Flags) (*Config, error) {
+	return ParseWithOS(flags, defaultOS)
+}
+
+// ParseWithOS parses and validates config with a custom OS interface
+func ParseWithOS(flags Flags, osInterface OSInterface) (*Config, error) {
+	config, err := ParseWithoutValidation(flags, osInterface)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := config.Validate(flags); err != nil {
+		return nil, err
 	}
 
 	return config, nil
 }
 
-func mustInt(viper *v.Viper, configName string) int {
-	i, err := strconv.Atoi(viper.GetString(configName))
-	if err != nil {
-		log.Fatalf("%s = '%s' is not int", configName, viper.GetString(configName))
-	}
-	return i
+type RedisConfig struct {
+	Host     string `yaml:"host" env:"REDIS_HOST"`
+	Port     int    `yaml:"port" env:"REDIS_PORT"`
+	Password string `yaml:"password" env:"REDIS_PASSWORD"`
+	Database int    `yaml:"database" env:"REDIS_DATABASE"`
 }
 
-func getPort(viper *v.Viper) int {
-	port := mustInt(viper, "PORT")
-	if viper.GetString("API_PORT") != "" {
-		apiPort, err := strconv.Atoi(viper.GetString("API_PORT"))
-		if err == nil {
-			port = apiPort
-		}
+func (c *RedisConfig) ToConfig() *redis.RedisConfig {
+	return &redis.RedisConfig{
+		Host:     c.Host,
+		Port:     c.Port,
+		Password: c.Password,
+		Database: c.Database,
 	}
-	return port
 }
 
-func parseService(viper *v.Viper, flags Flags) (*ServiceType, error) {
-	serviceString := flags.Service
-	if viper.GetString("SERVICE") != "" {
-		if serviceString != "" && serviceString != viper.GetString("SERVICE") {
-			return nil, ErrMismatchedServiceType
-		}
-		serviceString = viper.GetString("SERVICE")
-	}
-	service, err := ServiceTypeFromString(serviceString)
-	if err != nil {
-		return nil, err
-	}
-	return &service, nil
+type ClickHouseConfig struct {
+	Addr     string `yaml:"addr" env:"CLICKHOUSE_ADDR"`
+	Username string `yaml:"username" env:"CLICKHOUSE_USERNAME"`
+	Password string `yaml:"password" env:"CLICKHOUSE_PASSWORD"`
+	Database string `yaml:"database" env:"CLICKHOUSE_DATABASE"`
 }
 
-func parseTopics(viper *v.Viper) []string {
-	topicStr := viper.GetString("TOPICS")
-	if topicStr == "" {
-		return []string{}
+func (c *ClickHouseConfig) ToConfig() *clickhouse.ClickHouseConfig {
+	return &clickhouse.ClickHouseConfig{
+		Addr:     c.Addr,
+		Username: c.Username,
+		Password: c.Password,
+		Database: c.Database,
 	}
-	topics := strings.Split(topicStr, ",")
-	for i, topic := range topics {
-		topics[i] = strings.TrimSpace(topic)
-	}
-	sort.Strings(topics)
-	return topics
 }
