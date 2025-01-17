@@ -73,7 +73,7 @@ Destinations must be asynchronous and not run any business logic to be eligible.
 - Hookdeck Event Gateway
 - AWS SQS
 - AWS EventBridge
-- GCP PubSub
+- GCP Pub/Sub
 - RabbitMQ
 - Kafka
 
@@ -95,24 +95,24 @@ Destinations can be registered either through the tenant-facing portal or with t
 For example, for the `webhook` type:
 
 ```json
-  {
-    "type": "webhook",
-    "label": "Webhook",
-    "description": "Send event via an HTTP POST request to a URL of your choice",
-    "icon": "<svg />",
-    "instructions": "Some *markdown*",
-    "remote_setup_url": null,
-    "config_fields": [
-      {
-        "type": "text",
-        "label": "URL",
-        "description": "The URL to send the event to",
-        "validation": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
-        "required": true
-      }
-    ],
-    "credential_fields": []
-  }
+{
+  "type": "webhook",
+  "label": "Webhook",
+  "description": "Send event via an HTTP POST request to a URL of your choice",
+  "icon": "<svg />",
+  "instructions": "Some *markdown*",
+  "remote_setup_url": null,
+  "config_fields": [
+    {
+      "type": "text",
+      "label": "URL",
+      "description": "The URL to send the event to",
+      "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
+      "required": true
+    }
+  ],
+  "credential_fields": []
+}
 ```
 
 `config_fields` `Field[]`
@@ -295,35 +295,35 @@ The Outpost services will produce stdout logs based on the configured `LOG_LEVEL
 
 ## OpenTelemetry
 
-OpenTelemetry supports the service's key performance metrics. You need to bring your own OpenTelemetry target for the metrics to be produced and exported. These metrics are all exported in the form of [histograms](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#histogram). Supported metrics are:
+OpenTelemetry supports the service's key performance metrics. You need to bring your own OpenTelemetry target for the metrics to be produced and exported. These metrics are all exported in the form of [histograms](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#histogram).
+
+Supported metrics are:
 
 ### `delivery_latency` 
 
-Delivery latency to the destination. Dimensions: `type` `tenant` `destination_id`
-
-### `delivery_error_rate`
-
-The error rate of the message delivered. `type` `tenant` `destination_id`
+Delivery latency to the destination. Dimensions: `type` 
 
 ### `delivered_events`
 
-The number of delivered events. `type` `tenant` `destination_id` `status`
+The number of delivered events. `type` `status` 
 
 ### `published_events`
 
-The number of published events. `topic` `tenant`
+The number of published events. `topic`
 
-### `eligible_events`
+ ### `eligible_events`
 
-The number of published events that matched at least one destination. `topic` `tenant`
+The number of published events that matched at least one destination. `topic`
 
 ### `api_response_latency` 
 
-The API response latency. `endpoint` `method` `path` `tenant`
+The API response latency. `endpoint` `method` `path` 
 
 ### `api_calls`
 
-The number of API calls. `endpoint` `method` `path` `tenant`
+The number of API calls. `endpoint` `method` `path`
+
+CPU and memory usage needs to be monitored by your VM / runtime provider.
 
 ## Hookdeck Telemetry
 
