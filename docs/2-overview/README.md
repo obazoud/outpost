@@ -1,14 +1,23 @@
 # Outpost Overview
 
-- What is Outpost
-- [Architecture](#architecture)
-- [Runtime Requirements](#runtime-requirements)
-- Concepts
+- [What is Outpost](#what-is-outpost)
+- [Concepts](#concepts)
     - Tenants
     - Destinations
     - Events
     - Topics
-- Benchmarks
+- [Architecture](#architecture)
+- [Runtime Requirements](#runtime-requirements)
+- [Benchmarks](#benchmarks)
+
+## What is Outpost?
+
+TODO
+
+
+## Concepts
+
+TODO
 
 ## Architecture
 
@@ -39,3 +48,7 @@ Outpost is deployed with three services:
 <summary>Future Roadmap</summary>
 - Postgres (simpler alternative to CH)
 </details>
+
+## Benchmarks
+
+Coming soon...
