@@ -1,3 +1,7 @@
+---
+import { LINKS } from "../links";
+---
+
 <section>
   <h2 class="bold-4xl">Deploy today</h2>
   <p class="regular-l sans-serif">
@@ -5,10 +9,8 @@
     your own via GitHub.
   </p>
   <div class="button-group">
-    <a class="button button-primary" href="https://outpost.hookdeck.com/docs"
-      >Docs -></a
-    >
-    <a class="button" href="https://github.com/hookdeck/outpost">Github -></a>
+    <a class="button button-primary" href={LINKS.docs}>Docs -></a>
+    <a class="button" href={LINKS.github}>Github -></a>
   </div>
 </section>
 
@@ -44,7 +46,7 @@
   .regular-l {
     color: var(--foreground-neutral-2);
   }
-  
+
   .button-group {
     display: flex;
     flex-direction: row;
