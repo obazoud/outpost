@@ -1,16 +1,16 @@
-# AWS SQS Setup Instructions
+# AWS SQS Configuration Instructions
 
 Basic setup instructions for aws sqs destination.
 
 ## Using AWS CLI
 
-(optional) Create a queue if one doesn't exist
+1. Create a queue if one doesn't exist (optional)
 
 ```sh
 $ aws sqs create-queue --queue-name QUEUENAME --region REGION
 ```
 
-Create a policy with necessary permissions
+2. Create a policy with necessary permissions
 
 ```sh
 $ aws iam create-policy --policy-name POLICYNAME --policy-document '{
@@ -27,26 +27,20 @@ $ aws iam create-policy --policy-name POLICYNAME --policy-document '{
 }'
 ```
 
-Create a user
+3. Create a user
 
 ```sh
 $ aws iam create-user --user-name USERNAME
 ```
 
-Attach the policy to the user
+4. Attach the policy to the user
 
 ```sh
 $ aws iam attach-user-policy --user-name USERNAME --policy-arn arn:aws:iam::ACCOUNTID:policy/POLICYNAME
 ```
 
-Create an access key
+5. Create an access key
 
 ```sh
 $ aws iam create-access-key --user-name USERNAME
-```
-
-Delete an access key
-
-```sh
-$ aws iam delete-access-key --user-name USERNAME --access-key-id ACCESSKEYID
 ```

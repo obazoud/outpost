@@ -61,16 +61,6 @@ const Destination = () => {
           </Link>{" "}
           <span className="subtitle-m">/</span>
           <span className="subtitle-m">{type?.label || "..."}</span>
-          <Routes>
-            <Route
-              path="/settings"
-              element={
-                <Button className="layout__header-breadcrumbs-button" minimal>
-                  <HelpIcon /> Configuration guidance
-                </Button>
-              }
-            />
-          </Routes>
         </div>
       </header>
       {!type || !destination ? (
@@ -196,6 +186,8 @@ const Destination = () => {
                       </li>
                     </ul>
                   </div>
+                  {/* 
+                  TODO: Uncomment when metrics are implemented
                   <div className="metrics-container">
                     <h2 className="title-l">Metrics</h2>
                     <div className="metrics-container__metrics">
@@ -206,7 +198,7 @@ const Destination = () => {
                         <div>[TODO]</div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </>
               }
             />

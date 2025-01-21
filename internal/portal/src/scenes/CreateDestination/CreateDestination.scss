@@ -1,6 +1,7 @@
 .create-destination {
   display: grid;
-  grid-template-columns: 272px 840px;
+  grid-template-columns: 272px 1fr;
+  width: 100%;
   gap: 132px;
   padding-top: calc(var(--base-grid-multiplier) * 18);
   margin: 0 auto;

@@ -4,8 +4,10 @@ import {
   DestinationTypeReference,
 } from "../../typings/Destination";
 import "./DestinationConfigFields.scss";
-import { EditIcon } from "../Icons";
+import { EditIcon, HelpIcon } from "../Icons";
 import Tooltip from "../Tooltip/Tooltip";
+import Button from "../Button/Button";
+import ConfigurationModal from "../ConfigurationModal/ConfigurationModal";
 
 const DestinationConfigFields = ({
   destination,
@@ -20,6 +22,7 @@ const DestinationConfigFields = ({
   const [lastUnlockedField, setLastUnlockedField] = useState<string | null>(
     null
   );
+  const [showConfigModal, setShowConfigModal] = useState(false);
 
   const inputRefs = useRef<Record<string, HTMLInputElement>>({});
 
@@ -43,6 +46,15 @@ const DestinationConfigFields = ({
 
   return (
     <>
+      {type.instructions && (
+        <Button
+          onClick={() => setShowConfigModal(!showConfigModal)}
+          className="config-guide-button"
+        >
+          <HelpIcon />
+          Configuration Guide
+        </Button>
+      )}
       {[...type.config_fields, ...type.credential_fields].map((field) => (
         <div key={field.key} className="destination-config-field">
           <label htmlFor={field.key}>
@@ -58,7 +70,7 @@ const DestinationConfigFields = ({
                 type={
                   "sensitive" in field && field.sensitive ? "password" : "text"
                 }
-                placeholder={''}
+                placeholder={""}
                 id={field.key}
                 name={field.key}
                 defaultValue={
@@ -110,6 +122,13 @@ const DestinationConfigFields = ({
           )}
         </div>
       ))}
+
+      {showConfigModal && (
+        <ConfigurationModal
+          type={type}
+          onClose={() => setShowConfigModal(false)}
+        />
+      )}
     </>
   );
 };
