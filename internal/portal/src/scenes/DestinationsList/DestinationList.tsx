@@ -5,15 +5,16 @@ import useSWR from "swr";
 
 import Badge from "../../common/Badge/Badge";
 import Button from "../../common/Button/Button";
+import { Checkbox } from "../../common/Checkbox/Checkbox";
+import Dropdown from "../../common/Dropdown/Dropdown";
 import { AddIcon, FilterIcon, Loading } from "../../common/Icons";
 import SearchInput from "../../common/SearchInput/SearchInput";
 import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
-import { useDestinationTypes } from "../../destination-types";
 import CONFIGS from "../../config";
+import { useDestinationTypes } from "../../destination-types";
 import { Destination } from "../../typings/Destination";
-import Dropdown from "../../common/Dropdown/Dropdown";
-import { Checkbox } from "../../common/Checkbox/Checkbox";
+import getLogo from "../../utils/logo";
 
 const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
@@ -129,21 +130,23 @@ const DestinationList: React.FC = () => {
       link: `/destinations/${destination.id}`,
     })) || [];
 
+  const logo = getLogo();
+
   return (
     <>
       <header className="layout__header">
         <a href="/">
-          {CONFIGS.LOGO ? (
-            CONFIGS.LOGO.indexOf("http") === 0 ? (
+          {logo ? (
+            logo.indexOf("http") === 0 ? (
               <img
                 className="layout__header-logo"
-                src={CONFIGS.LOGO}
+                src={logo}
                 alt={CONFIGS.ORGANIZATION_NAME}
               />
             ) : (
               <div
                 className="layout__header-logo"
-                dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
+                dangerouslySetInnerHTML={{ __html: logo }}
               />
             )
           ) : null}

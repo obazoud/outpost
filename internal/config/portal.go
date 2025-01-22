@@ -13,6 +13,7 @@ type PortalConfig struct {
 	FaviconURL             string `yaml:"favicon_url" env:"PORTAL_FAVICON_URL"`
 	BrandColor             string `yaml:"brand_color" env:"PORTAL_BRAND_COLOR"`
 	Logo                   string `yaml:"logo" env:"PORTAL_LOGO"`
+	LogoDark               string `yaml:"logo_dark" env:"PORTAL_LOGO_DARK"`
 	OrgName                string `yaml:"org_name" env:"PORTAL_ORGANIZATION_NAME"`
 	ForceTheme             string `yaml:"force_theme" env:"PORTAL_FORCE_THEME"`
 	DisableOutpostBranding bool   `yaml:"disable_outpost_branding" env:"PORTAL_DISABLE_OUTPOST_BRANDING"`
@@ -28,6 +29,7 @@ func (c *Config) GetPortalConfig() portal.PortalConfig {
 			"FAVICON_URL":              c.Portal.FaviconURL,
 			"BRAND_COLOR":              c.Portal.BrandColor,
 			"LOGO":                     c.Portal.Logo,
+			"LOGO_DARK":                c.Portal.LogoDark,
 			"ORGANIZATION_NAME":        c.Portal.OrgName,
 			"FORCE_THEME":              c.Portal.ForceTheme,
 			"TOPICS":                   strings.Join(c.Topics, ","),

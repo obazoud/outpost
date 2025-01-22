@@ -1,19 +1,20 @@
-import { useParams, Link, useLocation, Route, Routes } from "react-router-dom";
-import useSWR from "swr";
-import { CopyButton } from "../../common/CopyButton/CopyButton";
-import { useDestinationType } from "../../destination-types";
-
 import "./Destination.scss";
+
+import { Link, Route, Routes, useLocation, useParams } from "react-router-dom";
+import useSWR from "swr";
+
 import Badge from "../../common/Badge/Badge";
+import { CopyButton } from "../../common/CopyButton/CopyButton";
+import { Loading } from "../../common/Icons";
 import CONFIGS from "../../config";
-import DestinationSettings from "./DestinationSettings/DestinationSettings";
-import Events from "./Events/Events";
-import { HelpIcon, Loading } from "../../common/Icons";
+import { useDestinationType } from "../../destination-types";
 import {
   Destination as DestinationType,
   DestinationTypeReference,
 } from "../../typings/Destination";
-import Button from "../../common/Button/Button";
+import getLogo from "../../utils/logo";
+import DestinationSettings from "./DestinationSettings/DestinationSettings";
+import Events from "./Events/Events";
 
 // Define the tab interface
 interface Tab {
@@ -36,21 +37,23 @@ const Destination = () => {
   );
   const type = useDestinationType(destination?.type);
 
+  const logo = getLogo();
+
   return (
     <>
       <header className="layout__header">
         <a href="/">
-          {CONFIGS.LOGO ? (
-            CONFIGS.LOGO.indexOf("http") === 0 ? (
+          {logo ? (
+            logo.indexOf("http") === 0 ? (
               <img
                 className="layout__header-logo"
-                src={CONFIGS.LOGO}
+                src={logo}
                 alt={CONFIGS.ORGANIZATION_NAME}
               />
             ) : (
               <div
                 className="layout__header-logo"
-                dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
+                dangerouslySetInnerHTML={{ __html: logo }}
               />
             )
           ) : null}
