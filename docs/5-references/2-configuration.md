@@ -86,6 +86,7 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `PORTAL_LOGO`                                    | `nil`                                   | No                                                                 |
 | `PORTAL_FORCE_THEME`                             | `nil`                                   | No                                                                 |
 | `PORTAL_ACCENT_COLOR`                            | `nil`                                   | No                                                                 |
+| `PORTAL_BRAND_COLOR`                             | `nil`                                   | No                                                                 |
 | `PORTAL_OUTPOST_BRANDING`                        | `true`                                  | No                                                                 |
 |                                                  |                                         |                                                                    |
 | `DISABLE_TELEMETRY`                              | `false`                                 | Yes                                                                |
