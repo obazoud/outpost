@@ -11,6 +11,7 @@ type PortalConfig struct {
 	ProxyURL               string `yaml:"proxy_url" env:"PORTAL_PROXY_URL"`
 	RefererURL             string `yaml:"referer_url" env:"PORTAL_REFERER_URL"`
 	FaviconURL             string `yaml:"favicon_url" env:"PORTAL_FAVICON_URL"`
+	BrandColor             string `yaml:"brand_color" env:"PORTAL_BRAND_COLOR"`
 	Logo                   string `yaml:"logo" env:"PORTAL_LOGO"`
 	OrgName                string `yaml:"org_name" env:"PORTAL_ORGANIZATION_NAME"`
 	ForceTheme             string `yaml:"force_theme" env:"PORTAL_FORCE_THEME"`
@@ -25,6 +26,7 @@ func (c *Config) GetPortalConfig() portal.PortalConfig {
 			"PROXY_URL":                c.Portal.ProxyURL,
 			"REFERER_URL":              c.Portal.RefererURL,
 			"FAVICON_URL":              c.Portal.FaviconURL,
+			"BRAND_COLOR":              c.Portal.BrandColor,
 			"LOGO":                     c.Portal.Logo,
 			"ORGANIZATION_NAME":        c.Portal.OrgName,
 			"FORCE_THEME":              c.Portal.ForceTheme,

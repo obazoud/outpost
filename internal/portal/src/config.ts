@@ -8,6 +8,7 @@ const CONFIGS =
     TOPICS: string;
     DISABLE_OUTPOST_BRANDING: string;
     DISABLE_TELEMETRY: boolean;
+    BRAND_COLOR: string;
   }) || {};
 
 export default CONFIGS;
