@@ -1,2 +1,0 @@
-# Quickstart: Outpost with Localstack
-

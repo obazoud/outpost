@@ -8,8 +8,9 @@ Outpost has minimal dependencies (Redis, Clickhouse and one of the support messa
 
 ## Get Started
 
-- [Outpost with RabbitMQ quickstart](1-get-started/1-rabbitmq.md)
-- [Outpost with Localstack (for AWS) quickstart](1-get-started/2-localstack.md)
+Follow the quickstart and run Outpost with either RabbitMQ or SQS via LocalStack:
+
+- [Try the Outpost quickstart &rarr;](1-get-started/)
 
 ## Overview
 

@@ -140,8 +140,6 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 ## Documentation
 
 - [Get Started](docs/1-get-started/)
-    - [Outpost with RabbitMQ quickstart](docs/1-get-started/1-rabbitmq.md)
-    - [Outpost with Localstack quickstart](docs/1-get-started/2-localstack.md) (for AWS)
 - [Overview](docs/2-overview/)
 - [Features](docs/3-features/)
 - [Guides](docs/4-guides/)
