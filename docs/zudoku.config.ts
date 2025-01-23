@@ -2,7 +2,8 @@ import type { ZudokuConfig } from "zudoku";
 
 const config: ZudokuConfig = {
   redirects: [
-    {from: "/", to: "/docs"}
+    {from: "/", to: "/docs"},
+    {from: "/docs/guides", to: "/docs/guides/deployment"},
   ],
   page: {
     pageTitle: "",
@@ -17,7 +18,8 @@ const config: ZudokuConfig = {
   },
   topNavigation: [
     { id: "docs", label: "Documentation", default: "docs" },
-    { id: "docs/api", label: "API Reference" },
+    // { id: "docs/api", label: "API Reference" },
+    // { id: "/", label: "Website" },
   ],
   sidebar: {
     docs: [
@@ -41,11 +43,11 @@ const config: ZudokuConfig = {
         label: "Features",
         id: "docs/features",
       },
-      {
-        type: "doc",
-        label: "Configuration",
-        id: "docs/configuration",
-      },
+      // {
+      //   type: "doc",
+      //   label: "Configuration",
+      //   id: "docs/configuration",
+      // },
       {
         type: "category",
         label: "Guides",
@@ -61,6 +63,24 @@ const config: ZudokuConfig = {
             type: "doc",
             label: "Dashboard Design",
             id: "docs/guides/dashboard-design",
+          },
+        ],
+      },
+      {
+        type: "category",
+        label: "References",
+        collapsed: false,
+        collapsible: false,
+        items: [
+          {
+            type: "doc",
+            label: "Configuration",
+            id: "docs/references/configuration",
+          },
+          {
+            type: "doc",
+            label: "API",
+            id: "docs/references/api",
           },
         ],
       },
