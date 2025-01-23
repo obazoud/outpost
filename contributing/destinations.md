@@ -8,7 +8,7 @@ There are a few helper Go scripts to help with the development process of variou
 
 > We currently only support AWS SQS destination.
 
-To test AWS SQS destination locally, you can use [localstack](https://github.com/localstack/localstack) which is a fully functional local AWS cloud stack. You can run the Docker image using the MQs Docker Compose file in this project.
+To test AWS SQS destination locally, you can use [LocalStack](https://github.com/localstack/localstack) which is a fully functional local AWS cloud stack. You can run the Docker image using the MQs Docker Compose file in this project.
 
 ```sh
 $ cd build/dev/mqs
