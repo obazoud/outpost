@@ -1,7 +1,7 @@
 import type { ZudokuConfig } from "zudoku";
 
 const config: ZudokuConfig = {
-  basePath: "/",
+  basePath: "/docs",
   redirects: [
     {from: "/", to: "/overview"},
     {from: "/guides", to: "/guides/deployment"},
