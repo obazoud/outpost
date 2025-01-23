@@ -139,13 +139,13 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 
 ## Documentation
 
-- [Get Started](docs/1-get-started/)
-- [Overview](docs/2-overview/)
-- [Features](docs/3-features/)
-- [Guides](docs/4-guides/)
-- [References](docs/5-references/)
-    - [API Reference](docs/5-references/1-api.md)
-    - [Configuration Reference](docs/5-references/2-configuration.md)
+- [Get Started](docs/pages/docs/quickstart.mdx)
+- [Overview](docs/pages/docs/overview.mdx)
+- [Features](docs/pages/docs/features.mdx)
+- [Guides](docs/pages/docs//guides/)
+- References
+    - [API Reference](docs/apis/openapi.yaml)
+    - [Configuration Reference](docs/pages/docs/configuration.mdx)
 
 ## Contributing
 

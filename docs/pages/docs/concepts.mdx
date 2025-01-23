@@ -1,23 +1,13 @@
-# Outpost Overview
+---
+title: "Outpost Concepts"
+---
 
-- [What is Outpost](#what-is-outpost)
-- [Concepts](#concepts)
-    - Tenants
-    - Destinations
-    - Events
-    - Topics
-- [Architecture](#architecture)
-- [Runtime Requirements](#runtime-requirements)
-- [Benchmarks](#benchmarks)
+## Models
 
-## What is Outpost?
-
-TODO
-
-
-## Concepts
-
-TODO
+- Tenants
+- Destinations
+- Events
+- Topics
 
 ## Architecture
 
@@ -27,7 +17,7 @@ Outpost is deployed with three services:
 - **Delivery Service**: is responsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.
 - **Log Service**: enables storing and retrieving events, their status, and their responses.
 
-![Outpost Architecture](images/architecture.png)
+![Outpost Architecture](/images/architecture.png)
 
 ## Runtime Requirements
 
