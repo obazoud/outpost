@@ -1,7 +1,7 @@
 import type { ZudokuConfig } from "zudoku";
 
 const config: ZudokuConfig = {
-  basePath: "/docs",
+  basePath: "/",
   redirects: [
     {from: "/", to: "/overview"},
     {from: "/guides", to: "/guides/deployment"},
@@ -89,7 +89,6 @@ const config: ZudokuConfig = {
     ],
   },
 
-  // redirects: [{ from: "/", to: "/docs/introduction" }],
   apis: {
     type: "file",
     input: "./apis/openapi.yaml",
