@@ -4,6 +4,7 @@ const config: ZudokuConfig = {
   redirects: [
     {from: "/", to: "/docs"},
     {from: "/docs/guides", to: "/docs/guides/deployment"},
+    {from: "/docs/references", to: "/docs/references/api"},
   ],
   page: {
     pageTitle: "",

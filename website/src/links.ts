@@ -2,12 +2,12 @@ const GITHUB = "https://github.com/hookdeck/outpost";
 
 export const LINKS = {
   github: GITHUB,
-  docs: `${GITHUB}/tree/main/docs`,
-  docs_quickstarts: `${GITHUB}/tree/main/docs/1-get-started`,
-  docs_overview: `${GITHUB}/tree/main/docs/2-overview`,
-  docs_features: `${GITHUB}/tree/main/docs/3-features`,
-  docs_guides: `${GITHUB}/tree/main/docs/4-guides`,
-  docs_references: `${GITHUB}/tree/main/docs/5-references`,
+  docs: `/docs`,
+  docs_quickstarts: `/docs/quickstart`,
+  docs_concepts: `/docs`,
+  docs_features: `/docs/features`,
+  docs_guides: `/docs/guides`,
+  docs_references: `/docs/references`,
   issues: `${GITHUB}/issues`,
   releases: `${GITHUB}/releases`,
   contribute: `${GITHUB}/blob/main/CONTRIBUTING.md`,
