@@ -2,6 +2,14 @@ import type { ZudokuConfig } from "zudoku";
 
 const config: ZudokuConfig = {
   basePath: "/docs",
+  metadata: {
+    title: "Outpost Documentation",
+    description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, AWS SQS, RabbitMQ, Kafka, and more.",
+    generator: "Zudoku",
+    applicationName: "Outpost Documentation",
+    keywords: ["outpost", "event destinations", "webhooks", "event delivery", "webhook delivery"],
+    publisher: "Hookdeck Technologies Inc."
+  },
   redirects: [
     {from: "/", to: "/overview"},
     {from: "/guides", to: "/guides/deployment"},
@@ -12,16 +20,14 @@ const config: ZudokuConfig = {
     logoUrl: "/",
     logo: {
       src: {
-        light: "/logo/outpost-logo-black.svg",
-        dark: "/logo/outpost-logo-white.svg"
+        light: "logo/outpost-logo-black.svg",
+        dark: "logo/outpost-logo-white.svg"
       },
       width: "110px",
     }
   },
   topNavigation: [
     { id: "docs", label: "Documentation", default: "overview" },
-    // { id: "docs/api", label: "API Reference" },
-    // { id: "/", label: "Website" },
   ],
   sidebar: {
     docs: [
@@ -45,11 +51,6 @@ const config: ZudokuConfig = {
         label: "Features",
         id: "features",
       },
-      // {
-      //   type: "doc",
-      //   label: "Configuration",
-      //   id: "docs/configuration",
-      // },
       {
         type: "category",
         label: "Guides",
