@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/docs",
+      "destination": "https://outpost-docs.vercel.app/docs"
+    }
+  ]
+}
