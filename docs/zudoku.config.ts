@@ -1,10 +1,11 @@
 import type { ZudokuConfig } from "zudoku";
 
 const config: ZudokuConfig = {
+  basePath: "/docs",
   redirects: [
-    {from: "/", to: "/docs"},
-    {from: "/docs/guides", to: "/docs/guides/deployment"},
-    {from: "/docs/references", to: "/docs/references/api"},
+    {from: "/", to: "/overview"},
+    {from: "/guides", to: "/guides/deployment"},
+    {from: "/references", to: "/references/api"},
   ],
   page: {
     pageTitle: "",
@@ -18,7 +19,7 @@ const config: ZudokuConfig = {
     }
   },
   topNavigation: [
-    { id: "docs", label: "Documentation", default: "docs" },
+    { id: "docs", label: "Documentation", default: "overview" },
     // { id: "docs/api", label: "API Reference" },
     // { id: "/", label: "Website" },
   ],
@@ -27,22 +28,22 @@ const config: ZudokuConfig = {
       {
         type: "doc",
         label: "Overview",
-        id: "docs",
+        id: "overview",
       },
       {
         type: "doc",
         label: "Quickstart",
-        id: "docs/quickstart",
+        id: "quickstart",
       },
       {
         type: "doc",
         label: "Concepts",
-        id: "docs/concepts",
+        id: "concepts",
       },
       {
         type: "doc",
         label: "Features",
-        id: "docs/features",
+        id: "features",
       },
       // {
       //   type: "doc",
@@ -58,12 +59,12 @@ const config: ZudokuConfig = {
           {
             type: "doc",
             label: "Deployment",
-            id: "docs/guides/deployment",
+            id: "guides/deployment",
           },
           {
             type: "doc",
             label: "Dashboard Design",
-            id: "docs/guides/dashboard-design",
+            id: "guides/dashboard-design",
           },
         ],
       },
@@ -76,12 +77,12 @@ const config: ZudokuConfig = {
           {
             type: "doc",
             label: "Configuration",
-            id: "docs/references/configuration",
+            id: "references/configuration",
           },
           {
             type: "doc",
             label: "API",
-            id: "docs/references/api",
+            id: "references/api",
           },
         ],
       },
