@@ -4,11 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
 	"time"
 
+	"github.com/hookdeck/outpost/internal/alert"
 	"github.com/hookdeck/outpost/internal/models"
 	mqs "github.com/hookdeck/outpost/internal/mqs"
 	"github.com/hookdeck/outpost/internal/scheduler"
+	"github.com/stretchr/testify/mock"
 )
 
 // scheduleOptions mirrors the private type in scheduler package
@@ -19,6 +22,7 @@ type scheduleOptions struct {
 type mockPublisher struct {
 	responses []error
 	current   int
+	mu        sync.Mutex
 }
 
 func newMockPublisher(responses []error) *mockPublisher {
@@ -26,11 +30,23 @@ func newMockPublisher(responses []error) *mockPublisher {
 }
 
 func (m *mockPublisher) PublishEvent(ctx context.Context, destination *models.Destination, event *models.Event) error {
-	defer func() { m.current++ }()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if m.current >= len(m.responses) {
+		m.current++
 		return nil
 	}
-	return m.responses[m.current]
+
+	resp := m.responses[m.current]
+	m.current++
+	return resp
+}
+
+func (m *mockPublisher) Current() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.current
 }
 
 type mockDestinationGetter struct {
@@ -186,3 +202,21 @@ func (m *mockMessage) Data() []byte {
 }
 
 func (m *mockMessage) SetData([]byte) {}
+
+type mockAlertMonitor struct {
+	mock.Mock
+}
+
+func (m *mockAlertMonitor) HandleAttempt(ctx context.Context, attempt alert.DeliveryAttempt) error {
+	args := m.Called(ctx, attempt)
+	return args.Error(0)
+}
+
+func newMockAlertMonitor() *mockAlertMonitor {
+	monitor := &mockAlertMonitor{}
+	// Set up default expectation to handle any attempt
+	monitor.On("HandleAttempt", mock.Anything, mock.MatchedBy(func(attempt alert.DeliveryAttempt) bool {
+		return true // Accept any attempt
+	})).Return(nil)
+	return monitor
+}
