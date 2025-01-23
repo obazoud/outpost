@@ -3,7 +3,7 @@ import type { ZudokuConfig } from "zudoku";
 const config: ZudokuConfig = {
   basePath: "/docs",
   metadata: {
-    title: "Outpost Documentation",
+    title: "%s | Outpost",
     description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, AWS SQS, RabbitMQ, Kafka, and more.",
     generator: "Zudoku",
     applicationName: "Outpost Documentation",
@@ -20,8 +20,11 @@ const config: ZudokuConfig = {
     logoUrl: "/",
     logo: {
       src: {
-        light: "logo/outpost-logo-black.svg",
-        dark: "logo/outpost-logo-white.svg"
+        // TODO: Update once basePath is used by Zudoku
+        // light: "logo/outpost-logo-black.svg",
+        // dark: "logo/outpost-logo-white.svg"
+        light: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-black.svg",
+        dark: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-white.svg"
       },
       width: "110px",
     }
