@@ -8,7 +8,7 @@ The Outpost API supports creating multiple tenants on a single Outpost deploymen
 
 Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your `.env`:
 
-```sh
+"`sh
 curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <API_KEY>'
@@ -29,16 +29,16 @@ Define topics using the `TOPICS` environment variable. Topics determine:
 
 Subscriptions are represented by destination resources that define where events will be delivered to when an event is published on a given topic.
 
-Create destinations with the following request, replacing `<TENANT_ID>` and `<API_KEY>`. The `<TYPE>` must be one of the supported [event destination types](#event-destination-types) and the `<CONFIG>` contents will depend on event destination type.
+Create destinations with the following request, replacing `<TENANT_ID>` and `<API_KEY>`. The `<TYPE>` must be one of the supported [event destination types](#event-destination-types), and the `<CONFIG>` contents will depend on the event destination type.
 
-```sh
+"`sh
 curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <API_KEY>' \
 --data '{
-    "type": "<TYPE>",
-    "topics": ["*"],
-    "config": <CONFIG>
+ "type": "<TYPE>",
+ "topics": ["*"],
+ "config": <CONFIG>
 }'
 ```
 
@@ -49,17 +49,17 @@ curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <API_KEY>' \
 --data '{
-    "type": "webhook",
-    "topics": ["*"],
-    "config": {
-        "url": "https://example.test/webhooks"
-    }
+  "type": "webhook",
+  "topics": ["*"],
+  "config": {
+    "url": "https://example.test/webhooks"
+  }
 }'
 ```
 
 ### Event Destination Types
 
-Destinations must be asynchronous and not run any business logic to be eligible. Multiple “Event Gateways” and message buses are supported at release.
+Destinations must be asynchronous and not run any business logic. At release, multiple "Event Gateways" and message buses are supported.
 
 - Webhooks
 - Hookdeck Event Gateway
@@ -76,7 +76,7 @@ Destinations must be asynchronous and not run any business logic to be eligible.
 - Azure Service Bus
 - MQTT
 - Segment & other CDPs
-- Zapier & other no code tools
+- Zapier & other no-code tools
 - S3 API
 </details>
 
@@ -96,11 +96,11 @@ For example, for the `webhook` type:
   "remote_setup_url": null,
   "config_fields": [
     {
-      "type": "text",
-      "label": "URL",
-      "description": "The URL to send the event to",
-      "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
-      "required": true
+          "type": "text",
+          "label": "URL",
+          "description": "The URL to send the event to",
+          "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
+          "required": true
     }
   ],
   "credential_fields": []
@@ -113,11 +113,11 @@ Config fields are non-secret values that can be stored and displayed to the user
 
 `credential_fields` `Field[]` 
 
-Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated, it’s the destination type that dictated the obfuscation logic.
+Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
 
 `instructions` `string`
 
-Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The string is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository. 
+Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The value is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository. 
 
 `remote_setup_url`
 
@@ -144,10 +144,10 @@ The events need to follow the given structure:
   "tenant_id": "12345",
   "destination_id": "12345", // Optional. Used to force delivery to a specific destination
   "topic": "something.created", // Optional. Assumed to match ANY topic if left empty.
-  "eligible_for_retry": false // Optional, default to "false". Control if an event should be retried.
+  "eligible_for_retry": false, // Optional, default to "false". Control if an event should be retried.
   "time": "2024-06-01 08:23:36.082374Z", // ISO Timestamp of the event
   "metadata": { // Arbitrary key-value mapping for event
-    "key": "value" // String, number or boolean
+    "key": "value"// String, number or boolean
   },
   "data": { // Freeform JSON data
     "hello": "world"
@@ -157,7 +157,7 @@ The events need to follow the given structure:
 
 Each event (without a `destination_id`) is evaluated against all the registered destinations. An event is delivered and logged for each eligible destination. 
 
-The `metadata` is translated to the destination's native metadata, for instance, with Webhooks and HTTP headers. The published data will be the full event if the destination does not support metadata.
+The `metadata` is translated to the destination's native metadata, for instance, with Webhooks and HTTP headers. If the destination does not support metadata, the published data will be the full event.
 
 ### Event Fanout
 
@@ -181,7 +181,7 @@ Messages are guaranteed to be delivered at least once and never lost.
 
 ### Webhook Best Practices
 
-Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
+Webhook best practices, such as headers for idempotency, timestamp, signature, and signature rotation, are in place by default. You must explicitly opt-out of webhook best practices.
 
 ## User Alerts
 
@@ -189,14 +189,14 @@ Alerts are triggered when an event fails to deliver to a destination. The `ALERT
 
 Alerts support 2 types of triggers by consecutive failures or by failure rate. Destinations can be auto-disabled when the trigger is reached using the `ALERT_AUTO_DISABLE_DESTINATION` config.
 
-Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. The server does not respond with a 200 there will be an exponential backoff and log the failure. Authentication is handled using the Admin API Key via a bearer token.
+Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. The server does not respond with a `200` there will be an exponential backoff and log the failure. Authentication is handled using the Admin API Key via a bearer token.
 
-It’s your responsibility to format and deliver the alert to your tenant using your existing notification system.
+It's your responsibility to format and deliver the alert to your tenant using your existing notification system.
 
 <details>
 <summary>Future roadmap</summary>
 
-- Support publishing the event to a MQ instead of via a HTTP callback url
+- Support publishing the event to an MQ instead of via an HTTP callback url
 </details>
 
 ### Consecutive failure alerts
@@ -209,15 +209,15 @@ It’s your responsibility to format and deliver the alert to your tenant using 
   "timestamp": "2024-01-01T00:00:00Z",
   "data": {
     "max_consecutive_failures": 20,
-	  "consecutive_failures": 5,
-	  "will_disable": true,
-	  "destination": DestinationObject,
-	  "response": {
-	    "status": "500",
-	    "data": {
-	      "some": "value"
-	    }
-	  }
+    "consecutive_failures": 5,
+    "will_disable": true,
+    "destination": DestinationObject,
+    "response": {
+      "status": "500",
+      "data": {
+        "some": "value"
+      }
+    }
   }
 }
 ```
@@ -227,7 +227,6 @@ It’s your responsibility to format and deliver the alert to your tenant using 
 `ALERT_FAILURE_WINDOW_SECOND` and `ALERT_FAILURE_RATE` can also be used to configured alerts after certain failure rate for a certain amount of time. An alert notification will be triggered at 50%, 70%, 90% and 100% of the `ALERT_FAILURE_WINDOW_SECOND`. At 100% the destination will be disabled if the config is enabled.
 
 ```json
-
 {
   "topic": "alert.failure-rate",
   "timestamp": "2024-01-01T00:00:00Z",
@@ -236,14 +235,14 @@ It’s your responsibility to format and deliver the alert to your tenant using 
     "duration": 30,
     "max_failure_rate": 0.1,
     "failure_rate": 0.2,
-	  "will_disable": true,
-	  "destination": DestinationObject,
-	  "response": {
-	    "status": "500",
-	    "data": {
-	      "some": "value"
-	    }
-	  }
+    "will_disable": true,
+    "destination": DestinationObject,
+    "response": {
+      "status": "500",
+      "data": {
+        "some": "value"
+      }
+    }
   }
 }
 ```
@@ -259,23 +258,23 @@ The tenant can have an optional portal that lets them configure their destinatio
 
 The portal is accessed by generating a JWT from the `GET` `/:tenant_id/portal` endpoint, which returns a redirect URL with a JWT token in the URL. When the user is redirected, the JWT persists in their session storage and is used as the credential for the duration of the session.
 
-When the portal is used the API needs to be publicly exposed to the public internet.
+When the portal is used, the API needs to be publicly exposed to the public internet.
 
-The portal is a React SPA that’s distributed via the API.
+The portal is a React SPA that is distributed via the API.
 
 ### Theming
 
-The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be “forced” into a specific theme using the `PORTAL_FORCE_THEME` config.
+The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` config.
 
-Additionally the portal can be customized with a option logo either with a URL or base64 encoded 64.
+Additionally, the portal can be customized with an option logo either with a URL or base64 encoded 64.
 
 The `PORTAL_ACCENT_COLOR` can also be used to change the primary color.
 
 ### Required Config
 
-`PORTAL_REFERER_URL`  is used to redirect the user when the JWT token is expired on when the user clicks “back”
+`PORTAL_REFERER_URL` is used to redirect the user when the JWT token is expired or when the user clicks "back".
 
-`ORGANIZATION_NAME` is used to display the name of the organization deploying the portal
+`ORGANIZATION_NAME` is used to display the name of the organization deploying the portal.
 
 ### Design
 

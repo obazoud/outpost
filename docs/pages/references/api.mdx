@@ -171,9 +171,9 @@ Create a new destination type with the provided configuration.
     
 ```json
 {
-  "id": "123" // Optional, UUID will be generated if empty
-  "type": "webhooks" // String of valid destination type
-  "topics": "*" // '*' or String[] of enabled topics, "*" for all
+  "id": "123", // Optional, UUID will be generated if empty
+  "type": "webhooks", // String of valid destination type
+  "topics": "*", // '*' or String[] of enabled topics, "*" for all
   "config": { // Config object for the given type
     "url": "https://example.com/webhooks"
   },
@@ -185,7 +185,7 @@ Create a new destination type with the provided configuration.
     
 ```json
 {
-  "id": "des_12345" // ID of the destination
+  "id": "des_12345", // ID of the destination
   "type": "webhooks", // Type of the destination
   "topics": ["*"], // Topics of events this destination is eligible for
   "config": { // Destination type specific configuration. Schema of depends on type
@@ -216,7 +216,7 @@ Update the destination configuration.
 ```json
 {
   "type": "webhooks", // Optional. String of valid destination type
-  "topics": "*" // Optional. String[] of enabled topics, "*" for all
+  "topics": "*", // Optional. String[] of enabled topics, "*" for all
   "config": { // Optional. Config object for the given type
     "url": "https://example.com/webhooks"
   },
@@ -228,7 +228,7 @@ Update the destination configuration.
     
 ```json
 {
-  "id": "des_12345" // Control plane generated ID
+  "id": "des_12345", // Control plane generated ID
   "type": "webhooks", // Type of the destination
   "topics": "*", // Topics of events this destination is eligible for
   "config": { // Destination type specific configuration. Schema of depends on type
@@ -262,7 +262,7 @@ Empty body
     
 ```json
 {
-  "id": "des_12345" // Control plane generated ID
+  "id": "des_12345", // Control plane generated ID
   "type": "webhooks", // Type of the destination
   "topics": "*", // Topics of events this destination is eligible for
   "config": { // Destination type specific configuration. Schema of depends on type
@@ -334,7 +334,7 @@ Publish an event.
   "tenant_id": "<TENANT_ID>",
   "topic": "topic.name", // Topic defined in TOPICS environment variable
   "eligible_for_retry": true | false, // Should event delivery be retried
-  "metadata": Payload // can by any JSON payload,
+  "metadata": Payload, // can by any JSON payload,
   "data": Payload // can by any JSON payload
 }
 ```

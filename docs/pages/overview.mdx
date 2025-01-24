@@ -2,21 +2,21 @@
 title: "Outpost Documentation"
 ---
 
-Outpost is the first open source and self-hostable implementation of “Event Destinations” that enables delivery of your platform events directly to your user’s preferred event destinations. It supports destinations such Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, GCP Pub/Sub, AWS EventBridge, and Kafka.
+Outpost is the first open source and self-hostable implementation of “Event Destinations” that enables delivery of your platform events directly to your user's preferred event destinations. It supports destinations such Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, GCP Pub/Sub, AWS EventBridge, and Kafka.
 
-Outpost is built and maintained by [Hookdeck](https://hookdeck.com?ref=github-outpost). It’s written in Golang and distributed as a binary and Docker container under the Apache-2.0 license.
+Outpost is built and maintained by [Hookdeck](https://hookdeck.com?ref=github-outpost). It's written in Golang and distributed as a binary and Docker container under the Apache-2.0 license.
 
-Outpost has minimal dependencies (Redis, Clickhouse and one of the support message bus), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low-cost operation.
+Outpost has minimal dependencies (Redis, Clickhouse and one of the supported message queues), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low-cost operation.
 
 ## Get Started
 
 Follow the quickstart and run Outpost with either RabbitMQ or SQS via LocalStack:
 
-- [Try the Outpost quickstart &rarr;](/docs/quickstart)
+[Try the Outpost quickstart &rarr;](/docs/quickstart)
 
 ## Concepts
 
-Explore the Outpost core concepts, architecture, and see the benchmark results.
+Explore the Outpost core concepts, architecture, and see the benchmark results (coming soon).
 
 [Learn more &rarr;](/docs/concepts)
 
@@ -30,16 +30,15 @@ Outpost supports features required to provide a best-in-class event destinations
 - Destination connection instructions & authentication flows
 - Event topics and topics-based subscriptions
 - Automatic retries with exponential back-off
+- User portal to configure and manage destinations, and inspect events
 - Manual retries via Portal or API
+- Ability to view and list events, including request and responses
 - Multi-tenant support
 - Alerts for failing destinations with debouncing
 - Auto-disabling of failed destinations after too many failures
-- Ability to view and list events, including request and responses
-- User portal to configure destinations & inspect events
 - Opt-out webhook best practices, such as headers for idempotency, timestamp and signature
-- Webhook signature secret rotation
-- Webhook signature format compatibility and “bring your own secrets”
-- OpenTelemetry for essential performance metric observability
+- Webhook signature secret rotation, format compatibility, and “bring your own secrets”
+- OpenTelemetry for performance metric observability
 - Event cross-system referencing for supported destinations to display status, metadata and deep linking
 
 [Learn more &rarr;](/docs/features)
@@ -50,5 +49,5 @@ Outpost supports features required to provide a best-in-class event destinations
 
 ## References
 
-- [API Reference](/references/api)
-- [Configuration Reference](/references/configuration)
+- [API Reference](/docs/referendes/api)
+- [Configuration Reference](/docs/references/configuration)
