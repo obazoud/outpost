@@ -8,7 +8,7 @@ The Outpost API supports creating multiple tenants on a single Outpost deploymen
 
 Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your `.env`:
 
-"`sh
+```sh
 curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <API_KEY>'
@@ -31,7 +31,7 @@ Subscriptions are represented by destination resources that define where events 
 
 Create destinations with the following request, replacing `<TENANT_ID>` and `<API_KEY>`. The `<TYPE>` must be one of the supported [event destination types](#event-destination-types), and the `<CONFIG>` contents will depend on the event destination type.
 
-"`sh
+```sh
 curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer <API_KEY>' \
