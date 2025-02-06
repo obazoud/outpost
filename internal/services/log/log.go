@@ -3,7 +3,6 @@ package log
 import (
 	"context"
 	"errors"
-	"log"
 	"sync"
 	"time"
 
@@ -24,6 +23,7 @@ type consumerOptions struct {
 }
 
 type LogService struct {
+	cleanupFuncs    []func(context.Context, *logging.LoggerWithCtx)
 	consumerOptions *consumerOptions
 	logger          *logging.Logger
 	redisClient     *redis.Client
@@ -38,6 +38,7 @@ func NewService(ctx context.Context,
 	handler consumer.MessageHandler,
 ) (*LogService, error) {
 	wg.Add(1)
+	var cleanupFuncs []func(context.Context, *logging.LoggerWithCtx)
 
 	redisClient, err := redis.New(ctx, cfg.Redis.ToConfig())
 	if err != nil {
@@ -63,6 +64,14 @@ func NewService(ctx context.Context,
 
 		handler = logmq.NewMessageHandler(logger, &handlerBatcherImpl{batcher: batcher})
 	}
+	cleanupFuncs = append(cleanupFuncs, func(ctx context.Context, logger *logging.LoggerWithCtx) {
+		if eventBatcher != nil {
+			eventBatcher.Shutdown()
+		}
+		if deliveryBatcher != nil {
+			deliveryBatcher.Shutdown()
+		}
+	})
 
 	service := &LogService{}
 	service.logger = logger
@@ -76,13 +85,9 @@ func NewService(ctx context.Context,
 	go func() {
 		defer wg.Done()
 		<-ctx.Done()
-		if eventBatcher != nil {
-			eventBatcher.Shutdown()
-		}
-		if deliveryBatcher != nil {
-			deliveryBatcher.Shutdown()
-		}
-		logger.Ctx(ctx).Info("service shutdown", zap.String("service", "log"))
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		service.Shutdown(shutdownCtx)
 	}()
 
 	return service, nil
@@ -94,7 +99,7 @@ func (s *LogService) Run(ctx context.Context) error {
 
 	subscription, err := s.logMQ.Subscribe(ctx)
 	if err != nil {
-		logger.Error("failed to susbcribe to log events", zap.Error(err))
+		logger.Error("failed to susbcribe to logmq", zap.Error(err))
 		return err
 	}
 
@@ -103,9 +108,19 @@ func (s *LogService) Run(ctx context.Context) error {
 		consumer.WithName("logmq"),
 	)
 	if err := csm.Run(ctx); !errors.Is(err, ctx.Err()) {
+		logger.Error("failed to run logmq consumer", zap.Error(err))
 		return err
 	}
 	return nil
+}
+
+func (s *LogService) Shutdown(ctx context.Context) {
+	logger := s.logger.Ctx(ctx)
+	logger.Info("service shutting down", zap.String("service", "log"))
+	for _, cleanupFunc := range s.cleanupFuncs {
+		cleanupFunc(ctx, &logger)
+	}
+	logger.Info("service shutdown", zap.String("service", "log"))
 }
 
 type batcherConfig struct {
@@ -120,7 +135,8 @@ func makeBatcher(ctx context.Context, logger *logging.Logger, logStore models.Lo
 		DelayThreshold:      batcherCfg.DelayThreshold,
 		NumGoroutines:       1,
 		Processor: func(_ string, msgs []*mqs.Message) {
-			logger.Ctx(ctx).Info("log batcher processor", zap.Int("msgs", len(msgs)))
+			logger := logger.Ctx(ctx)
+			logger.Info("processing batch", zap.Int("message_count", len(msgs)))
 
 			nackAll := func() {
 				for _, msg := range msgs {
@@ -132,9 +148,11 @@ func makeBatcher(ctx context.Context, logger *logging.Logger, logStore models.Lo
 			for _, msg := range msgs {
 				deliveryEvent := models.DeliveryEvent{}
 				if err := deliveryEvent.FromMessage(msg); err != nil {
-					// TODO: handle error
-					log.Println("deliveryEvent.FromMessage err", err)
-					nackAll() // TODO: handle individual nack
+					// TODO: consider nacking this individual message only
+					logger.Error("failed to parse delivery event",
+						zap.Error(err),
+						zap.String("message_id", msg.LoggableID))
+					nackAll()
 					return
 				}
 				deliveryEvents = append(deliveryEvents, &deliveryEvent)
@@ -153,8 +171,9 @@ func makeBatcher(ctx context.Context, logger *logging.Logger, logStore models.Lo
 
 			err := logStore.InsertManyEvent(ctx, uniqueEvents)
 			if err != nil {
-				// TODO: error handle
-				log.Println("logStore.InsertManyEvent err", err)
+				logger.Error("failed to insert events",
+					zap.Error(err),
+					zap.Int("event_count", len(uniqueEvents)))
 				nackAll()
 				return
 			}
@@ -172,11 +191,17 @@ func makeBatcher(ctx context.Context, logger *logging.Logger, logStore models.Lo
 
 			err = logStore.InsertManyDelivery(ctx, uniqueDeliveries)
 			if err != nil {
-				// TODO: error handle
-				log.Println("logStore.InsertManyDelivery err", err)
+				logger.Error("failed to insert deliveries",
+					zap.Error(err),
+					zap.Int("delivery_count", len(uniqueDeliveries)))
 				nackAll()
 				return
 			}
+
+			logger.Info("batch processed successfully",
+				zap.Int("message_count", len(msgs)),
+				zap.Int("unique_events", len(uniqueEvents)),
+				zap.Int("unique_deliveries", len(uniqueDeliveries)))
 
 			for _, msg := range msgs {
 				msg.Ack()
@@ -184,7 +209,7 @@ func makeBatcher(ctx context.Context, logger *logging.Logger, logStore models.Lo
 		},
 	})
 	if err != nil {
-		log.Println(err)
+		logger.Ctx(ctx).Error("failed to create batcher", zap.Error(err))
 		return nil, err
 	}
 	return b, nil
