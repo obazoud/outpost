@@ -12,11 +12,11 @@ import (
 	"github.com/hookdeck/outpost/internal/consumer"
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/idempotence"
+	"github.com/hookdeck/outpost/internal/logging"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/hookdeck/outpost/internal/redis"
 	"github.com/hookdeck/outpost/internal/scheduler"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -68,7 +68,7 @@ func (e *PostDeliveryError) Unwrap() error {
 
 type messageHandler struct {
 	eventTracer    DeliveryTracer
-	logger         *otelzap.Logger
+	logger         *logging.Logger
 	logMQ          LogPublisher
 	entityStore    DestinationGetter
 	logStore       EventGetter
@@ -110,7 +110,7 @@ type AlertMonitor interface {
 }
 
 func NewMessageHandler(
-	logger *otelzap.Logger,
+	logger *logging.Logger,
 	redisClient *redis.Client,
 	logMQ LogPublisher,
 	entityStore DestinationGetter,
@@ -218,6 +218,8 @@ func (h *messageHandler) hasDeliveryError(err error) bool {
 }
 
 func (h *messageHandler) logDeliveryResult(ctx context.Context, deliveryEvent *models.DeliveryEvent, destination *models.Destination, err error) error {
+	logger := h.logger.Ctx(ctx)
+
 	// Set up delivery record
 	deliveryEvent.Delivery = &models.Delivery{
 		ID:              uuid.New().String(),
@@ -234,9 +236,16 @@ func (h *messageHandler) logDeliveryResult(ctx context.Context, deliveryEvent *m
 		deliveryEvent.Delivery.Status = models.DeliveryStatusOK
 	}
 
+	logger.Audit("event delivered",
+		zap.String("delivery_event", deliveryEvent.ID),
+		zap.String("destination_id", deliveryEvent.DestinationID),
+		zap.String("event_id", deliveryEvent.Event.ID),
+		zap.String("status", deliveryEvent.Delivery.Status),
+	)
+
 	// Publish delivery log
 	if logErr := h.logMQ.Publish(ctx, *deliveryEvent); logErr != nil {
-		h.logger.Ctx(ctx).Error("failed to publish delivery log", zap.Error(logErr))
+		logger.Error("failed to publish delivery log", zap.Error(logErr))
 		if err != nil {
 			return &PostDeliveryError{err: errors.Join(err, logErr)}
 		}
