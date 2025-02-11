@@ -4,10 +4,10 @@ const config: ZudokuConfig = {
   basePath: "/docs",
   metadata: {
     title: "%s | Outpost",
-    description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, AWS SQS, RabbitMQ, Kafka, and more.",
+    description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, and more.",
     generator: "Zudoku",
     applicationName: "Outpost Documentation",
-    keywords: ["outpost", "event destinations", "webhooks", "event delivery", "webhook delivery"],
+    keywords: ["outpost", "event destinations", "webhooks", "send webhooks", "event delivery", "webhook delivery"],
     publisher: "Hookdeck Technologies Inc."
   },
   redirects: [
