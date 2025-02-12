@@ -9,6 +9,11 @@
 
 <br>
 
+> [!WARNING]  
+> This project is currently in ALPHA. Features and documentation are subject to change.
+
+<br>
+
 <div align="center">
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](#license)
@@ -27,8 +32,8 @@
 [Report a bug](issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%F0%9F%90%9B+Bug+Report%3A+)
 ·
 [Request a feature](issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+)
-·
-[Join our Slack](https://hookdeck.com/slack?ref=github-outpost)
+<!-- ·
+[Join our Slack](https://hookdeck.com/slack?ref=github-outpost) -->
 
 </div>
 
@@ -139,13 +144,13 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 
 ## Documentation
 
-- [Get Started](docs/pages/docs/quickstart.mdx)
-- [Overview](docs/pages/docs/overview.mdx)
-- [Features](docs/pages/docs/features.mdx)
-- [Guides](docs/pages/docs//guides/)
+- [Get Started](docs/pages/quickstart.mdx)
+- [Overview](docs/pages/overview.mdx)
+- [Features](docs/pages/features.mdx)
+- [Guides](docs/pages/guides/)
 - References
-    - [API Reference](docs/apis/openapi.yaml)
-    - [Configuration Reference](docs/pages/docs/configuration.mdx)
+    - [API Reference](docs/pages/references/api.mdx)
+    - [Configuration Reference](docs/pages/references/configuration.mdx)
 
 ## Contributing
 
