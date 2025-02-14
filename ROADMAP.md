@@ -12,34 +12,26 @@
 
 ### Publish Message Queues
 
-- :white_check_mark: AWS SQS
+- [:white_check_mark: AWS SQS](https://github.com/hookdeck/outpost/issues/145)
 - [:construction: RabbitMQ](https://github.com/hookdeck/outpost/issues/112)
-- :construction: Hookdeck
-- :x: GCP Pub/Sub
-- :x: Azure EventBus
 
 ### Destination Types
 
-- :white_check_mark: Webhooks
-- :white_check_mark: AWS SQS
+- [:white_check_mark: Webhooks](https://github.com/hookdeck/outpost/issues/106)
+- [:white_check_mark: AWS SQS](https://github.com/hookdeck/outpost/issues/135)
 - [:construction: RabbitMQ](https://github.com/hookdeck/outpost/issues/134)
-- :x: GCP PubSub
-- :x: Azure EventBus
+- [:construction: Hookdeck Event Gateway](https://github.com/hookdeck/outpost/issues/136)
 
 ## BETA
 
 ### Publish Message Queues
 
-- :white_check_mark: AWS SQS
-- [:construction: RabbitMQ](https://github.com/hookdeck/outpost/issues/112)
-- :construction: Hookdeck
-- :x: GCP Pub/Sub
-- https://github.com/hookdeck/outpost/issues/139
+- [:x: GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/138)
+- [:x: Azure EventBus](https://github.com/hookdeck/outpost/issues/139)
 
 ### Destination Types
 
-- :white_check_mark: Webhooks
-- :white_check_mark: AWS SQS
-- [:construction: RabbitMQ](https://github.com/hookdeck/outpost/issues/134)
-- :x: GCP PubSub
-- :x: Azure EventBus
+- [:x: GCP PubSub](https://github.com/hookdeck/outpost/issues/140)
+- [:x: Azure EventBus](https://github.com/hookdeck/outpost/issues/241)
+- [:x: Amazon EventBridge](https://github.com/hookdeck/outpost/issues/201)
+- [:x: Kafka](https://github.com/hookdeck/outpost/issues/141)
