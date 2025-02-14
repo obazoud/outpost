@@ -10,7 +10,9 @@
 <br>
 
 > [!WARNING]  
-> This project is currently in ALPHA. Features and documentation are subject to change.
+> This project is currently in **ALPHA**. Features and documentation are subject to change.
+> 
+> [View the roadmap](https://outpost.hookdeck.com/docs/references/roadmap)
 
 <br>
 
@@ -144,13 +146,13 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 
 ## Documentation
 
-- [Get Started](docs/pages/quickstart.mdx)
-- [Overview](docs/pages/overview.mdx)
-- [Features](docs/pages/features.mdx)
-- [Guides](docs/pages/guides/)
+- [Get Started](https://outpost.hookdeck.com/docs/quickstart)
+- [Overview](https://outpost.hookdeck.com/docs/overview)
+- [Features](https://outpost.hookdeck.com/docs/features)
+- [Guides](https://outpost.hookdeck.com/docs/guides/deployment)
 - References
-    - [API Reference](docs/pages/references/api.mdx)
-    - [Configuration Reference](docs/pages/references/configuration.mdx)
+    - [API Reference](https://outpost.hookdeck.com/docs/references/api)
+    - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configurationx)
 
 ## Contributing
 

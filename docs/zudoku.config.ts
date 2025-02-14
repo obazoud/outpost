@@ -88,6 +88,11 @@ const config: ZudokuConfig = {
             label: "API",
             id: "references/api",
           },
+          {
+            type: "doc",
+            label: "Roadmap",
+            id: "references/roadmap",
+          },
         ],
       },
     ],
