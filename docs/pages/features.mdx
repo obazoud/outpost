@@ -6,7 +6,7 @@ title: Outpost Features
 
 The Outpost API supports creating multiple tenants on a single Outpost deployment.
 
-Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your `.env`:
+Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your Outpost installation `API_KEY` environmental variable:
 
 ```sh
 curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
@@ -20,7 +20,7 @@ Outpost supports the common publish and subscription (Pub/Sub) paradigm to ease 
 
 ### Event Topics
 
-Define topics using the `TOPICS` environment variable. Topics determine:
+Optionally define topics using the `TOPICS` environment variable. Topics determine:
 
 - Which topics that destinations can subscribe to
 - The topics that can be published to
@@ -59,7 +59,7 @@ curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
 
 ### Event Destination Types
 
-Destinations must be asynchronous and not run any business logic. At release, multiple "Event Gateways" and message buses are supported.
+Destinations must be asynchronous and not run any business logic. At release, multiple "Event Gateways" and message buses will be supported.
 
 - Webhooks
 - Hookdeck Event Gateway
@@ -78,6 +78,8 @@ Destinations must be asynchronous and not run any business logic. At release, mu
 - Segment & other CDPs
 - Zapier & other no-code tools
 - S3 API
+
+See the [roadmap](/docs/references/roadmap) for more information.
 </details>
 
 ### Getting Destination Types
@@ -107,34 +109,34 @@ For example, for the `webhook` type:
 }
 ```
 
-`config_fields` `Field[]`
+### `config_fields` `Field[]`
 
 Config fields are non-secret values that can be stored and displayed to the user in plain text.
 
-`credential_fields` `Field[]` 
+### `credential_fields` `Field[]` 
 
 Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
 
-`instructions` `string`
+### `instructions` `string`
 
 Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The value is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository. 
 
-`remote_setup_url`
+### `remote_setup_url`
 
 Some destinations may have Oauth flow or other managed-setup flow that can be triggered with a link. If a `remote_setup_url` is set then the user should be prompted to follow the link to configure the destination.
 
-See the [dashboard design guide](../4-guides/4-dashboard-design.md) for recommended UI patterns and wireframes for implementation in your own app.
+See the [dashboard design guide](../guides/dashboard-design.mdx) for recommended UI patterns and wireframes for implementation in your own app.
 
 ## Publish Events
 
 Events are published in one of two ways:
 
-1. To a pre-established message bus queue
-2. By making an HTTP request to the Publish API.
+1. To a configured message bus queue
+2. By making an HTTP request to the publish API endpoint
 
-Using the message bus queue allows for a higher publishing guarantee since there are no other dependencies than the message bus, and you may already be publishing events requiring minimal change on your end. However, since the control plane may need to create copies of the event (for each destination), events must be requested in the control plane manage queue, therefore incurring higher costs.
+Using the message bus queue allows for a higher publishing guarantee since there are no other dependencies than the message bus, and you may already be publishing events requiring minimal change on your end. However, since Outpost may need to create copies of the event (for each destination), events must be requested in the publish manage queue, therefore incurring higher costs.
 
-Using the Publishing API allows you to avoid implementing publishing to your service bus. It removes and reduces the initial publishing cost, but it adds the burden of ensuring the Publish API is highly available and does not run out of resources.
+Using the publishing API endpoint allows you to avoid implementing publishing to your service bus. It removes and reduces the initial publishing cost, but it adds the burden of ensuring the API is highly available and does not run out of resources.
 
 The events need to follow the given structure:
 
@@ -197,6 +199,8 @@ It's your responsibility to format and deliver the alert to your tenant using yo
 <summary>Future roadmap</summary>
 
 - Support publishing the event to an MQ instead of via an HTTP callback url
+
+See the [roadmap](/docs/references/roadmap) for more information.
 </details>
 
 ### Consecutive failure alerts
@@ -264,9 +268,9 @@ The portal is a React SPA that is distributed via the API.
 
 ### Theming
 
-The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` config.
+The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` configuration option.
 
-Additionally, the portal can be customized with an option logo either with a URL or base64 encoded 64.
+Additionally, the portal can be customized with an option logo either with a URL or base64 encoded 64 string.
 
 The `PORTAL_ACCENT_COLOR` can also be used to change the primary color.
 
