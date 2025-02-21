@@ -5,15 +5,16 @@ import useSWR from "swr";
 
 import Badge from "../../common/Badge/Badge";
 import Button from "../../common/Button/Button";
+import { Checkbox } from "../../common/Checkbox/Checkbox";
+import Dropdown from "../../common/Dropdown/Dropdown";
 import { AddIcon, FilterIcon, Loading } from "../../common/Icons";
 import SearchInput from "../../common/SearchInput/SearchInput";
 import Table from "../../common/Table/Table";
 import Tooltip from "../../common/Tooltip/Tooltip";
-import { useDestinationTypes } from "../../destination-types";
 import CONFIGS from "../../config";
+import { useDestinationTypes } from "../../destination-types";
 import { Destination } from "../../typings/Destination";
-import Dropdown from "../../common/Dropdown/Dropdown";
-import { Checkbox } from "../../common/Checkbox/Checkbox";
+import getLogo from "../../utils/logo";
 
 const DestinationList: React.FC = () => {
   const { data: destinations } = useSWR<Destination[]>("destinations");
@@ -29,8 +30,9 @@ const DestinationList: React.FC = () => {
     { header: "Target" },
     CONFIGS.TOPICS ? { header: "Topics", width: 120 } : null,
     { header: "Status", width: 120 },
-    { header: "Success Rate", width: 120 },
-    { header: "Events (24h)", width: 120 },
+    // TODO: Uncomment when metrics are implemented
+    // { header: "Success Rate", width: 120 },
+    // { header: "Events (24h)", width: 120 },
   ].filter((column) => column !== null);
 
   const filtered_destinations =
@@ -121,27 +123,30 @@ const DestinationList: React.FC = () => {
         ) : (
           <Badge text="Active" success />
         ),
-        <span className="muted-variant">99.5% [TODO]</span>, // TODO: Replace with actual success rate data
-        <span className="muted-variant">100 [TODO]</span>, // TODO: Replace with actual events count
+        // TODO: Uncomment when metrics are implemented
+        // <span className="muted-variant">99.5% [TODO]</span>,
+        // <span className="muted-variant">100 [TODO]</span>,
       ].filter((entry) => entry !== null),
       link: `/destinations/${destination.id}`,
     })) || [];
+
+  const logo = getLogo();
 
   return (
     <>
       <header className="layout__header">
         <a href="/">
-          {CONFIGS.LOGO ? (
-            CONFIGS.LOGO.indexOf("http") === 0 ? (
+          {logo ? (
+            logo.indexOf("http") === 0 ? (
               <img
                 className="layout__header-logo"
-                src={CONFIGS.LOGO}
+                src={logo}
                 alt={CONFIGS.ORGANIZATION_NAME}
               />
             ) : (
               <div
                 className="layout__header-logo"
-                dangerouslySetInnerHTML={{ __html: CONFIGS.LOGO }}
+                dangerouslySetInnerHTML={{ __html: logo }}
               />
             )
           ) : null}

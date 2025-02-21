@@ -73,10 +73,12 @@ log_batch_size: 1000 # Maximum number of logs to include in a batch (env: LOG_BA
 
 ## Portal
 portal:
+  organization_name: "Acme" # Organization name
   referer_url: "https://example.com" # Portal referer URL
   favicon_url: "https://example.com/favicon.svg" # Portal favicon URL
-  logo: "https://example.com" # Portal logo URL
-  organization_name: "Acme" # Organization name
+  brand_color: "#6122E7" # Portal brand color
+  # logo: "https://example.com" # Portal logo URL
+  #logo_dark: "https://example.com" # Portal logo URL for dark mode
 
 # Destinations Configuration
 destinations:

@@ -4,7 +4,12 @@ import TopicPicker from "../../../common/TopicPicker/TopicPicker";
 import { useNavigate } from "react-router-dom";
 
 import "./DestinationSettings.scss";
-import { DeleteIcon, DisableIcon, SaveIcon } from "../../../common/Icons";
+import {
+  DeleteIcon,
+  DisableIcon,
+  RotateIcon,
+  SaveIcon,
+} from "../../../common/Icons";
 import { ApiContext } from "../../../app";
 import { mutate } from "swr";
 import { showToast } from "../../../common/Toast/Toast";
@@ -30,6 +35,7 @@ const DestinationSettings = ({
   const [isTopicsSaving, setIsTopicsSaving] = useState(false);
   const [isConfigSaving, setIsConfigSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRotatingSecret, setIsRotatingSecret] = useState(false);
 
   const handleToggleEnabled = () => {
     if (!destination.disabled_at) {
@@ -133,6 +139,32 @@ const DestinationSettings = ({
       });
   };
 
+  const handleRotateSecret = () => {
+    setIsRotatingSecret(true);
+    apiClient
+      .fetch(`destinations/${destination.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          credentials: {
+            rotate_secret: true,
+          },
+        }),
+      })
+      .then((data) => {
+        showToast("success", "Secret rotated successfully");
+        mutate(`destinations/${destination.id}`, data, false);
+      })
+      .catch((error) => {
+        showToast(
+          "error",
+          `${error.message.charAt(0).toUpperCase() + error.message.slice(1)}`
+        );
+      })
+      .finally(() => {
+        setIsRotatingSecret(false);
+      });
+  };
+
   const [isConfigFormValid, setIsConfigFormValid] = useState(false);
 
   const handleConfigFormValidation = (e: React.FormEvent<HTMLFormElement>) => {
@@ -214,6 +246,23 @@ const DestinationSettings = ({
           </Button>
         </form>
       </div>
+
+      {type.type === "webhook" && (
+        <>
+          <hr />
+          <div className="destination-settings__actions">
+            <h2 className="title-l">Rotate Secret</h2>
+            <p className="body-m muted">
+              Rotate the destination signing secret. This will generate a new
+              secret and invalid the current one after 24 hours.
+            </p>
+            <Button onClick={handleRotateSecret} loading={isRotatingSecret}>
+              <RotateIcon />
+              Rotate
+            </Button>
+          </div>
+        </>
+      )}
       <hr />
       <div className="destination-settings__actions">
         <h2 className="title-l">
