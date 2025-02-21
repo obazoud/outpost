@@ -5,18 +5,18 @@ import (
 	"errors"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"syscall"
 
 	"github.com/hookdeck/outpost/internal/clickhouse"
 	"github.com/hookdeck/outpost/internal/config"
 	"github.com/hookdeck/outpost/internal/infra"
+	"github.com/hookdeck/outpost/internal/logging"
+	"github.com/hookdeck/outpost/internal/logstore"
 	"github.com/hookdeck/outpost/internal/otel"
 	"github.com/hookdeck/outpost/internal/services/api"
 	"github.com/hookdeck/outpost/internal/services/delivery"
 	"github.com/hookdeck/outpost/internal/services/log"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
@@ -35,20 +35,21 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func run(mainContext context.Context, cfg *config.Config) error {
-	logger, err := makeLogger(cfg.LogLevel)
+	logger, err := logging.NewLogger(
+		logging.WithLogLevel(cfg.LogLevel),
+		logging.WithAuditLog(cfg.AuditLog),
+	)
 	if err != nil {
 		return err
 	}
 	defer logger.Sync()
 
-	chDB, err := clickhouse.New(cfg.ClickHouse.ToConfig())
-	if err != nil {
-		return err
-	}
-	defer chDB.Close()
-	if err := clickhouse.RunMigration_Temporary(mainContext, chDB); err != nil {
-		return err
-	}
+	logger.Info("starting outpost",
+		zap.String("config_path", cfg.ConfigFilePath()),
+		zap.String("service", cfg.MustGetService().String()),
+	)
+
+	runMigration_Temporary(mainContext, cfg)
 
 	if err := infra.Declare(mainContext, infra.Config{
 		DeliveryMQ: cfg.MQs.GetDeliveryQueueConfig(),
@@ -99,12 +100,19 @@ func run(mainContext context.Context, cfg *config.Config) error {
 	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 
-	<-termChan // Blocks here until interrupted
+	// Wait for either context cancellation or termination signal
+	select {
+	case <-termChan:
+		logger.Ctx(ctx).Info("shutdown signal received")
+	case <-ctx.Done():
+		logger.Ctx(ctx).Info("context cancelled")
+	}
 
 	// Handle shutdown
-	logger.Ctx(ctx).Info("*********************************\nShutdown signal received\n*********************************")
 	cancel()  // Signal cancellation to context.Context
 	wg.Wait() // Block here until all workers are done
+
+	logger.Ctx(ctx).Info("outpost shutdown complete")
 
 	return nil
 }
@@ -117,26 +125,26 @@ func constructServices(
 	ctx context.Context,
 	cfg *config.Config,
 	wg *sync.WaitGroup,
-	logger *otelzap.Logger,
+	logger *logging.Logger,
 ) ([]Service, error) {
 	serviceType := cfg.MustGetService()
 	services := []Service{}
 
-	if serviceType == config.ServiceTypeAPI || serviceType == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeAPI || serviceType == config.ServiceTypeAll {
 		service, err := api.NewService(ctx, wg, cfg, logger)
 		if err != nil {
 			return nil, err
 		}
 		services = append(services, service)
 	}
-	if serviceType == config.ServiceTypeDelivery || serviceType == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeDelivery || serviceType == config.ServiceTypeAll {
 		service, err := delivery.NewService(ctx, wg, cfg, logger, nil)
 		if err != nil {
 			return nil, err
 		}
 		services = append(services, service)
 	}
-	if serviceType == config.ServiceTypeLog || serviceType == config.ServiceTypeSingular {
+	if serviceType == config.ServiceTypeLog || serviceType == config.ServiceTypeAll {
 		service, err := log.NewService(ctx, wg, cfg, logger, nil)
 		if err != nil {
 			return nil, err
@@ -147,31 +155,54 @@ func constructServices(
 	return services, nil
 }
 
-func makeLogger(logLevel string) (*otelzap.Logger, error) {
-	level := zap.InfoLevel
-	switch strings.ToLower(logLevel) {
-	case "debug":
-		level = zap.DebugLevel
-	case "info":
-		level = zap.InfoLevel
-	case "warn":
-		level = zap.WarnLevel
-	case "error":
-		level = zap.ErrorLevel
-	case "fatal":
-		level = zap.FatalLevel
-	default:
-		level = zap.InfoLevel
-	}
-
-	zapConfig := zap.NewProductionConfig()
-	zapConfig.Level = zap.NewAtomicLevelAt(level)
-	zapLogger, err := zapConfig.Build()
+func runMigration_Temporary(ctx context.Context, cfg *config.Config) error {
+	logstoreDriverOpts, err := logstore.MakeDriverOpts(logstore.Config{
+		ClickHouse: cfg.ClickHouse.ToConfig(),
+		Postgres:   &cfg.PostgresURL,
+	})
 	if err != nil {
-		return nil, err
+		return err
+	}
+	defer logstoreDriverOpts.Close()
+
+	if logstoreDriverOpts.CH != nil {
+		if err := clickhouse.RunMigration_Temporary(ctx, logstoreDriverOpts.CH); err != nil {
+			return err
+		}
 	}
 
-	return otelzap.New(zapLogger,
-		otelzap.WithMinLevel(level),
-	), nil
+	if logstoreDriverOpts.PG != nil {
+		_, err := logstoreDriverOpts.PG.Exec(ctx, `
+			CREATE TABLE IF NOT EXISTS events (
+				id TEXT NOT NULL,
+				tenant_id TEXT NOT NULL,
+				destination_id TEXT NOT NULL,
+				topic TEXT NOT NULL,
+				eligible_for_retry BOOLEAN NOT NULL,
+				time TIMESTAMPTZ NOT NULL,
+				metadata JSONB NOT NULL,
+				data JSONB NOT NULL,
+				PRIMARY KEY (id)
+			);
+
+			CREATE INDEX IF NOT EXISTS events_tenant_time_idx ON events (tenant_id, time DESC);
+
+			CREATE TABLE IF NOT EXISTS deliveries (
+				id TEXT NOT NULL,
+				event_id TEXT NOT NULL,
+				destination_id TEXT NOT NULL,
+				status TEXT NOT NULL,
+				time TIMESTAMPTZ NOT NULL,
+				PRIMARY KEY (id),
+				FOREIGN KEY (event_id) REFERENCES events (id)
+			);
+
+			CREATE INDEX IF NOT EXISTS deliveries_event_time_idx ON deliveries (event_id, time DESC);
+		`)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

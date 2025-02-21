@@ -1,6 +1,4 @@
-// TODO
-
-package models_test
+package drivertest
 
 import (
 	"context"
@@ -8,64 +6,42 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hookdeck/outpost/internal/clickhouse"
+	"github.com/hookdeck/outpost/internal/logstore/driver"
 	"github.com/hookdeck/outpost/internal/models"
-	"github.com/hookdeck/outpost/internal/util/testinfra"
 	"github.com/hookdeck/outpost/internal/util/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupClickHouseConnection(t *testing.T) clickhouse.DB {
-	t.Cleanup(testinfra.Start(t))
+type Harness interface {
+	MakeDriver(ctx context.Context) (driver.LogStore, error)
 
-	chConfig := testinfra.NewClickHouseConfig(t)
-
-	chDB, err := clickhouse.New(&chConfig)
-	require.NoError(t, err)
-
-	ctx := context.Background()
-	require.NoError(t, chDB.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS events (
-			id String,
-			tenant_id String,
-			destination_id String,
-			topic String,
-			eligible_for_retry Bool,
-			time DateTime,
-			metadata String,
-			data String
-		)
-		ENGINE = MergeTree
-		ORDER BY (id, time);
-	`))
-	require.NoError(t, chDB.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS deliveries (
-			id String,
-			delivery_event_id String,
-			event_id String,
-			destination_id String,
-			status String,
-			time DateTime
-		)
-		ENGINE = ReplacingMergeTree
-		ORDER BY (id, time);
-	`))
-
-	return chDB
+	Close()
 }
 
-func TestIntegrationLogStore_EventCRUD(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
+type HarnessMaker func(ctx context.Context, t *testing.T) (Harness, error)
 
-	t.Parallel()
+func RunConformanceTests(t *testing.T, newHarness HarnessMaker) {
+	t.Helper()
 
-	conn := setupClickHouseConnection(t)
+	t.Run("TestIntegrationLogStore_EventCRUD", func(t *testing.T) {
+		testIntegrationLogStore_EventCRUD(t, newHarness)
+	})
+	t.Run("TestIntegrationLogStore_DeliveryCRUD", func(t *testing.T) {
+		testIntegrationLogStore_DeliveryCRUD(t, newHarness)
+	})
+}
+
+func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
+	t.Helper()
 
 	ctx := context.Background()
-	logStore := models.NewLogStore(conn)
+	h, err := newHarness(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(h.Close)
+
+	logStore, err := h.MakeDriver(ctx)
+	require.NoError(t, err)
 
 	tenantID := uuid.New().String()
 	events := []*models.Event{}
@@ -84,7 +60,7 @@ func TestIntegrationLogStore_EventCRUD(t *testing.T) {
 	})
 
 	t.Run("list event empty", func(t *testing.T) {
-		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, models.ListEventRequest{
+		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
 			TenantID: "unknown",
 			Limit:    5,
 			Cursor:   "",
@@ -96,7 +72,7 @@ func TestIntegrationLogStore_EventCRUD(t *testing.T) {
 
 	var cursor string
 	t.Run("list event", func(t *testing.T) {
-		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, models.ListEventRequest{
+		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
 			TenantID: tenantID,
 			Limit:    5,
 			Cursor:   "",
@@ -111,7 +87,7 @@ func TestIntegrationLogStore_EventCRUD(t *testing.T) {
 	})
 
 	t.Run("list event with cursor", func(t *testing.T) {
-		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, models.ListEventRequest{
+		queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
 			TenantID: tenantID,
 			Limit:    5,
 			Cursor:   cursor,
@@ -125,17 +101,16 @@ func TestIntegrationLogStore_EventCRUD(t *testing.T) {
 	})
 }
 
-func TestIntegrationLogStore_DeliveryCRUD(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
-	t.Parallel()
-
-	conn := setupClickHouseConnection(t)
+func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker) {
+	t.Helper()
 
 	ctx := context.Background()
-	logStore := models.NewLogStore(conn)
+	h, err := newHarness(ctx, t)
+	require.NoError(t, err)
+	t.Cleanup(h.Close)
+
+	logStore, err := h.MakeDriver(ctx)
+	require.NoError(t, err)
 
 	event := testutil.EventFactory.Any()
 	require.NoError(t, logStore.InsertManyEvent(ctx, []*models.Event{&event}))
@@ -158,7 +133,7 @@ func TestIntegrationLogStore_DeliveryCRUD(t *testing.T) {
 	})
 
 	t.Run("list delivery empty", func(t *testing.T) {
-		queriedDeliveries, err := logStore.ListDelivery(ctx, models.ListDeliveryRequest{
+		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
 			EventID: "unknown",
 		})
 		require.NoError(t, err)
@@ -166,7 +141,7 @@ func TestIntegrationLogStore_DeliveryCRUD(t *testing.T) {
 	})
 
 	t.Run("list delivery", func(t *testing.T) {
-		queriedDeliveries, err := logStore.ListDelivery(ctx, models.ListDeliveryRequest{
+		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
 			EventID: event.ID,
 		})
 		require.NoError(t, err)

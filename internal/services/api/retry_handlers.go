@@ -6,8 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/outpost/internal/deliverymq"
+	"github.com/hookdeck/outpost/internal/logging"
+	"github.com/hookdeck/outpost/internal/logstore"
 	"github.com/hookdeck/outpost/internal/models"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.uber.org/zap"
 )
 
 var (
@@ -17,13 +19,13 @@ var (
 )
 
 type RetryHandlers struct {
-	logger      *otelzap.Logger
+	logger      *logging.Logger
 	entityStore models.EntityStore
-	logStore    models.LogStore
+	logStore    logstore.LogStore
 	deliveryMQ  *deliverymq.DeliveryMQ
 }
 
-func NewRetryHandlers(logger *otelzap.Logger, entityStore models.EntityStore, logStore models.LogStore, deliveryMQ *deliverymq.DeliveryMQ) *RetryHandlers {
+func NewRetryHandlers(logger *logging.Logger, entityStore models.EntityStore, logStore logstore.LogStore, deliveryMQ *deliverymq.DeliveryMQ) *RetryHandlers {
 	return &RetryHandlers{
 		logger:      logger,
 		entityStore: entityStore,
@@ -86,7 +88,7 @@ func (h *RetryHandlers) Retry(c *gin.Context) {
 	}
 
 	// 2. Get delivery history
-	deliveries, err := h.logStore.ListDelivery(c, models.ListDeliveryRequest{EventID: eventID})
+	deliveries, err := h.logStore.ListDelivery(c, logstore.ListDeliveryRequest{EventID: eventID})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return
@@ -105,6 +107,10 @@ func (h *RetryHandlers) Retry(c *gin.Context) {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return
 	}
+
+	h.logger.Ctx(c).Audit("manual retry initiated",
+		zap.String("event_id", event.ID),
+		zap.String("destination_id", destination.ID))
 
 	c.Status(http.StatusAccepted)
 }

@@ -1,0 +1,325 @@
+---
+title: Outpost Features
+---
+
+## Multi-Tenant Support
+
+The Outpost API supports creating multiple tenants on a single Outpost deployment.
+
+Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your Outpost installation `API_KEY` environmental variable:
+
+```sh
+curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>'
+```
+
+## Event Topics and Topic-Based Subscriptions
+
+Outpost supports the common publish and subscription (Pub/Sub) paradigm to ease adoption and integration into existing systems.
+
+### Event Topics
+
+Optionally define topics using the `TOPICS` environment variable. Topics determine:
+
+- Which topics that destinations can subscribe to
+- The topics that can be published to
+
+### Event Topic Subscriptions (Destinations)
+
+Subscriptions are represented by destination resources that define where events will be delivered to when an event is published on a given topic.
+
+Create destinations with the following request, replacing `<TENANT_ID>` and `<API_KEY>`. The `<TYPE>` must be one of the supported [event destination types](#event-destination-types), and the `<CONFIG>` contents will depend on the event destination type.
+
+```sh
+curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>' \
+--data '{
+ "type": "<TYPE>",
+ "topics": ["*"],
+ "config": <CONFIG>
+}'
+```
+
+For example, the following creates a webhook destination that subscribes to all topics (`*`) and delivers published events to the URL `https://example.test/webhooks`:
+
+```sh
+curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer <API_KEY>' \
+--data '{
+  "type": "webhook",
+  "topics": ["*"],
+  "config": {
+    "url": "https://example.test/webhooks"
+  }
+}'
+```
+
+### Event Destination Types
+
+Destinations must be asynchronous and not run any business logic. At release, multiple "Event Gateways" and message buses will be supported.
+
+- Webhooks
+- Hookdeck Event Gateway
+- AWS SQS
+- AWS EventBridge
+- GCP Pub/Sub
+- RabbitMQ
+- Kafka
+
+<details>
+<summary>Future Roadmap</summary>
+
+- Azure EventGrid
+- Azure Service Bus
+- MQTT
+- Segment & other CDPs
+- Zapier & other no-code tools
+- S3 API
+
+See the [roadmap](/docs/references/roadmap) for more information.
+</details>
+
+### Getting Destination Types
+
+Destinations can be registered either through the tenant-facing portal or with the API. When using the API, you need to build your own UI to capture user input on the destination configuration. Since each destination requires a specific configuration, the `GET /destination-types` endpoint provides a JSON schema for each destination type.
+
+For example, for the `webhook` type:
+
+```json
+{
+  "type": "webhook",
+  "label": "Webhook",
+  "description": "Send event via an HTTP POST request to a URL of your choice",
+  "icon": "<svg />",
+  "instructions": "Some *markdown*",
+  "remote_setup_url": null,
+  "config_fields": [
+    {
+          "type": "text",
+          "label": "URL",
+          "description": "The URL to send the event to",
+          "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
+          "required": true
+    }
+  ],
+  "credential_fields": []
+}
+```
+
+### `config_fields` `Field[]`
+
+Config fields are non-secret values that can be stored and displayed to the user in plain text.
+
+### `credential_fields` `Field[]` 
+
+Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
+
+### `instructions` `string`
+
+Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The value is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository. 
+
+### `remote_setup_url`
+
+Some destinations may have Oauth flow or other managed-setup flow that can be triggered with a link. If a `remote_setup_url` is set then the user should be prompted to follow the link to configure the destination.
+
+See the [dashboard design guide](../guides/dashboard-design.mdx) for recommended UI patterns and wireframes for implementation in your own app.
+
+## Publish Events
+
+Events are published in one of two ways:
+
+1. To a configured message bus queue
+2. By making an HTTP request to the publish API endpoint
+
+Using the message bus queue allows for a higher publishing guarantee since there are no other dependencies than the message bus, and you may already be publishing events requiring minimal change on your end. However, since Outpost may need to create copies of the event (for each destination), events must be requested in the publish manage queue, therefore incurring higher costs.
+
+Using the publishing API endpoint allows you to avoid implementing publishing to your service bus. It removes and reduces the initial publishing cost, but it adds the burden of ensuring the API is highly available and does not run out of resources.
+
+The events need to follow the given structure:
+
+```json
+{
+  "id": "123", // Optional but recommended. If left empty, ID will be generated by hashing the topic, data and timestamp
+  "tenant_id": "12345",
+  "destination_id": "12345", // Optional. Used to force delivery to a specific destination
+  "topic": "something.created", // Optional. Assumed to match ANY topic if left empty.
+  "eligible_for_retry": false, // Optional, default to "false". Control if an event should be retried.
+  "time": "2024-06-01 08:23:36.082374Z", // ISO Timestamp of the event
+  "metadata": { // Arbitrary key-value mapping for event
+    "key": "value"// String, number or boolean
+  },
+  "data": { // Freeform JSON data
+    "hello": "world"
+  }
+}
+```
+
+Each event (without a `destination_id`) is evaluated against all the registered destinations. An event is delivered and logged for each eligible destination. 
+
+The `metadata` is translated to the destination's native metadata, for instance, with Webhooks and HTTP headers. If the destination does not support metadata, the published data will be the full event.
+
+### Event Fanout
+
+A message published to a topic is automatically replicated and sent to multiple endpoints. This allows for parallel processing and asynchronous event notifications.
+
+## Event Delivery
+
+### Event destination Types
+
+Out of the box Outpost supports event delivery to multiple event destination types.
+
+See [Event Destinations Types](#event-destination-types) for more information.
+
+### Automatic and Manual Retries
+
+Configure retry strategies for event destinations and manually trigger event delivery retries via the API or user portal.
+
+### At Least Once Delivery Guarantee
+
+Messages are guaranteed to be delivered at least once and never lost.
+
+### Webhook Best Practices
+
+Webhook best practices, such as headers for idempotency, timestamp, signature, and signature rotation, are in place by default. You must explicitly opt-out of webhook best practices.
+
+## User Alerts
+
+Alerts are triggered when an event fails to deliver to a destination. The `ALERT_DEBOUNCING_INTERVAL_SECOND` variable can configure alerting behavior. The debouncing interval represents the amount of time that needs to elapse for a new alert to be triggered. Alerts are scoped per destination.
+
+Alerts support 2 types of triggers by consecutive failures or by failure rate. Destinations can be auto-disabled when the trigger is reached using the `ALERT_AUTO_DISABLE_DESTINATION` config.
+
+Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. The server does not respond with a `200` there will be an exponential backoff and log the failure. Authentication is handled using the Admin API Key via a bearer token.
+
+It's your responsibility to format and deliver the alert to your tenant using your existing notification system.
+
+<details>
+<summary>Future roadmap</summary>
+
+- Support publishing the event to an MQ instead of via an HTTP callback url
+
+See the [roadmap](/docs/references/roadmap) for more information.
+</details>
+
+### Consecutive failure alerts
+
+ `ALERT_CONSECUTIVE_FAILURE_COUNT` variable will alert when the consecutive failure count reaches 50%, 70%, 90% and 100%. At 100% the destination will be disabled if the config is enabled.
+
+```json
+{
+  "topic": "alert.consecutive-failure",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "data": {
+    "max_consecutive_failures": 20,
+    "consecutive_failures": 5,
+    "will_disable": true,
+    "destination": DestinationObject,
+    "response": {
+      "status": "500",
+      "data": {
+        "some": "value"
+      }
+    }
+  }
+}
+```
+
+### Failure rate alerts
+
+`ALERT_FAILURE_WINDOW_SECOND` and `ALERT_FAILURE_RATE` can also be used to configured alerts after certain failure rate for a certain amount of time. An alert notification will be triggered at 50%, 70%, 90% and 100% of the `ALERT_FAILURE_WINDOW_SECOND`. At 100% the destination will be disabled if the config is enabled.
+
+```json
+{
+  "topic": "alert.failure-rate",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "data": {
+    "failure_window_second": 60,
+    "duration": 30,
+    "max_failure_rate": 0.1,
+    "failure_rate": 0.2,
+    "will_disable": true,
+    "destination": DestinationObject,
+    "response": {
+      "status": "500",
+      "data": {
+        "some": "value"
+      }
+    }
+  }
+}
+```
+
+## Tenant User Portal
+
+The tenant can have an optional portal that lets them configure their destination. The portal supports:
+
+- Creating and configuring a destination
+- Updating or deleting a destination
+- Disable or enable a destination
+- Display historical events, event data and responses by status and destinations
+
+The portal is accessed by generating a JWT from the `GET` `/:tenant_id/portal` endpoint, which returns a redirect URL with a JWT token in the URL. When the user is redirected, the JWT persists in their session storage and is used as the credential for the duration of the session.
+
+When the portal is used, the API needs to be publicly exposed to the public internet.
+
+The portal is a React SPA that is distributed via the API.
+
+### Theming
+
+The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` configuration option.
+
+Additionally, the portal can be customized with an option logo either with a URL or base64 encoded 64 string.
+
+The `PORTAL_ACCENT_COLOR` can also be used to change the primary color.
+
+### Required Config
+
+`PORTAL_REFERER_URL` is used to redirect the user when the JWT token is expired or when the user clicks "back".
+
+`ORGANIZATION_NAME` is used to display the name of the organization deploying the portal.
+
+### Design
+
+See the [designing an event destinations dashboard guide](#) for more information.
+
+## Configurable Log Levels
+
+The Outpost services will produce stdout logs based on the configured `LOG_LEVEL`. Regardless of the log level, some audit logs may need to be retained for compliance. The `AUDIT_LOG` variable can enable the production of relevant auditing logs irrespective of the `LOG_LEVEL`, such as API calls, published events, and outbound network calls.
+
+## OpenTelemetry
+
+OpenTelemetry supports the service's key performance metrics. You need to bring your own OpenTelemetry target for the metrics to be produced and exported. These metrics are all exported in the form of [histograms](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#histogram).
+
+Supported metrics are:
+
+### `delivery_latency` 
+
+Delivery latency to the destination. Dimensions: `type` 
+
+### `delivered_events`
+
+The number of delivered events. `type` `status` 
+
+### `published_events`
+
+The number of published events. `topic`
+
+ ### `eligible_events`
+
+The number of published events that matched at least one destination. `topic`
+
+### `api_response_latency` 
+
+The API response latency. `endpoint` `method` `path` 
+
+### `api_calls`
+
+The number of API calls. `endpoint` `method` `path`
+
+CPU and memory usage needs to be monitored by your VM / runtime provider.
+
+## Hookdeck Telemetry
+
+The service will report anonymous usage statistics and errors to a Hookdeck endpoint for service improvement and bug fixes. Telemetry can be disabled with the `DISABLE_TELEMETRY` config.

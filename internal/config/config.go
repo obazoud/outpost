@@ -33,10 +33,12 @@ func getConfigLocations() []string {
 }
 
 type Config struct {
-	validated bool // tracks whether Validate() has been called successfully
+	validated  bool   // tracks whether Validate() has been called successfully
+	configPath string // stores the path of the config file used
 
 	Service       string              `yaml:"service" env:"SERVICE"`
 	LogLevel      string              `yaml:"log_level" env:"LOG_LEVEL"`
+	AuditLog      bool                `yaml:"audit_log" env:"AUDIT_LOG"`
 	OpenTelemetry OpenTelemetryConfig `yaml:"otel"`
 
 	// API
@@ -50,9 +52,10 @@ type Config struct {
 	Topics              []string `yaml:"topics" env:"TOPICS" envSeparator:","`
 
 	// Infrastructure
-	Redis      RedisConfig      `yaml:"redis"`
-	ClickHouse ClickHouseConfig `yaml:"clickhouse"`
-	MQs        MQsConfig        `yaml:"mqs"`
+	Redis       RedisConfig      `yaml:"redis"`
+	ClickHouse  ClickHouseConfig `yaml:"clickhouse"`
+	PostgresURL string           `yaml:"postgres" env:"POSTGRES_URL"`
+	MQs         MQsConfig        `yaml:"mqs"`
 
 	// PublishMQ
 	PublishMQ PublishMQConfig `yaml:"publishmq"`
@@ -84,13 +87,16 @@ type Config struct {
 
 	// Portal
 	Portal PortalConfig `yaml:"portal"`
+
+	// Alert
+	Alert AlertConfig `yaml:"alert"`
 }
 
 var (
 	ErrMismatchedServiceType = errors.New("config validation error: service type mismatch")
 	ErrInvalidServiceType    = errors.New("config validation error: invalid service type")
 	ErrMissingRedis          = errors.New("config validation error: redis configuration is required")
-	ErrMissingClickHouse     = errors.New("config validation error: clickhouse configuration is required")
+	ErrMissingLogStorage     = errors.New("config validation error: log storage must be provided")
 	ErrMissingMQs            = errors.New("config validation error: message queue configuration is required")
 	ErrMissingAESSecret      = errors.New("config validation error: AES encryption secret is required")
 	ErrInvalidPortalProxyURL = errors.New("config validation error: invalid portal proxy url")
@@ -99,6 +105,7 @@ var (
 func (c *Config) InitDefaults() {
 	c.APIPort = 3333
 	c.LogLevel = "info"
+	c.AuditLog = true
 	c.OpenTelemetry = OpenTelemetryConfig{}
 	c.GinMode = "release"
 	c.Redis = RedisConfig{
@@ -118,8 +125,6 @@ func (c *Config) InitDefaults() {
 			DeliveryQueue: "outpost-delivery",
 			LogQueue:      "outpost-log",
 		},
-		DeliveryRetryLimit: 5,
-		LogRetryLimit:      5,
 	}
 	c.PublishMaxConcurrency = 1
 	c.DeliveryMaxConcurrency = 1
@@ -137,6 +142,12 @@ func (c *Config) InitDefaults() {
 		Webhook: DestinationWebhookConfig{
 			HeaderPrefix: "x-outpost-",
 		},
+	}
+
+	c.Alert = AlertConfig{
+		CallbackURL:             "",
+		ConsecutiveFailureCount: 20,
+		AutoDisableDestination:  true,
 	}
 }
 
@@ -173,6 +184,9 @@ func (c *Config) parseConfigFile(flagPath string, osInterface OSInterface) error
 	if len(data) == 0 {
 		return nil
 	}
+
+	// Store the config path
+	c.configPath = configPath
 
 	// Parse based on file extension
 	if strings.HasSuffix(strings.ToLower(configPath), ".env") {
@@ -288,10 +302,24 @@ type ClickHouseConfig struct {
 }
 
 func (c *ClickHouseConfig) ToConfig() *clickhouse.ClickHouseConfig {
+	if c.Addr == "" {
+		return nil
+	}
 	return &clickhouse.ClickHouseConfig{
 		Addr:     c.Addr,
 		Username: c.Username,
 		Password: c.Password,
 		Database: c.Database,
 	}
+}
+
+type AlertConfig struct {
+	CallbackURL             string `yaml:"callback_url" env:"ALERT_CALLBACK_URL"`
+	ConsecutiveFailureCount int    `yaml:"consecutive_failure_count" env:"ALERT_CONSECUTIVE_FAILURE_COUNT"`
+	AutoDisableDestination  bool   `yaml:"auto_disable_destination" env:"ALERT_AUTO_DISABLE_DESTINATION"`
+}
+
+// ConfigFilePath returns the path of the config file that was used
+func (c *Config) ConfigFilePath() string {
+	return c.configPath
 }

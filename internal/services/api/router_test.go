@@ -11,6 +11,8 @@ import (
 	"github.com/hookdeck/outpost/internal/clickhouse"
 	"github.com/hookdeck/outpost/internal/deliverymq"
 	"github.com/hookdeck/outpost/internal/eventtracer"
+	"github.com/hookdeck/outpost/internal/logging"
+	"github.com/hookdeck/outpost/internal/logstore"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/publishmq"
 	"github.com/hookdeck/outpost/internal/redis"
@@ -18,7 +20,6 @@ import (
 	"github.com/hookdeck/outpost/internal/util/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
 const baseAPIPath = "/api/v1"
@@ -29,7 +30,7 @@ func testRouterWithCHDB(t *testing.T, config *clickhouse.ClickHouseConfig) click
 	return chDB
 }
 
-func setupTestRouter(t *testing.T, apiKey, jwtSecret string, funcs ...func(t *testing.T) clickhouse.DB) (http.Handler, *otelzap.Logger, *redis.Client) {
+func setupTestRouter(t *testing.T, apiKey, jwtSecret string, funcs ...func(t *testing.T) clickhouse.DB) (http.Handler, *logging.Logger, *redis.Client) {
 	gin.SetMode(gin.TestMode)
 	logger := testutil.CreateTestLogger(t)
 	redisClient := testutil.CreateTestRedisClient(t)
@@ -56,12 +57,19 @@ func setupTestRouter(t *testing.T, apiKey, jwtSecret string, funcs ...func(t *te
 	return router, logger, redisClient
 }
 
-func setupTestLogStore(t *testing.T, funcs ...func(t *testing.T) clickhouse.DB) models.LogStore {
+func setupTestLogStore(t *testing.T, funcs ...func(t *testing.T) clickhouse.DB) logstore.LogStore {
 	var chDB clickhouse.DB
 	for _, f := range funcs {
 		chDB = f(t)
 	}
-	return models.NewLogStore(chDB)
+	if chDB == nil {
+		return logstore.NewNoopLogStore()
+	}
+	logStore, err := logstore.NewLogStore(context.Background(), logstore.DriverOpts{
+		CH: chDB,
+	})
+	require.NoError(t, err)
+	return logStore
 }
 
 func setupTestEntityStore(_ *testing.T, redisClient *redis.Client, cipher models.Cipher) models.EntityStore {

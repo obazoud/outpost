@@ -1,0 +1,44 @@
+---
+title: "Outpost Roadmap"
+---
+
+## ALPHA
+
+### Core Functionality
+
+- ✅ Tenant & Destination APIs (Redis storage)
+- ✅ Destination registry pattern
+- ✅ Event ingestion: Publish API & PublishMQ
+- ✅ Event delivery
+- ✅ Log (events & attempts) persistence logic
+- 🚧 [PostgreSQL log storage](https://github.com/hookdeck/outpost/issues/205)
+- 🚧 [Clickhouse log storage](https://github.com/hookdeck/outpost/issues/52)
+- 🚧 [User Portal](https://github.com/hookdeck/outpost/issues/107)
+
+See Outpost [Concepts](/docs/concepts) and [Features](/docs/features) for more information.
+
+### Publish Message Queues
+
+- ✅ [AWS SQS](https://github.com/hookdeck/outpost/issues/145)
+- 🚧 [RabbitMQ](https://github.com/hookdeck/outpost/issues/112)
+
+### Destination Types
+
+- ✅ [Webhooks](https://github.com/hookdeck/outpost/issues/106)
+- ✅ [AWS SQS](https://github.com/hookdeck/outpost/issues/135)
+- 🚧 [RabbitMQ](https://github.com/hookdeck/outpost/issues/134)
+- 🚧 [Hookdeck Event Gateway](https://github.com/hookdeck/outpost/issues/136)
+
+## BETA
+
+### Publish Message Queues
+
+- ❌ [GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/138)
+- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/139)
+
+### Destination Types
+
+- ❌ [GCP PubSub](https://github.com/hookdeck/outpost/issues/140)
+- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/241)
+- ❌ [Amazon EventBridge](https://github.com/hookdeck/outpost/issues/201)
+- ❌ [Kafka](https://github.com/hookdeck/outpost/issues/141)

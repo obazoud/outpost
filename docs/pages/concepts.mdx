@@ -1,0 +1,45 @@
+---
+title: "Outpost Concepts"
+---
+
+## Models
+
+- **Tenants**: A tenant represents a user/team/organization in your product.
+- **Destination Types**: The type of destination where events will be delivered. For example, webhook, Hookdeck, or AWS SQS.
+- **Destinations**: A destination is a specific instance of a destination type. For example, a webhook destination with a specific URL.
+- **Events**: An event is a piece of data that represents an action that occurred in your system. For example, a user signed up or a payment was processed.
+- **Topics**: A topic is a way to categorize events and is a common concept found in Pub/Sub messaging. For example, a `user.created` event might be categorized under the user topic.
+
+## Architecture
+
+Outpost is deployed with three services:
+
+- **API Service**: captures events and exposes the necessary APIs to configure tenants and destinations.
+- **Delivery Service**: is responsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.
+- **Log Service**: enables storing and retrieving events, their status, and their responses.
+
+![Outpost Architecture](/images/architecture.png)
+
+## Runtime Requirements
+
+### API Service & Delivery Service
+
+- Redis 6.0+ or wire-compatible alternative (RBD or AOF strongly recommended)
+- One of the supported message queues:
+    - AWS SQS
+    - GCP Pubsub
+    - Azure Service Bus
+    - RabbitMQ
+
+### Log Service
+
+- Clickhouse
+    
+<details>
+<summary>Future Roadmap</summary>
+- Postgres (simpler alternative to CH)
+</details>
+
+## Benchmarks
+
+Coming soon...

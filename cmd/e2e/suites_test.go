@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hookdeck/outpost/cmd/e2e/alert"
 	"github.com/hookdeck/outpost/cmd/e2e/configs"
 	"github.com/hookdeck/outpost/cmd/e2e/httpclient"
 	"github.com/hookdeck/outpost/internal/app"
@@ -22,6 +23,7 @@ import (
 
 type e2eSuite struct {
 	ctx               context.Context
+	cancel            context.CancelFunc
 	config            config.Config
 	mockServerBaseURL string
 	mockServerInfra   *testinfra.MockServerInfra
@@ -30,6 +32,9 @@ type e2eSuite struct {
 }
 
 func (suite *e2eSuite) SetupSuite() {
+	ctx, cancel := context.WithCancel(context.Background())
+	suite.ctx = ctx
+	suite.cancel = cancel
 	suite.client = httpclient.New(fmt.Sprintf("http://localhost:%d/api/v1", suite.config.APIPort), suite.config.APIKey)
 	go func() {
 		application := app.New(&suite.config)
@@ -40,6 +45,9 @@ func (suite *e2eSuite) SetupSuite() {
 }
 
 func (s *e2eSuite) TearDownSuite() {
+	if s.cancel != nil {
+		s.cancel()
+	}
 	s.cleanup()
 }
 
@@ -115,23 +123,37 @@ func (test *APITest) Run(t *testing.T, client httpclient.Client) {
 type basicSuite struct {
 	suite.Suite
 	e2eSuite
+	logStorageType configs.LogStorageType
+	alertServer    *alert.AlertMockServer
 }
 
 func (suite *basicSuite) SetupSuite() {
 	t := suite.T()
-	t.Cleanup(testinfra.Start(t))
+	testinfraCleanup := testinfra.Start(t)
+	defer t.Cleanup(testinfraCleanup)
 	gin.SetMode(gin.TestMode)
 	mockServerBaseURL := testinfra.GetMockServer(t)
 
-	cfg := configs.Basic(t)
+	// Setup alert mock server
+	alertServer := alert.NewAlertMockServer()
+	require.NoError(t, alertServer.Start())
+	suite.alertServer = alertServer
+
+	// Configure alert callback URL
+	cfg := configs.Basic(t, configs.BasicOpts{LogStorage: suite.logStorageType})
+	cfg.Alert.CallbackURL = alertServer.GetCallbackURL()
+
 	require.NoError(t, cfg.Validate(config.Flags{}))
 
 	suite.e2eSuite = e2eSuite{
-		ctx:               context.Background(),
 		config:            cfg,
 		mockServerBaseURL: mockServerBaseURL,
 		mockServerInfra:   testinfra.NewMockServerInfra(mockServerBaseURL),
-		cleanup:           func() {},
+		cleanup: func() {
+			if err := alertServer.Stop(); err != nil {
+				t.Logf("failed to stop alert server: %v", err)
+			}
+		},
 	}
 	suite.e2eSuite.SetupSuite()
 
@@ -144,10 +166,18 @@ func (s *basicSuite) TearDownSuite() {
 	s.e2eSuite.TearDownSuite()
 }
 
-func TestBasicSuite(t *testing.T) {
+func TestCHBasicSuite(t *testing.T) {
 	t.Parallel()
 	if testing.Short() {
 		t.Skip("skipping e2e test")
 	}
-	suite.Run(t, new(basicSuite))
+	suite.Run(t, &basicSuite{logStorageType: configs.LogStorageTypeClickHouse})
+}
+
+func TestPGBasicSuite(t *testing.T) {
+	t.Parallel()
+	if testing.Short() {
+		t.Skip("skipping e2e test")
+	}
+	suite.Run(t, &basicSuite{logStorageType: configs.LogStorageTypePostgres})
 }

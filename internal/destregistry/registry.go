@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
+	"github.com/hookdeck/outpost/internal/logging"
 	"github.com/hookdeck/outpost/internal/lru"
 	"github.com/hookdeck/outpost/internal/models"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
@@ -75,7 +75,7 @@ type Config struct {
 	DeliveryTimeout         time.Duration
 }
 
-func NewRegistry(cfg *Config, logger *otelzap.Logger) Registry {
+func NewRegistry(cfg *Config, logger *logging.Logger) Registry {
 	if cfg.PublisherCacheSize == 0 {
 		cfg.PublisherCacheSize = defaultPublisherCacheSize
 	}
@@ -88,6 +88,7 @@ func NewRegistry(cfg *Config, logger *otelzap.Logger) Registry {
 
 	onEvict := func(key string, p Publisher) {
 		if err := p.Close(); err != nil {
+			// TODO: consider how to get context for OTEL logging
 			logger.Error("failed to close publisher on eviction",
 				zap.String("key", key),
 				zap.Error(err),
@@ -162,7 +163,14 @@ func (r *registry) PublishEvent(ctx context.Context, destination *models.Destina
 				},
 			}
 		}
-		return &ErrUnexpectedPublishError{Err: err}
+		return &ErrDestinationPublishAttempt{
+			Err:      err,
+			Provider: destination.Type,
+			Data: map[string]interface{}{
+				"error":   "unexpected",
+				"message": err.Error(),
+			},
+		}
 	}
 	return nil
 }

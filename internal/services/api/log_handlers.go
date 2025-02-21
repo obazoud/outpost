@@ -5,18 +5,19 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hookdeck/outpost/internal/logging"
+	"github.com/hookdeck/outpost/internal/logstore"
 	"github.com/hookdeck/outpost/internal/models"
-	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 )
 
 type LogHandlers struct {
-	logger   *otelzap.Logger
-	logStore models.LogStore
+	logger   *logging.Logger
+	logStore logstore.LogStore
 }
 
 func NewLogHandlers(
-	logger *otelzap.Logger,
-	logStore models.LogStore,
+	logger *logging.Logger,
+	logStore logstore.LogStore,
 ) *LogHandlers {
 	return &LogHandlers{
 		logger:   logger,
@@ -35,7 +36,7 @@ func (h *LogHandlers) ListEvent(c *gin.Context) {
 	if err != nil {
 		limit = 100
 	}
-	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), models.ListEventRequest{
+	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
 		TenantID: tenant.ID,
 		Cursor:   cursor,
 		Limit:    limit,
@@ -82,7 +83,7 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 		return
 	}
 	eventID := c.Param("eventID")
-	deliveries, err := h.logStore.ListDelivery(c.Request.Context(), models.ListDeliveryRequest{
+	deliveries, err := h.logStore.ListDelivery(c.Request.Context(), logstore.ListDeliveryRequest{
 		EventID: eventID,
 	})
 	if err != nil {

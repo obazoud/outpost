@@ -1,37 +1,25 @@
-package models
+package chlogstore
 
 import (
 	"context"
 	"time"
 
 	"github.com/hookdeck/outpost/internal/clickhouse"
+	"github.com/hookdeck/outpost/internal/logstore/driver"
+	"github.com/hookdeck/outpost/internal/models"
 )
-
-type LogStore interface {
-	ListEvent(context.Context, ListEventRequest) ([]*Event, string, error)
-	RetrieveEvent(ctx context.Context, tenantID, eventID string) (*Event, error)
-	ListDelivery(ctx context.Context, request ListDeliveryRequest) ([]*Delivery, error)
-	InsertManyEvent(context.Context, []*Event) error
-	InsertManyDelivery(context.Context, []*Delivery) error
-}
 
 type logStoreImpl struct {
 	chDB clickhouse.DB
 }
 
-var _ LogStore = (*logStoreImpl)(nil)
+var _ driver.LogStore = (*logStoreImpl)(nil)
 
-func NewLogStore(chDB clickhouse.DB) LogStore {
+func NewLogStore(chDB clickhouse.DB) driver.LogStore {
 	return &logStoreImpl{chDB: chDB}
 }
 
-type ListEventRequest struct {
-	TenantID string
-	Cursor   string
-	Limit    int
-}
-
-func (s *logStoreImpl) ListEvent(ctx context.Context, request ListEventRequest) ([]*Event, string, error) {
+func (s *logStoreImpl) ListEvent(ctx context.Context, request driver.ListEventRequest) ([]*models.Event, string, error) {
 	var (
 		query     string
 		queryOpts []any
@@ -83,9 +71,9 @@ func (s *logStoreImpl) ListEvent(ctx context.Context, request ListEventRequest) 
 	}
 	defer rows.Close()
 
-	var events []*Event
+	var events []*models.Event
 	for rows.Next() {
-		event := &Event{}
+		event := &models.Event{}
 		if err := rows.Scan(
 			&event.ID,
 			&event.TenantID,
@@ -108,7 +96,7 @@ func (s *logStoreImpl) ListEvent(ctx context.Context, request ListEventRequest) 
 	return events, nextCursor, nil
 }
 
-func (s *logStoreImpl) RetrieveEvent(ctx context.Context, tenantID, eventID string) (*Event, error) {
+func (s *logStoreImpl) RetrieveEvent(ctx context.Context, tenantID, eventID string) (*models.Event, error) {
 	rows, err := s.chDB.Query(ctx, `
 		SELECT
 			id,
@@ -132,7 +120,7 @@ func (s *logStoreImpl) RetrieveEvent(ctx context.Context, tenantID, eventID stri
 		return nil, nil
 	}
 
-	event := &Event{}
+	event := &models.Event{}
 	if err := rows.Scan(
 		&event.ID,
 		&event.TenantID,
@@ -149,11 +137,7 @@ func (s *logStoreImpl) RetrieveEvent(ctx context.Context, tenantID, eventID stri
 	return event, nil
 }
 
-type ListDeliveryRequest struct {
-	EventID string
-}
-
-func (s *logStoreImpl) ListDelivery(ctx context.Context, request ListDeliveryRequest) ([]*Delivery, error) {
+func (s *logStoreImpl) ListDelivery(ctx context.Context, request driver.ListDeliveryRequest) ([]*models.Delivery, error) {
 	query := `
 		SELECT
 			id,
@@ -171,9 +155,9 @@ func (s *logStoreImpl) ListDelivery(ctx context.Context, request ListDeliveryReq
 	}
 	defer rows.Close()
 
-	var deliveries []*Delivery
+	var deliveries []*models.Delivery
 	for rows.Next() {
-		delivery := &Delivery{}
+		delivery := &models.Delivery{}
 		if err := rows.Scan(
 			&delivery.ID,
 			&delivery.EventID,
@@ -189,7 +173,7 @@ func (s *logStoreImpl) ListDelivery(ctx context.Context, request ListDeliveryReq
 	return deliveries, nil
 }
 
-func (s *logStoreImpl) InsertManyEvent(ctx context.Context, events []*Event) error {
+func (s *logStoreImpl) InsertManyEvent(ctx context.Context, events []*models.Event) error {
 	batch, err := s.chDB.PrepareBatch(ctx,
 		"INSERT INTO events (id, tenant_id, destination_id, time, topic, eligible_for_retry, metadata, data) VALUES (?, ?, ?, ?, ?, ?)",
 	)
@@ -219,7 +203,7 @@ func (s *logStoreImpl) InsertManyEvent(ctx context.Context, events []*Event) err
 	return nil
 }
 
-func (s *logStoreImpl) InsertManyDelivery(ctx context.Context, deliveries []*Delivery) error {
+func (s *logStoreImpl) InsertManyDelivery(ctx context.Context, deliveries []*models.Delivery) error {
 	batch, err := s.chDB.PrepareBatch(ctx,
 		"INSERT INTO deliveries (id, delivery_event_id, event_id, destination_id, status, time) VALUES (?, ?, ?, ?, ?, ?)",
 	)

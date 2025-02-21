@@ -2,10 +2,17 @@
 
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/outpost-dark.svg">
-    <img alt="Outpost logo" src="images/outpost-light.svg" width="40%">
+    <source media="(prefers-color-scheme: dark)" srcset="images/outpost-logo-white.svg">
+    <img alt="Outpost logo" src="images/outpost-logo-black.svg" width="40%">
   </picture>
 </div>
+
+<br>
+
+> [!WARNING]  
+> This project is currently in **ALPHA**. Features and documentation are subject to change.
+> 
+> [View the roadmap](https://outpost.hookdeck.com/docs/references/roadmap)
 
 <br>
 
@@ -20,9 +27,21 @@
 
 # Open Source Event Destinations Infrastructure
 
-Outpost is a self-hosted and open-source product that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+<div align="center">
 
-Learn more about Event Destinations in the [Event Destinations Manifesto](https://event-destinations-website.vercel.app/).
+[Documentation](#documentation)
+·
+[Report a bug](issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%F0%9F%90%9B+Bug+Report%3A+)
+·
+[Request a feature](issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+)
+<!-- ·
+[Join our Slack](https://hookdeck.com/slack?ref=github-outpost) -->
+
+</div>
+
+Outpost is a self-hosted and open-source infrastructure that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+
+<!-- Learn more about Event Destinations in the [Event Destinations Manifesto](https://eventdestinations.org). -->
 
 ## Features
 
@@ -35,7 +54,7 @@ Learn more about Event Destinations in the [Event Destinations Manifesto](https:
 - **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
 - **User alerts**: Allow customers to manage event delivery alerts.
 - **OpenTelemetry**: OTel standardized traces, metrics, and logs.
-- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka. Extend to support other destinations types.
+- **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka.
 - **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
 
 ## Quickstart
@@ -127,7 +146,13 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 
 ## Documentation
 
-TODO
+- [Get Started](https://outpost.hookdeck.com/docs/quickstart)
+- [Overview](https://outpost.hookdeck.com/docs/overview)
+- [Features](https://outpost.hookdeck.com/docs/features)
+- [Guides](https://outpost.hookdeck.com/docs/guides/deployment)
+- References
+    - [API Reference](https://outpost.hookdeck.com/docs/references/api)
+    - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configurationx)
 
 ## Contributing
 

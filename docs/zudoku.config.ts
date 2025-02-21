@@ -1,0 +1,111 @@
+import type { ZudokuConfig } from "zudoku";
+
+const config: ZudokuConfig = {
+  basePath: "/docs",
+  metadata: {
+    title: "%s | Outpost",
+    description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, and more.",
+    generator: "Zudoku",
+    applicationName: "Outpost Documentation",
+    keywords: ["outpost", "event destinations", "webhooks", "send webhooks", "event delivery", "webhook delivery"],
+    publisher: "Hookdeck Technologies Inc."
+  },
+  redirects: [
+    {from: "/", to: "/overview"},
+    {from: "/guides", to: "/guides/deployment"},
+    {from: "/references", to: "/references/api"},
+  ],
+  page: {
+    pageTitle: "",
+    logoUrl: "/",
+    logo: {
+      src: {
+        // TODO: Update once basePath is used by Zudoku
+        // light: "logo/outpost-logo-black.svg",
+        // dark: "logo/outpost-logo-white.svg"
+        light: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-black.svg",
+        dark: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-white.svg"
+      },
+      width: "110px",
+    }
+  },
+  topNavigation: [
+    { id: "docs", label: "Documentation", default: "overview" },
+  ],
+  sidebar: {
+    docs: [
+      {
+        type: "doc",
+        label: "Overview",
+        id: "overview",
+      },
+      {
+        type: "doc",
+        label: "Quickstart",
+        id: "quickstart",
+      },
+      {
+        type: "doc",
+        label: "Concepts",
+        id: "concepts",
+      },
+      {
+        type: "doc",
+        label: "Features",
+        id: "features",
+      },
+      {
+        type: "category",
+        label: "Guides",
+        collapsed: false,
+        collapsible: false,
+        items: [
+          {
+            type: "doc",
+            label: "Deployment",
+            id: "guides/deployment",
+          },
+          {
+            type: "doc",
+            label: "Dashboard Design",
+            id: "guides/dashboard-design",
+          },
+        ],
+      },
+      {
+        type: "category",
+        label: "References",
+        collapsed: false,
+        collapsible: false,
+        items: [
+          {
+            type: "doc",
+            label: "Configuration",
+            id: "references/configuration",
+          },
+          {
+            type: "doc",
+            label: "API",
+            id: "references/api",
+          },
+          {
+            type: "doc",
+            label: "Roadmap",
+            id: "references/roadmap",
+          },
+        ],
+      },
+    ],
+  },
+
+  apis: {
+    type: "file",
+    input: "./apis/openapi.yaml",
+    navigationId: "docs/api",
+  },
+  docs: {
+    files: "/pages/**/*.{md,mdx}",
+  },
+};
+
+export default config;

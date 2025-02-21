@@ -2,7 +2,9 @@ package configs
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,20 +12,39 @@ import (
 	"github.com/hookdeck/outpost/internal/infra"
 	"github.com/hookdeck/outpost/internal/util/testinfra"
 	"github.com/hookdeck/outpost/internal/util/testutil"
+	"github.com/stretchr/testify/require"
 )
 
-func Basic(t *testing.T) config.Config {
+type LogStorageType string
+
+const (
+	LogStorageTypePostgres   LogStorageType = "postgres"
+	LogStorageTypeClickHouse LogStorageType = "clickhouse"
+)
+
+type BasicOpts struct {
+	LogStorage LogStorageType
+}
+
+func Basic(t *testing.T, opts BasicOpts) config.Config {
 	// Get test infrastructure configs
 	redisConfig := testutil.CreateTestRedisConfig(t)
-	clickHouseConfig := testinfra.NewClickHouseConfig(t)
 	rabbitmqServerURL := testinfra.EnsureRabbitMQ()
+
+	logLevel := "fatal"
+	if os.Getenv("LOG_LEVEL") != "" {
+		logLevel = os.Getenv("LOG_LEVEL")
+	}
 
 	// Start with defaults
 	c := &config.Config{}
 	c.InitDefaults()
 
+	require.NoError(t, setLogStorage(t, c, opts.LogStorage))
+
 	// Override only what's needed for e2e tests
-	c.Service = config.ServiceTypeSingular.String()
+	c.LogLevel = logLevel
+	c.Service = config.ServiceTypeAll.String()
 	c.APIPort = testutil.RandomPortNumber()
 	c.APIKey = "apikey"
 	c.APIJWTSecret = "jwtsecret"
@@ -35,11 +56,6 @@ func Basic(t *testing.T) config.Config {
 	c.Redis.Port = redisConfig.Port
 	c.Redis.Password = redisConfig.Password
 	c.Redis.Database = redisConfig.Database
-
-	c.ClickHouse.Addr = clickHouseConfig.Addr
-	c.ClickHouse.Username = clickHouseConfig.Username
-	c.ClickHouse.Password = clickHouseConfig.Password
-	c.ClickHouse.Database = clickHouseConfig.Database
 
 	// MQ overrides
 	c.MQs.RabbitMQ.ServerURL = rabbitmqServerURL
@@ -67,4 +83,21 @@ func Basic(t *testing.T) config.Config {
 	})
 
 	return *c
+}
+
+func setLogStorage(t *testing.T, c *config.Config, logStorage LogStorageType) error {
+	switch logStorage {
+	case LogStorageTypePostgres:
+		postgresURL := testinfra.NewPostgresConfig(t)
+		c.PostgresURL = postgresURL
+	case LogStorageTypeClickHouse:
+		clickHouseConfig := testinfra.NewClickHouseConfig(t)
+		c.ClickHouse.Addr = clickHouseConfig.Addr
+		c.ClickHouse.Username = clickHouseConfig.Username
+		c.ClickHouse.Password = clickHouseConfig.Password
+		c.ClickHouse.Database = clickHouseConfig.Database
+	default:
+		return fmt.Errorf("invalid log storage type: %s", logStorage)
+	}
+	return nil
 }

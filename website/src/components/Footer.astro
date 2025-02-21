@@ -1,3 +1,7 @@
+---
+import { LINKS } from "../links";
+---
+
 <footer>
   <section>
     <div>
@@ -12,25 +16,20 @@
             >Code</a
           >
         </li>
-        <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m"
-            >Roadmap</a
+        <!-- <li>
+          <a
+            href="https://github.com/orgs/hookdeck/projects/20"
+            class="regular-m">Roadmap</a
           >
+        </li> -->
+        <li>
+          <a href={LINKS.releases} class="regular-m">Releases</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m"
-            >Releases</a
-          >
+          <a href={LINKS.issues} class="regular-m">Issues</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m"
-            >Issues</a
-          >
-        </li>
-        <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m"
-            >Contribute</a
-          >
+          <a href={LINKS.contribute} class="regular-m">Contribute</a>
         </li>
       </ul>
     </div>
@@ -38,25 +37,19 @@
       <h4 class="bold-m">Docs</h4>
       <ul>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m"
-            >Quickstart</a
-          >
+          <a href={LINKS.docs_quickstarts} class="regular-m">Quickstarts</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m">...</a
-          >
+          <a href={LINKS.docs_concepts} class="regular-m">Concepts</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m">...</a
-          >
+          <a href={LINKS.docs_features} class="regular-m">Features</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m">...</a
-          >
+          <a href={LINKS.docs_guides} class="regular-m">Guides</a>
         </li>
         <li>
-          <a href="https://github.com/hookdeck/outpost" class="regular-m">...</a
-          >
+          <a href={LINKS.docs_references} class="regular-m">References</a>
         </li>
       </ul>
     </div>
@@ -65,21 +58,21 @@
       <ul>
         <li>
           <a href="https://x.com/hookdeck" target="_blank" class="regular-m"
-            >X ↗</a
+            >X</a
           >
         </li>
         <li>
           <a
             href="https://bsky.app/profile/hookdeck.com"
             target="_blank"
-            class="regular-m">Bluesky ↗</a
+            class="regular-m">Bluesky</a
           >
         </li>
         <li>
           <a
             href="https://www.linkedin.com/company/hookdeck"
             target="_blank"
-            class="regular-m">LinkedIn ↗</a
+            class="regular-m">LinkedIn</a
           >
         </li>
       </ul>
