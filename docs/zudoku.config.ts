@@ -1,5 +1,10 @@
 import type { ZudokuConfig } from "zudoku";
 import { HeadNavigation } from "./src/components/HeadNavigation";
+import { htmlPlugin } from "./src/plugins/htmlPlugin";
+import process from "node:process";
+
+const ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT =
+  process.env.ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT || "";
 
 const config: ZudokuConfig = {
   basePath: "/docs",
@@ -24,6 +29,7 @@ const config: ZudokuConfig = {
     { from: "/guides", to: "/guides/deployment" },
     { from: "/references", to: "/references/api" },
   ],
+  plugins: [htmlPlugin({ headScript: ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT })],
   UNSAFE_slotlets: {
     "head-navigation-start": HeadNavigation,
   },
