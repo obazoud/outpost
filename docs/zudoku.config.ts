@@ -1,20 +1,38 @@
 import type { ZudokuConfig } from "zudoku";
+import { HeadNavigation } from "./src/components/HeadNavigation";
+import { htmlPlugin } from "./src/plugins/htmlPlugin";
+import process from "node:process";
+
+const ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT =
+  process.env.ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT || "";
 
 const config: ZudokuConfig = {
   basePath: "/docs",
   metadata: {
     title: "%s | Outpost",
-    description: "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, and more.",
+    description:
+      "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, and more.",
     generator: "Zudoku",
     applicationName: "Outpost Documentation",
-    keywords: ["outpost", "event destinations", "webhooks", "send webhooks", "event delivery", "webhook delivery"],
-    publisher: "Hookdeck Technologies Inc."
+    keywords: [
+      "outpost",
+      "event destinations",
+      "webhooks",
+      "send webhooks",
+      "event delivery",
+      "webhook delivery",
+    ],
+    publisher: "Hookdeck Technologies Inc.",
   },
   redirects: [
-    {from: "/", to: "/overview"},
-    {from: "/guides", to: "/guides/deployment"},
-    {from: "/references", to: "/references/api"},
+    { from: "/", to: "/overview" },
+    { from: "/guides", to: "/guides/deployment" },
+    { from: "/references", to: "/references/api" },
   ],
+  plugins: [htmlPlugin({ headScript: ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT })],
+  UNSAFE_slotlets: {
+    "head-navigation-start": HeadNavigation,
+  },
   page: {
     pageTitle: "",
     logoUrl: "/",
@@ -23,15 +41,14 @@ const config: ZudokuConfig = {
         // TODO: Update once basePath is used by Zudoku
         // light: "logo/outpost-logo-black.svg",
         // dark: "logo/outpost-logo-white.svg"
-        light: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-black.svg",
-        dark: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-white.svg"
+        light:
+          "https://outpost-docs.vercel.app/docs/logo/outpost-logo-black.svg",
+        dark: "https://outpost-docs.vercel.app/docs/logo/outpost-logo-white.svg",
       },
       width: "110px",
-    }
+    },
   },
-  topNavigation: [
-    { id: "docs", label: "Documentation", default: "overview" },
-  ],
+  topNavigation: [{ id: "docs", label: "Documentation", default: "overview" }],
   sidebar: {
     docs: [
       {

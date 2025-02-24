@@ -18,7 +18,7 @@ Outpost is deployed with three services:
 - **Delivery Service**: is responsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.
 - **Log Service**: enables storing and retrieving events, their status, and their responses.
 
-![Outpost Architecture](/images/architecture.png)
+![Outpost Architecture](../public/images/architecture.png)
 
 ## Runtime Requirements
 
@@ -26,18 +26,17 @@ Outpost is deployed with three services:
 
 - Redis 6.0+ or wire-compatible alternative (RBD or AOF strongly recommended)
 - One of the supported message queues:
-    - AWS SQS
-    - GCP Pubsub
-    - Azure Service Bus
-    - RabbitMQ
+  - AWS SQS
+  - GCP Pubsub
+  - Azure Service Bus
+  - RabbitMQ
 
 ### Log Service
 
 - Clickhouse
-    
+
 <details>
-<summary>Future Roadmap</summary>
-- Postgres (simpler alternative to CH)
+  <summary>Future Roadmap</summary>- Postgres (simpler alternative to CH)
 </details>
 
 ## Benchmarks

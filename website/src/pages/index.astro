@@ -19,6 +19,8 @@ const tags = [
   "event destinations",
   "event platform",
 ];
+const PUBLIC_CUSTOM_HEAD_CONTENT =
+  import.meta.env.PUBLIC_CUSTOM_HEAD_CONTENT || "";
 ---
 
 <html lang="en">
@@ -36,6 +38,7 @@ const tags = [
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..600&family=JetBrains+Mono:wght@400..600&display=swap"
       rel="stylesheet"
     />
+    <Fragment set:html={PUBLIC_CUSTOM_HEAD_CONTENT} />
   </head>
   <body>
     <Nav />
