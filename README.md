@@ -152,7 +152,7 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 - [Guides](https://outpost.hookdeck.com/docs/guides/deployment)
 - References
     - [API Reference](https://outpost.hookdeck.com/docs/references/api)
-    - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configurationx)
+    - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configuration)
 
 ## Contributing
 
