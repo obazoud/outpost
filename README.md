@@ -20,7 +20,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](#license)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hookdeck/outpost)](https://goreportcard.com/report/github.com/hookdeck/outpost)
-[![Issues - Outpost](https://img.shields.io/github/issues/hookdeck/outposta)](https://github.com/hookdeck/outpost/issues)
+[![Issues - Outpost](https://img.shields.io/github/issues/hookdeck/outpost)](https://github.com/hookdeck/outpost/issues)
 ![GitHub Release](https://img.shields.io/github/v/release/hookdeck/outpost)
 
 </div>
