@@ -2,9 +2,9 @@
 
 ## Questions, Ideas, and Feature Requests
 
-- [General discussions](https://github.com/hookdeck/eventdestinations/discussions/new?category=ideas)
-- [New ideas](https://github.com/hookdeck/eventdestinations/discussions/new?category=ideas)
-- [Q&A](https://github.com/hookdeck/eventdestinations/discussions/new?category=q-a)
+- [General discussions](https://github.com/hookdeck/outpost/discussions/new?category=ideas)
+- [New ideas](https://github.com/hookdeck/outpost/discussions/new?category=ideas)
+- [Q&A](https://github.com/hookdeck/outpost/discussions/new?category=q-a)
 
 ## Bugs
 
