@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hookdeck/outpost/internal/logging"
@@ -76,15 +77,20 @@ func (h *LogHandlers) RetrieveEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
-// TODO: consider authz where eventID doesn't belong to tenantID?
+type DeliveryResponse struct {
+	DeliveredAt  string                 `json:"delivered_at"`
+	Status       string                 `json:"status"`
+	Code         string                 `json:"code"`
+	ResponseData map[string]interface{} `json:"response_data"`
+}
+
 func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
-	tenant := mustTenantFromContext(c)
-	if tenant == nil {
+	event := h.mustEventWithTenant(c, c.Param("eventID"))
+	if event == nil {
 		return
 	}
-	eventID := c.Param("eventID")
 	deliveries, err := h.logStore.ListDelivery(c.Request.Context(), logstore.ListDeliveryRequest{
-		EventID: eventID,
+		EventID: event.ID,
 	})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
@@ -92,12 +98,38 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 	}
 	if len(deliveries) == 0 {
 		// Return an empty array instead of null
-		c.JSON(http.StatusOK, gin.H{
-			"data": []models.Delivery{},
-		})
+		c.JSON(http.StatusOK, []DeliveryResponse{})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"data": deliveries,
-	})
+	deliveryData := make([]DeliveryResponse, len(deliveries))
+	for i, delivery := range deliveries {
+		deliveryData[i] = DeliveryResponse{
+			DeliveredAt:  delivery.Time.UTC().Format(time.RFC3339),
+			Status:       delivery.Status,
+			Code:         delivery.Code,
+			ResponseData: delivery.ResponseData,
+		}
+	}
+	c.JSON(http.StatusOK, deliveryData)
+}
+
+func (h *LogHandlers) mustEventWithTenant(c *gin.Context, eventID string) *models.Event {
+	tenant := mustTenantFromContext(c)
+	if tenant == nil {
+		return nil
+	}
+	event, err := h.logStore.RetrieveEvent(c.Request.Context(), tenant.ID, eventID)
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+		return nil
+	}
+	if event == nil {
+		c.Status(http.StatusNotFound)
+		return nil
+	}
+	if event.TenantID != tenant.ID {
+		c.Status(http.StatusForbidden)
+		return nil
+	}
+	return event
 }

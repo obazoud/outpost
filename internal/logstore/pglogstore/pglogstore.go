@@ -2,7 +2,7 @@ package pglogstore
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/hookdeck/outpost/internal/logstore/driver"
 	"github.com/hookdeck/outpost/internal/models"
@@ -11,31 +11,77 @@ import (
 )
 
 type logStore struct {
-	db *pgxpool.Pool
+	db           *pgxpool.Pool
+	cursorParser eventCursorParser
 }
 
 func NewLogStore(db *pgxpool.Pool) driver.LogStore {
-	return &logStore{db: db}
+	return &logStore{
+		db:           db,
+		cursorParser: newEventCursorParser(),
+	}
 }
 
 func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) ([]*models.Event, string, error) {
 	query := `
-		SELECT id, tenant_id, destination_id, time, topic, eligible_for_retry, data, metadata
-		FROM events 
-		WHERE tenant_id = $1 
-		AND ($2 = '' OR time < $2::timestamptz)
-		ORDER BY time DESC
-		LIMIT $3`
+		SELECT 
+			id,
+			tenant_id,
+			destination_id,
+			time,
+			topic,
+			eligible_for_retry,
+			data,
+			metadata,
+			time_id,
+			COALESCE(
+				NULLIF($3, ''),
+				CASE 
+					WHEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id AND d.status = 'success') THEN 'success'
+					WHEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id) THEN 'failed'
+					ELSE 'pending'
+				END
+			) as status
+		FROM events e
+		WHERE tenant_id = $1
+		AND (array_length($2::text[], 1) IS NULL OR destination_id = ANY($2))
+		AND ($4 = '' OR time_id < $4)
+		AND ($3 = '' OR 
+			CASE $3
+				WHEN 'success' THEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id AND d.status = 'success')
+				WHEN 'failed' THEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id) AND NOT EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id AND d.status = 'success')
+				WHEN 'pending' THEN NOT EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id)
+			END
+		)
+		ORDER BY time_id DESC
+		LIMIT CASE WHEN $5 = 0 THEN NULL ELSE $5 END`
 
-	rows, err := s.db.Query(ctx, query, req.TenantID, req.Cursor, req.Limit)
+	var cursor string
+	if req.Cursor != "" {
+		decodedCursor, err := s.cursorParser.Parse(req.Cursor)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid cursor: %v", err)
+		}
+		cursor = decodedCursor
+	}
+
+	rows, err := s.db.Query(ctx, query,
+		req.TenantID,
+		req.DestinationIDs,
+		req.Status,
+		cursor,
+		req.Limit,
+	)
 	if err != nil {
 		return nil, "", err
 	}
 	defer rows.Close()
 
 	var events []*models.Event
+	var lastTimeID string
 	for rows.Next() {
 		event := &models.Event{}
+		var status string
 		err := rows.Scan(
 			&event.ID,
 			&event.TenantID,
@@ -45,6 +91,8 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 			&event.EligibleForRetry,
 			&event.Data,
 			&event.Metadata,
+			&lastTimeID,
+			&status,
 		)
 		if err != nil {
 			return nil, "", err
@@ -54,7 +102,7 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 
 	var nextCursor string
 	if len(events) > 0 {
-		nextCursor = events[len(events)-1].Time.UTC().Format(time.RFC3339)
+		nextCursor = s.cursorParser.Format(lastTimeID)
 	}
 
 	return events, nextCursor, nil
@@ -91,7 +139,7 @@ func (s *logStore) RetrieveEvent(ctx context.Context, tenantID, eventID string) 
 
 func (s *logStore) ListDelivery(ctx context.Context, req driver.ListDeliveryRequest) ([]*models.Delivery, error) {
 	query := `
-		SELECT id, event_id, destination_id, status, time
+		SELECT id, event_id, destination_id, status, time, code, response_data
 		FROM deliveries
 		WHERE event_id = $1
 		ORDER BY time DESC`
@@ -111,6 +159,8 @@ func (s *logStore) ListDelivery(ctx context.Context, req driver.ListDeliveryRequ
 			&delivery.DestinationID,
 			&delivery.Status,
 			&delivery.Time,
+			&delivery.Code,
+			&delivery.ResponseData,
 		)
 		if err != nil {
 			return nil, err
@@ -146,7 +196,7 @@ func (s *logStore) InsertManyDelivery(ctx context.Context, deliveries []*models.
 	_, err := s.db.CopyFrom(
 		ctx,
 		pgx.Identifier{"deliveries"},
-		[]string{"id", "event_id", "destination_id", "status", "time"},
+		[]string{"id", "event_id", "destination_id", "status", "time", "code", "response_data"},
 		pgx.CopyFromSlice(len(deliveries), func(i int) ([]interface{}, error) {
 			return []interface{}{
 				deliveries[i].ID,
@@ -154,6 +204,8 @@ func (s *logStore) InsertManyDelivery(ctx context.Context, deliveries []*models.
 				deliveries[i].DestinationID,
 				deliveries[i].Status,
 				deliveries[i].Time,
+				deliveries[i].Code,
+				deliveries[i].ResponseData,
 			}, nil
 		}),
 	)
