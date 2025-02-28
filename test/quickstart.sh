@@ -32,7 +32,7 @@ wait_for_service() {
 # Update the <API_KEY> value within the new .env file
 sed -i '' "s/apikey/$TEST_API_KEY/" .env
 
-docker-compose -f compose.yml -f compose-rabbitmq.yml up -d
+docker-compose -f compose.yml -f compose-rabbitmq.yml -f compose-postgres.yml up -d
 
 # Wait until the services are running
 echo "Waiting for the services to start"
