@@ -4,15 +4,29 @@ import Button from "../../../common/Button/Button";
 import SearchInput from "../../../common/SearchInput/SearchInput";
 import "./Events.scss";
 import Table from "../../../common/Table/Table";
+import {Event as EventType} from "../../../typings/Event";
+import useSWR from "swr";
 
 const Events = ({ destination }: { destination: any }) => {
   const [search, setSearch] = useState("");
+
+  console.log(destination)
+
+  // const { data: events } = useSWR<EventType[]>(
+  //   `destinations/${destination.id}/events`
+  // );
+
+  const { data: events } = useSWR<EventType[]>(
+    `events?destination_id=${destination.id}`
+  );
+
+  console.log(events)
 
   return (
     <div className="destination-events">
       <div className="destination-events__header">
         <h2 className="title-l">
-          Events [TODO] <Badge text="100" />
+          Events [TODO] <Badge text={events ? events?.length + "" : "0"} />
         </h2>
         <div className="destination-events__header-filters">
           <SearchInput

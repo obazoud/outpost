@@ -13,13 +13,13 @@ const subscriptions = [
   {
     organizationId: "org1",
     url: "https://org1.test/products",
-    topics: ["product.created", "product.updated"],
+    topics: ["user.deleted"],
     secret: "some_secret_value",
   },
   {
     organizationId: "org2",
     url: "https://org2.test/sms",
-    topics: ["status.failed", "status.delivered"],
+    topics: ["user.created", "user.updated", "user.deleted"],
     secret: "some_secret_value",
   },
 ];
