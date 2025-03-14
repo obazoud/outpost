@@ -8,6 +8,13 @@ interface Event {
   data: any;
 }
 
+interface EventListResponse {
+  data: Event[];
+  next?: string;
+  previous?: string;
+}
+
 export type {
   Event,
+  EventListResponse
 };
