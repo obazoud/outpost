@@ -6,20 +6,20 @@ const organizations = [{ id: "org1" }, { id: "org2" }, { id: "org3" }];
 const subscriptions = [
   {
     organizationId: "org1",
-    url: process.env.REAL_TEST_ENDPOINT || "https://org1.test/users",
+    url: process.env.ORG_1_ENDPOINT_1 || "https://org1.test/users",
     topics: ["user.created", "user.updated"],
     secret: "some_secret_value",
   },
   {
     organizationId: "org1",
-    url: "https://org1.test/products",
-    topics: ["product.created", "product.updated"],
+    url: process.env.ORG_1_ENDPOINT_2 || "https://org1.test/users",
+    topics: ["user.deleted"],
     secret: "some_secret_value",
   },
   {
     organizationId: "org2",
-    url: "https://org2.test/sms",
-    topics: ["status.failed", "status.delivered"],
+    url: process.env.ORG_2_ENDPOINT || "https://org1.test/users",
+    topics: ["user.created", "user.updated", "user.deleted"],
     secret: "some_secret_value",
   },
 ];
