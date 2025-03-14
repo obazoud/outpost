@@ -38,8 +38,24 @@ func (h *PublishHandlers) Ingest(c *gin.Context) {
 	if err := h.eventHandler.Handle(c.Request.Context(), &event); err != nil {
 		if errors.Is(err, idempotence.ErrConflict) {
 			c.Status(http.StatusConflict)
+		} else if errors.Is(err, publishmq.ErrRequiredTopic) {
+			AbortWithValidationError(c, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Err:     err,
+				Data: map[string]string{
+					"topic": "required",
+				},
+			})
 		} else if errors.Is(err, publishmq.ErrInvalidTopic) {
-			AbortWithValidationError(c, err)
+			AbortWithValidationError(c, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Err:     err,
+				Data: map[string]string{
+					"topic": "invalid",
+				},
+			})
 		} else {
 			AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		}
@@ -48,10 +64,9 @@ func (h *PublishHandlers) Ingest(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// TODO: validation
 type PublishedEvent struct {
 	ID               string                 `json:"id"`
-	TenantID         string                 `json:"tenant_id"`
+	TenantID         string                 `json:"tenant_id" binding:"required"`
 	DestinationID    string                 `json:"destination_id"`
 	Topic            string                 `json:"topic"`
 	EligibleForRetry bool                   `json:"eligible_for_retry"`

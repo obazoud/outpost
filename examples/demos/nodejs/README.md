@@ -1,4 +1,4 @@
-# Example Webhooks Migration Script
+# Examples for Node.js / TypeScript
 
 Create a `.env`:
 
@@ -11,12 +11,14 @@ OUTPOST_API_BASE_URL=
 # API Key for your Outpost installation
 OUTPOST_API_KEY=
 
-# A webhook endpoint to test the receipt of
+# Webhook endpoints to test the receipt of
 # webhook events
-REAL_TEST_ENDPOINT=https://hkdk.events/bmqKUtADjRzR
+ORG_1_ENDPOINT_1=
+ORG_1_ENDPOINT_2=
+ORG_2_ENDPOINT=
 ```
 
-## Example migration script
+## Migration script
 
 `src/migrate.ts`
 
@@ -28,7 +30,7 @@ Run with:
 npm run migrate
 ```
 
-## Example publish test script
+## Publish test script
 
 Following the migration you may want to test publishing an event and it being received by a destination.
 
@@ -42,7 +44,7 @@ Run with:
 npm run publish-test
 ```
 
-## Example verification script
+## Verification script
 
 As part of ensuring events are delivered as expected you should also ensure that webhook signatures are in the expected formation.
 
@@ -54,4 +56,16 @@ Run with:
 
 ```
 npm run verify
+```
+
+## Portal URLs
+
+List the signed portal URLs
+
+`src/portal-urls.ts`
+
+Run with:
+
+```
+npm run portal-urls
 ```
