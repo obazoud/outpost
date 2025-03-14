@@ -41,7 +41,13 @@
 
 Outpost is a self-hosted and open-source infrastructure that enables event producers to add Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
 
-<!-- Learn more about Event Destinations in the [Event Destinations Manifesto](https://eventdestinations.org). -->
+Learn more about Event Destinations in the [Event Destinations Manifesto](https://eventdestinations.org).
+
+## Architecture
+
+![Outpost architecture](docs/public/images/architecture.png)
+
+See the [Outpost Concepts](https://outpost.hookdeck.com/docs/concepts) for more information.
 
 ## Features
 
@@ -56,6 +62,8 @@ Outpost is a self-hosted and open-source infrastructure that enables event produ
 - **OpenTelemetry**: OTel standardized traces, metrics, and logs.
 - **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka.
 - **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
+
+See the [Outpost Features](https://outpost.hookdeck.com/docs/features) for more information.
 
 ## Quickstart
 
