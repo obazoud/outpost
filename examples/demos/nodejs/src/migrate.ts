@@ -1,11 +1,11 @@
 import * as process from "process";
-import { askQuestion } from "./utils";
+import { askQuestion } from "./lib/utils";
 
 // Outpost API wrapper
-import outpost from "./outpost";
+import outpost from "./lib/outpost";
 
 // Database wrapper
-import { default as db } from "./db";
+import { default as db } from "./lib/db";
 
 const cleanup = async () => {
   const answer = await askQuestion("Press 'Y' and then 'Enter' to confirm: ");

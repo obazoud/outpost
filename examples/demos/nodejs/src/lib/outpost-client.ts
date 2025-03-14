@@ -6,6 +6,7 @@ interface Tenant {
 
 interface Destination {
   id: string;
+  topics: string[];
 }
 
 class OutpostClient {
