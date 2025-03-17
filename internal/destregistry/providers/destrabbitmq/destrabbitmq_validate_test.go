@@ -152,8 +152,13 @@ func TestRabbitMQDestination_Validate(t *testing.T) {
 			shouldError bool
 		}{
 			{
-				name:        "valid true value",
+				name:        "valid true value ('true')",
 				tlsValue:    "true",
+				shouldError: false,
+			},
+			{
+				name:        "valid true value ('on')",
+				tlsValue:    "on",
 				shouldError: false,
 			},
 			{

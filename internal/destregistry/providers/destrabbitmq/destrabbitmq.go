@@ -45,7 +45,7 @@ func (d *RabbitMQDestination) Validate(ctx context.Context, destination *models.
 
 	// Validate TLS config if provided
 	if tlsStr, ok := destination.Config["tls"]; ok {
-		if tlsStr != "checked" && tlsStr != "true" && tlsStr != "false" {
+		if tlsStr != "on" && tlsStr != "true" && tlsStr != "false" {
 			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
 				{
 					Field: "config.tls",
@@ -90,9 +90,9 @@ func (d *RabbitMQDestination) resolveMetadata(ctx context.Context, destination *
 		return nil, nil, err
 	}
 
-	useTLS := true
+	useTLS := false // default to false if omitted
 	if tlsStr, ok := destination.Config["tls"]; ok {
-		useTLS = tlsStr != "false" // "checked" or "true" are valid values
+		useTLS = tlsStr == "true" || tlsStr == "on"
 	}
 
 	return &RabbitMQDestinationConfig{
@@ -104,6 +104,22 @@ func (d *RabbitMQDestination) resolveMetadata(ctx context.Context, destination *
 			Username: destination.Credentials["username"],
 			Password: destination.Credentials["password"],
 		}, nil
+}
+
+// Preprocess sets the default TLS value to "true" if not provided
+func (d *RabbitMQDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
+	if newDestination.Config == nil {
+		return nil
+	}
+	if newDestination.Config["tls"] == "on" {
+		newDestination.Config["tls"] = "true"
+	} else if newDestination.Config["tls"] == "" {
+		newDestination.Config["tls"] = "false" // default to false if omitted
+	}
+	if _, _, err := d.resolveMetadata(context.Background(), newDestination); err != nil {
+		return err
+	}
+	return nil
 }
 
 type RabbitMQPublisher struct {
