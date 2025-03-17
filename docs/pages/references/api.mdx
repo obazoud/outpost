@@ -394,7 +394,7 @@ No parameters.
   {
     "type": "webhook",
     "label": "Webhook",
-    "description": "Send event via an HTTP POST request to a URL of your choice",
+    "description": "Send event via an HTTP POST request to a URL",
     "icon": "<svg />",
     "instructions": "Some *markdown*",
     "config_fields": [
@@ -438,7 +438,7 @@ Runs the input schemas for the specified destination type.
 {
   "type": "webhook",
   "label": "Webhook",
-  "description": "Send event via an HTTP POST request to a URL of your choice",
+  "description": "Send event via an HTTP POST request to a URL",
   "icon": "<svg />",
   "instructions": "Some *markdown*",
   "config_fields": [
@@ -456,7 +456,7 @@ Runs the input schemas for the specified destination type.
 
 ## Events API
 
-### `GET` `/:tenant_id/destination/:destination_id/events`
+### `GET` `/:tenant_id/events`
 
 Retrieve a list of events using a cursor navigation.
 
@@ -483,7 +483,7 @@ Retrieve a list of events using a cursor navigation.
 }]
 ```
 
-### `GET` `/:tenant_id/destination/:destination_id/events/:event_id`
+### `GET` `/:tenant_id/events/:event_id`
 
 Retrieve a specific event and its associated data.
 

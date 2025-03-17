@@ -80,6 +80,7 @@ Destinations must be asynchronous and not run any business logic. At release, mu
 - S3 API
 
 See the [roadmap](/docs/references/roadmap) for more information.
+
 </details>
 
 ### Getting Destination Types
@@ -92,17 +93,17 @@ For example, for the `webhook` type:
 {
   "type": "webhook",
   "label": "Webhook",
-  "description": "Send event via an HTTP POST request to a URL of your choice",
+  "description": "Send event via an HTTP POST request to a URL",
   "icon": "<svg />",
   "instructions": "Some *markdown*",
   "remote_setup_url": null,
   "config_fields": [
     {
-          "type": "text",
-          "label": "URL",
-          "description": "The URL to send the event to",
-          "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
-          "required": true
+      "type": "text",
+      "label": "URL",
+      "description": "The URL to send the event to",
+      "pattern": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/",
+      "required": true
     }
   ],
   "credential_fields": []
@@ -113,13 +114,13 @@ For example, for the `webhook` type:
 
 Config fields are non-secret values that can be stored and displayed to the user in plain text.
 
-### `credential_fields` `Field[]` 
+### `credential_fields` `Field[]`
 
 Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
 
 ### `instructions` `string`
 
-Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The value is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository. 
+Some destinations will require instructions to configure. For instance, with Pubsub, the user will need to create a service account and grant some permissions to that service account. The value is a markdown string to be rendered with any markdown rendering library. Images will be hosted through the GitHub repository.
 
 ### `remote_setup_url`
 
@@ -148,16 +149,18 @@ The events need to follow the given structure:
   "topic": "something.created", // Optional. Assumed to match ANY topic if left empty.
   "eligible_for_retry": false, // Optional, default to "false". Control if an event should be retried.
   "time": "2024-06-01 08:23:36.082374Z", // ISO Timestamp of the event
-  "metadata": { // Arbitrary key-value mapping for event
-    "key": "value"// String, number or boolean
+  "metadata": {
+    // Arbitrary key-value mapping for event
+    "key": "value" // String, number or boolean
   },
-  "data": { // Freeform JSON data
+  "data": {
+    // Freeform JSON data
     "hello": "world"
   }
 }
 ```
 
-Each event (without a `destination_id`) is evaluated against all the registered destinations. An event is delivered and logged for each eligible destination. 
+Each event (without a `destination_id`) is evaluated against all the registered destinations. An event is delivered and logged for each eligible destination.
 
 The `metadata` is translated to the destination's native metadata, for instance, with Webhooks and HTTP headers. If the destination does not support metadata, the published data will be the full event.
 
@@ -201,11 +204,12 @@ It's your responsibility to format and deliver the alert to your tenant using yo
 - Support publishing the event to an MQ instead of via an HTTP callback url
 
 See the [roadmap](/docs/references/roadmap) for more information.
+
 </details>
 
 ### Consecutive failure alerts
 
- `ALERT_CONSECUTIVE_FAILURE_COUNT` variable will alert when the consecutive failure count reaches 50%, 70%, 90% and 100%. At 100% the destination will be disabled if the config is enabled.
+`ALERT_CONSECUTIVE_FAILURE_COUNT` variable will alert when the consecutive failure count reaches 50%, 70%, 90% and 100%. At 100% the destination will be disabled if the config is enabled.
 
 ```json
 {
@@ -294,25 +298,25 @@ OpenTelemetry supports the service's key performance metrics. You need to bring 
 
 Supported metrics are:
 
-### `delivery_latency` 
+### `delivery_latency`
 
-Delivery latency to the destination. Dimensions: `type` 
+Delivery latency to the destination. Dimensions: `type`
 
 ### `delivered_events`
 
-The number of delivered events. `type` `status` 
+The number of delivered events. `type` `status`
 
 ### `published_events`
 
 The number of published events. `topic`
 
- ### `eligible_events`
+### `eligible_events`
 
 The number of published events that matched at least one destination. `topic`
 
-### `api_response_latency` 
+### `api_response_latency`
 
-The API response latency. `endpoint` `method` `path` 
+The API response latency. `endpoint` `method` `path`
 
 ### `api_calls`
 
