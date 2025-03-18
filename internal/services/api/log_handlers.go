@@ -31,16 +31,17 @@ func (h *LogHandlers) ListEvent(c *gin.Context) {
 	if tenant == nil {
 		return
 	}
-	cursor := c.Query("cursor")
 	limitStr := c.Query("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		limit = 100
 	}
 	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
-		TenantID: tenant.ID,
-		Cursor:   cursor,
-		Limit:    limit,
+		TenantID:       tenant.ID,
+		Cursor:         c.Query("cursor"),
+		Limit:          limit,
+		DestinationIDs: c.QueryArray("destination_id"),
+		Status:         c.Query("status"),
 	})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
