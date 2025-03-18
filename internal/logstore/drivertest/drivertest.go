@@ -239,6 +239,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			require.Len(t, queriedEvents, 5)
 			for i := 0; i < 5; i++ {
 				require.Equal(t, statusEvents["success"][i].ID, queriedEvents[i].ID)
+				require.Equal(t, "success", queriedEvents[i].Status)
 			}
 			cursor = nextCursor
 		})
@@ -254,6 +255,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			require.Len(t, queriedEvents, 5)
 			for i := 0; i < 5; i++ {
 				require.Equal(t, statusEvents["success"][5+i].ID, queriedEvents[i].ID)
+				require.Equal(t, "success", queriedEvents[i].Status)
 			}
 		})
 
@@ -266,7 +268,20 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			require.Len(t, queriedEvents, len(statusEvents["failed"]))
 			for i := 0; i < len(statusEvents["failed"]); i++ {
 				require.Equal(t, statusEvents["failed"][i].ID, queriedEvents[i].ID)
+				require.Equal(t, "failed", queriedEvents[i].Status)
 			}
+		})
+
+		t.Run("retrieve event status", func(t *testing.T) {
+			// Test success case
+			event, err := logStore.RetrieveEvent(ctx, tenantID, statusEvents["success"][0].ID)
+			require.NoError(t, err)
+			require.Equal(t, "success", event.Status)
+
+			// Test failed case
+			event, err = logStore.RetrieveEvent(ctx, tenantID, statusEvents["failed"][0].ID)
+			require.NoError(t, err)
+			require.Equal(t, "failed", event.Status)
 		})
 	})
 

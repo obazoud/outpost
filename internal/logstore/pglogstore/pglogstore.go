@@ -81,7 +81,6 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 	var lastTimeID string
 	for rows.Next() {
 		event := &models.Event{}
-		var status string
 		err := rows.Scan(
 			&event.ID,
 			&event.TenantID,
@@ -92,7 +91,7 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 			&event.Data,
 			&event.Metadata,
 			&lastTimeID,
-			&status,
+			&event.Status,
 		)
 		if err != nil {
 			return nil, "", err
@@ -110,8 +109,21 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 
 func (s *logStore) RetrieveEvent(ctx context.Context, tenantID, eventID string) (*models.Event, error) {
 	query := `
-		SELECT id, tenant_id, destination_id, time, topic, eligible_for_retry, data, metadata
-		FROM events
+		SELECT 
+			id, 
+			tenant_id, 
+			destination_id, 
+			time, 
+			topic, 
+			eligible_for_retry, 
+			data, 
+			metadata,
+			CASE 
+				WHEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id AND d.status = 'success') THEN 'success'
+				WHEN EXISTS (SELECT 1 FROM deliveries d WHERE d.event_id = e.id) THEN 'failed'
+				ELSE 'pending'
+			END as status
+		FROM events e
 		WHERE tenant_id = $1 AND id = $2`
 
 	row := s.db.QueryRow(ctx, query, tenantID, eventID)
@@ -126,6 +138,7 @@ func (s *logStore) RetrieveEvent(ctx context.Context, tenantID, eventID string) 
 		&event.EligibleForRetry,
 		&event.Data,
 		&event.Metadata,
+		&event.Status,
 	)
 	if err == pgx.ErrNoRows {
 		return nil, nil

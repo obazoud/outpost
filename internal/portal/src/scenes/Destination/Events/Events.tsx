@@ -4,7 +4,7 @@ import Button from "../../../common/Button/Button";
 import SearchInput from "../../../common/SearchInput/SearchInput";
 import "./Events.scss";
 import Table from "../../../common/Table/Table";
-import {EventListResponse} from "../../../typings/Event";
+import { EventListResponse } from "../../../typings/Event";
 import useSWR from "swr";
 
 const Events = ({ destination }: { destination: any }) => {
@@ -18,29 +18,34 @@ const Events = ({ destination }: { destination: any }) => {
     `events?destination_id=${destination.id}`
   );
 
-  const table_rows = eventsList? eventsList.data.map((event) => ({
-    id: event.id,
-    entries: [
-      <span className="mono-s">{new Date(event.time).toLocaleString(
-        "en-US",
-        {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }
-      )}</span>,
-      <span className="mono-s">{event.successful_at ?  <Badge text="Active" success /> :  <Badge text="Failed" danger />}</span>,
-      <span className="mono-s">
-        {event.topic}
-      </span>,
-      <span className="mono-s">
-      {event.id}
-      </span>,
-    ],
-  })) : [];
+  const table_rows = eventsList
+    ? eventsList.data.map((event) => ({
+        id: event.id,
+        entries: [
+          <span className="mono-s">
+            {new Date(event.time).toLocaleString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            })}
+          </span>,
+          <span className="mono-s">
+            {event.status === "success" ? (
+              <Badge text="Successful" success />
+            ) : event.status === "failed" ? (
+              <Badge text="Failed" danger />
+            ) : (
+              <Badge text="Pending" />
+            )}
+          </span>,
+          <span className="mono-s">{event.topic}</span>,
+          <span className="mono-s">{event.id}</span>,
+        ],
+      }))
+    : [];
 
   return (
     <div className="destination-events">
