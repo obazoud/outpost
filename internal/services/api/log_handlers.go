@@ -27,6 +27,14 @@ func NewLogHandlers(
 }
 
 func (h *LogHandlers) ListEvent(c *gin.Context) {
+	h.listEvent(c, c.QueryArray("destination_id"))
+}
+
+func (h *LogHandlers) ListEventByDestination(c *gin.Context) {
+	h.listEvent(c, []string{c.Param("destinationID")})
+}
+
+func (h *LogHandlers) listEvent(c *gin.Context, destinationIDs []string) {
 	tenant := mustTenantFromContext(c)
 	if tenant == nil {
 		return
@@ -40,7 +48,7 @@ func (h *LogHandlers) ListEvent(c *gin.Context) {
 		TenantID:       tenant.ID,
 		Cursor:         c.Query("cursor"),
 		Limit:          limit,
-		DestinationIDs: c.QueryArray("destination_id"),
+		DestinationIDs: destinationIDs,
 		Status:         c.Query("status"),
 	})
 	if err != nil {
@@ -67,6 +75,25 @@ func (h *LogHandlers) RetrieveEvent(c *gin.Context) {
 	}
 	eventID := c.Param("eventID")
 	event, err := h.logStore.RetrieveEvent(c.Request.Context(), tenant.ID, eventID)
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+		return
+	}
+	if event == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, event)
+}
+
+func (h *LogHandlers) RetrieveEventByDestination(c *gin.Context) {
+	tenant := mustTenantFromContext(c)
+	if tenant == nil {
+		return
+	}
+	destinationID := c.Param("destinationID")
+	eventID := c.Param("eventID")
+	event, err := h.logStore.RetrieveEventByDestination(c.Request.Context(), tenant.ID, destinationID, eventID)
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return

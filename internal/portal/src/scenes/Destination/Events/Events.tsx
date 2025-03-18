@@ -15,7 +15,7 @@ const Events = ({ destination }: { destination: any }) => {
   const { status, urlSearchParams } = useEventFilter();
 
   const { data: eventsList } = useSWR<EventListResponse>(
-    `events?destination_id=${destination.id}&${urlSearchParams}`
+    `destinations/${destination.id}/events?${urlSearchParams}`
   );
 
   const table_rows = eventsList
