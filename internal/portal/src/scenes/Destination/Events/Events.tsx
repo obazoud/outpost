@@ -68,14 +68,22 @@ const Events = ({ destination }: { destination: any }) => {
               <Checkbox
                 label="Success"
                 checked={status.value === "success"}
-                onChange={() => status.set("success")}
+                onChange={() =>
+                  status.value === "success"
+                    ? status.set("")
+                    : status.set("success")
+                }
               />
             </div>
             <div className="dropdown-item">
               <Checkbox
                 label="Failed"
                 checked={status.value === "failed"}
-                onChange={() => status.set("failed")}
+                onChange={() =>
+                  status.value === "failed"
+                    ? status.set("")
+                    : status.set("failed")
+                }
               />
             </div>
           </Dropdown>
