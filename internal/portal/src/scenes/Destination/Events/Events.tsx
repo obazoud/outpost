@@ -9,13 +9,24 @@ import useSWR from "swr";
 import Dropdown from "../../../common/Dropdown/Dropdown";
 import { CalendarIcon, FilterIcon, RefreshIcon } from "../../../common/Icons";
 import { Checkbox } from "../../../common/Checkbox/Checkbox";
-import { useSearchParams } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useNavigate,
+  useSearchParams,
+  Outlet,
+  useParams,
+} from "react-router-dom";
 import Button from "../../../common/Button/Button";
 import CONFIGS from "../../../config";
+import EventDetails from "./EventDetails";
 
 const Events = ({ destination }: { destination: any }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { status, topics, urlSearchParams } = useEventFilter();
   const [timeRange, setTimeRange] = useState("24h");
+  const { event_id: eventId } = useParams();
 
   const queryUrl = useMemo(() => {
     const now = new Date();
@@ -43,6 +54,13 @@ const Events = ({ destination }: { destination: any }) => {
 
   const topicsList = CONFIGS.TOPICS.split(",");
 
+  const handleEventClick = (eventId: string) => {
+    navigate(eventId, {
+      relative: "path",
+      replace: true,
+    });
+  };
+
   const table_rows = eventsList
     ? eventsList.data.map((event) => ({
         id: event.id,
@@ -69,6 +87,7 @@ const Events = ({ destination }: { destination: any }) => {
           <span className="mono-s">{event.topic}</span>,
           <span className="mono-s">{event.id}</span>,
         ],
+        onClick: () => handleEventClick(event.id),
       }))
     : [];
 
@@ -159,7 +178,9 @@ const Events = ({ destination }: { destination: any }) => {
         </div>
       </div>
 
-      <div className="destination-events__table">
+      <div
+        className={`destination-events__table ${eventId ? "with-drawer" : ""}`}
+      >
         <Table
           columns={[
             {
@@ -178,6 +199,8 @@ const Events = ({ destination }: { destination: any }) => {
           rows={table_rows}
           footer_label="events"
         />
+
+        <Outlet />
       </div>
     </div>
   );
@@ -238,4 +261,14 @@ const useEventFilter = () => {
     topics,
     urlSearchParams,
   };
+};
+
+export const EventRoutes = ({ destination }: { destination: any }) => {
+  return (
+    <Routes>
+      <Route path="/" element={<Events destination={destination} />}>
+        <Route path=":event_id/*" element={<EventDetails />} />
+      </Route>
+    </Routes>
+  );
 };

@@ -14,7 +14,7 @@ import {
 } from "../../typings/Destination";
 import getLogo from "../../utils/logo";
 import DestinationSettings from "./DestinationSettings/DestinationSettings";
-import Events from "./Events/Events";
+import Events, { EventRoutes } from "./Events/Events";
 
 // Define the tab interface
 interface Tab {
@@ -110,8 +110,8 @@ const Destination = () => {
               }
             />
             <Route
-              path="/events"
-              element={<Events destination={destination} />}
+              path="/events/*"
+              element={<EventRoutes destination={destination} />}
             />
             <Route
               path="/"
