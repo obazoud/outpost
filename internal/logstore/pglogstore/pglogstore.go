@@ -43,26 +43,28 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 				time_event_id,
 				status
 			FROM event_delivery_index
-			WHERE tenant_id = $1
-			AND (array_length($2::text[], 1) IS NULL OR destination_id = ANY($2))
+			WHERE tenant_id = $3
+			AND (array_length($4::text[], 1) IS NULL OR destination_id = ANY($4))
+			AND (array_length($6::text[], 1) IS NULL OR topic = ANY($6))
 			ORDER BY event_id, destination_id, delivery_time DESC
 		),
 		filtered AS (
 			SELECT *
 			FROM latest_status
-			WHERE ($3 = '' OR status = $3)
-			AND ($4 = '' OR time_event_id < $4)
+			WHERE ($5 = '' OR status = $5)
+			AND ($1 = '' OR time_event_id < $1)
 			ORDER BY time_event_id DESC
-			LIMIT CASE WHEN $5 = 0 THEN NULL ELSE $5 END
+			LIMIT CASE WHEN $2 = 0 THEN NULL ELSE $2 END
 		)
 		SELECT * FROM filtered`
 
 	indexRows, err := s.db.Query(ctx, indexQuery,
+		decodedCursor,
+		req.Limit,
 		req.TenantID,
 		req.DestinationIDs,
 		req.Status,
-		decodedCursor,
-		req.Limit,
+		req.Topics,
 	)
 	if err != nil {
 		return nil, "", err

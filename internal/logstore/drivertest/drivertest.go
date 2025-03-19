@@ -54,11 +54,13 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 	destinationEvents := map[string][]*models.Event{}
 	statusEvents := map[string][]*models.Event{}
 	destinationStatusEvents := map[string]map[string][]*models.Event{}
+	topicEvents := map[string][]*models.Event{}
 	deliveryEvents := []*models.DeliveryEvent{}
 	events := []*models.Event{}
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
 		destinationID := destinationIDs[i%len(destinationIDs)]
+		topic := testutil.TestTopics[i%len(testutil.TestTopics)]
 		shouldSucceed := i%2 == 0
 		shouldRetry := i%3 == 0
 
@@ -67,6 +69,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			testutil.EventFactory.WithTime(baseTime.Add(-time.Duration(i)*time.Second)),
 			testutil.EventFactory.WithDestinationID(destinationID),
 			testutil.EventFactory.WithEligibleForRetry(shouldRetry),
+			testutil.EventFactory.WithTopic(topic),
 			testutil.EventFactory.WithMetadata(map[string]string{
 				"index": strconv.Itoa(i),
 			}),
@@ -76,6 +79,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 		if _, ok := destinationStatusEvents[destinationID]; !ok {
 			destinationStatusEvents[destinationID] = map[string][]*models.Event{}
 		}
+		topicEvents[topic] = append(topicEvents[topic], event)
 
 		var delivery *models.Delivery
 		if shouldRetry {
@@ -166,7 +170,6 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 	t.Run("query by destinations", func(t *testing.T) {
 		var cursor string
 		t.Run("list event with destination filter", func(t *testing.T) {
-			log.Println("list event destination", "nextCursor")
 			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
 				TenantID:       tenantID,
 				DestinationIDs: []string{destinationIDs[0]},
@@ -178,7 +181,6 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			for i := 0; i < 3; i++ {
 				require.Equal(t, destinationEvents[destinationIDs[0]][i].ID, queriedEvents[i].ID)
 			}
-			t.Logf("cursor: %s", nextCursor)
 			cursor = nextCursor
 		})
 
@@ -320,6 +322,69 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			require.Len(t, queriedEvents, 2)
 			for i := 0; i < 2; i++ {
 				require.Equal(t, destinationStatusEvents[destinationIDs[0]]["success"][2+i].ID, queriedEvents[i].ID)
+			}
+		})
+	})
+
+	t.Run("query by topic", func(t *testing.T) {
+		var cursor string
+		t.Run("list events with single topic", func(t *testing.T) {
+			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   []string{testutil.TestTopics[0]},
+				Limit:    2,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for index, e := range queriedEvents {
+				require.Equal(t, testutil.TestTopics[0], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][index].ID, e.ID)
+			}
+			cursor = nextCursor
+		})
+
+		t.Run("list events with single topic and cursor", func(t *testing.T) {
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   []string{testutil.TestTopics[0]},
+				Limit:    2,
+				Cursor:   cursor,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for index, e := range queriedEvents {
+				require.Equal(t, testutil.TestTopics[0], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][2+index].ID, e.ID)
+			}
+		})
+
+		t.Run("list events with multiple topics", func(t *testing.T) {
+			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   testutil.TestTopics[:2], // first two topics
+				Limit:    2,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for _, e := range queriedEvents {
+				require.Contains(t, testutil.TestTopics[:2], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][0].ID, e.ID) // first event of each topic
+			}
+			cursor = nextCursor
+		})
+
+		t.Run("list events with multiple topics and cursor", func(t *testing.T) {
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   testutil.TestTopics[:2],
+				Limit:    2,
+				Cursor:   cursor,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for _, e := range queriedEvents {
+				require.Contains(t, testutil.TestTopics[:2], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][1].ID, e.ID) // second event of each topic
 			}
 		})
 	})

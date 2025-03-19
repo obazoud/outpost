@@ -18,6 +18,7 @@ type ListEventRequest struct {
 	TenantID       string   // required
 	DestinationIDs []string // optional
 	Status         string   // optional, "success", "failed"
+	Topics         []string // optional
 	Cursor         string
 	Limit          int
 }
