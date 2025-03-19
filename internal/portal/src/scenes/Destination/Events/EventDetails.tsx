@@ -1,10 +1,13 @@
-import { Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import Button from "../../../common/Button/Button";
 import { CloseIcon } from "../../../common/Icons";
 
-const EventDetails = () => {
-  const { destination_id: destinationId, event_id: eventId } = useParams();
-  const navigate = useNavigate();
+const EventDetails = ({
+  navigateEvent,
+}: {
+  navigateEvent: (path: string) => void;
+}) => {
+  const { event_id: eventId } = useParams();
 
   const event = {
     metadata: {
@@ -20,21 +23,14 @@ const EventDetails = () => {
       <div className="event-details">
         <div className="event-details__header">
           <div className="event-details__header-tabs">
-            <Button to={`/destinations/${destinationId}/events/${eventId}`}>
-              Event
-            </Button>
-            <Button
-              to={`/destinations/${destinationId}/events/${eventId}/attempts`}
-            >
+            <Button onClick={() => navigateEvent(`/${eventId}`)}>Event</Button>
+            <Button onClick={() => navigateEvent(`/${eventId}/attempts`)}>
               Attempts
             </Button>
           </div>
 
           <div>
-            <Button
-              minimal
-              onClick={() => navigate(`/destinations/${destinationId}/events`)}
-            >
+            <Button minimal onClick={() => navigateEvent("/")}>
               <CloseIcon />
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Badge from "../../../common/Badge/Badge";
 // import Button from "../../../common/Button/Button";
 // import SearchInput from "../../../common/SearchInput/SearchInput";
@@ -21,9 +21,13 @@ import Button from "../../../common/Button/Button";
 import CONFIGS from "../../../config";
 import EventDetails from "./EventDetails";
 
-const Events = ({ destination }: { destination: any }) => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+const Events = ({
+  destination,
+  navigateEvent,
+}: {
+  destination: any;
+  navigateEvent: (path: string) => void;
+}) => {
   const { status, topics, urlSearchParams } = useEventFilter();
   const [timeRange, setTimeRange] = useState("24h");
   const { event_id: eventId } = useParams();
@@ -54,13 +58,6 @@ const Events = ({ destination }: { destination: any }) => {
 
   const topicsList = CONFIGS.TOPICS.split(",");
 
-  const handleEventClick = (eventId: string) => {
-    navigate(eventId, {
-      relative: "path",
-      replace: true,
-    });
-  };
-
   const table_rows = eventsList
     ? eventsList.data.map((event) => ({
         id: event.id,
@@ -87,7 +84,7 @@ const Events = ({ destination }: { destination: any }) => {
           <span className="mono-s">{event.topic}</span>,
           <span className="mono-s">{event.id}</span>,
         ],
-        onClick: () => handleEventClick(event.id),
+        onClick: () => navigateEvent(`/${event.id}`),
       }))
     : [];
 
@@ -264,10 +261,30 @@ const useEventFilter = () => {
 };
 
 export const EventRoutes = ({ destination }: { destination: any }) => {
+  const { urlSearchParams } = useEventFilter();
+  const navigate = useNavigate();
+
+  const navigateEvent = useCallback(
+    (path: string) => {
+      navigate(
+        `/destinations/${destination.id}/events${path}?${urlSearchParams}`
+      );
+    },
+    [navigate, urlSearchParams]
+  );
+
   return (
     <Routes>
-      <Route path="/" element={<Events destination={destination} />}>
-        <Route path=":event_id/*" element={<EventDetails />} />
+      <Route
+        path="/"
+        element={
+          <Events destination={destination} navigateEvent={navigateEvent} />
+        }
+      >
+        <Route
+          path=":event_id/*"
+          element={<EventDetails navigateEvent={navigateEvent} />}
+        />
       </Route>
     </Routes>
   );
