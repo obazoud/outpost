@@ -39,16 +39,50 @@ func (h *LogHandlers) listEvent(c *gin.Context, destinationIDs []string) {
 	if tenant == nil {
 		return
 	}
+
+	var start, end *time.Time
+	if startStr := c.Query("start"); startStr != "" {
+		t, err := time.Parse(time.RFC3339, startStr)
+		if err != nil {
+			AbortWithError(c, http.StatusUnprocessableEntity, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Data: map[string]string{
+					"query.start": "invalid format, expected RFC3339",
+				},
+			})
+			return
+		}
+		start = &t
+	}
+	if endStr := c.Query("end"); endStr != "" {
+		t, err := time.Parse(time.RFC3339, endStr)
+		if err != nil {
+			AbortWithError(c, http.StatusUnprocessableEntity, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Data: map[string]string{
+					"query.end": "invalid format, expected RFC3339",
+				},
+			})
+			return
+		}
+		end = &t
+	}
+
 	limitStr := c.Query("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		limit = 100
 	}
 	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
-		TenantID:       tenant.ID,
 		Cursor:         c.Query("cursor"),
 		Limit:          limit,
+		Start:          start,
+		End:            end,
+		TenantID:       tenant.ID,
 		DestinationIDs: destinationIDs,
+		Topics:         c.QueryArray("topic"),
 		Status:         c.Query("status"),
 	})
 	if err != nil {

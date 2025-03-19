@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Badge from "../../../common/Badge/Badge";
 // import Button from "../../../common/Button/Button";
 // import SearchInput from "../../../common/SearchInput/SearchInput";
@@ -7,16 +7,41 @@ import Table from "../../../common/Table/Table";
 import { EventListResponse } from "../../../typings/Event";
 import useSWR from "swr";
 import Dropdown from "../../../common/Dropdown/Dropdown";
-import { FilterIcon } from "../../../common/Icons";
+import { CalendarIcon, FilterIcon, RefreshIcon } from "../../../common/Icons";
 import { Checkbox } from "../../../common/Checkbox/Checkbox";
 import { useSearchParams } from "react-router-dom";
+import Button from "../../../common/Button/Button";
+import CONFIGS from "../../../config";
 
 const Events = ({ destination }: { destination: any }) => {
-  const { status, urlSearchParams } = useEventFilter();
+  const { status, topics, urlSearchParams } = useEventFilter();
+  const [timeRange, setTimeRange] = useState("24h");
 
-  const { data: eventsList } = useSWR<EventListResponse>(
-    `destinations/${destination.id}/events?${urlSearchParams}`
-  );
+  const queryUrl = useMemo(() => {
+    const now = new Date();
+    let start;
+    switch (timeRange) {
+      case "7d":
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "30d":
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default: // 24h
+        start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
+    return `destinations/${
+      destination.id
+    }/events?start=${start.toISOString()}&${urlSearchParams}`;
+  }, [destination.id, timeRange, urlSearchParams]);
+
+  const {
+    data: eventsList,
+    mutate,
+    isValidating,
+  } = useSWR<EventListResponse>(queryUrl);
+
+  const topicsList = CONFIGS.TOPICS.split(",");
 
   const table_rows = eventsList
     ? eventsList.data.map((event) => ({
@@ -59,11 +84,34 @@ const Events = ({ destination }: { destination: any }) => {
             onChange={setSearch}
             placeholder="Filter by ID"
           /> */}
-          {/* <Button>Last 24 Hours</Button>
-          <Button>Status</Button>
-          <Button>Topics</Button>
-          <Button>Refresh</Button> */}
-          <Dropdown trigger_icon={<FilterIcon />} trigger={<span>Status</span>}>
+          <Dropdown
+            trigger_icon={<CalendarIcon />}
+            trigger={`Last ${timeRange}`}
+          >
+            <div className="dropdown-item">
+              <Checkbox
+                label="Last 24h"
+                checked={timeRange === "24h"}
+                onChange={() => setTimeRange("24h")}
+              />
+            </div>
+            <div className="dropdown-item">
+              <Checkbox
+                label="Last 7d"
+                checked={timeRange === "7d"}
+                onChange={() => setTimeRange("7d")}
+              />
+            </div>
+            <div className="dropdown-item">
+              <Checkbox
+                label="Last 30d"
+                checked={timeRange === "30d"}
+                onChange={() => setTimeRange("30d")}
+              />
+            </div>
+          </Dropdown>
+
+          <Dropdown trigger_icon={<FilterIcon />} trigger="Status">
             <div className="dropdown-item">
               <Checkbox
                 label="Success"
@@ -87,6 +135,27 @@ const Events = ({ destination }: { destination: any }) => {
               />
             </div>
           </Dropdown>
+
+          <Dropdown trigger_icon={<FilterIcon />} trigger="Topics">
+            {topicsList.map((topic) => (
+              <div key={topic} className="dropdown-item">
+                <Checkbox
+                  label={topic}
+                  checked={topics.value.includes(topic)}
+                  onChange={() => topics.toggle(topic)}
+                />
+              </div>
+            ))}
+          </Dropdown>
+
+          <Button
+            onClick={() => mutate()}
+            disabled={isValidating}
+            loading={isValidating}
+          >
+            <RefreshIcon />
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -108,7 +177,6 @@ const Events = ({ destination }: { destination: any }) => {
           ]}
           rows={table_rows}
           footer_label="events"
-          // onClick={console.log}
         />
       </div>
     </div>
@@ -137,12 +205,37 @@ const useEventFilter = () => {
     set: (value: string) => handleFilterChange("status", value || null),
   };
 
+  const topics = {
+    value: searchParams.getAll("topic"),
+    set: (value: string[]) => {
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        params.delete("topic");
+        value.forEach((v) => params.append("topic", v));
+        return params;
+      });
+    },
+    toggle: (topic: string) => {
+      const currentTopics = searchParams.getAll("topic");
+      const newTopics = currentTopics.includes(topic)
+        ? currentTopics.filter((t) => t !== topic)
+        : [...currentTopics, topic];
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        params.delete("topic");
+        newTopics.forEach((t) => params.append("topic", t));
+        return params;
+      });
+    },
+  };
+
   const urlSearchParams = useMemo(() => {
     return searchParams.toString();
   }, [searchParams]);
 
   return {
     status,
+    topics,
     urlSearchParams,
   };
 };
