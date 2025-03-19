@@ -61,10 +61,10 @@ const Events = ({
   const table_rows = eventsList
     ? eventsList.data.map((event) => ({
         id: event.id,
+        active: event.id === eventId,
         entries: [
-          <span className="mono-s">
+          <span className="mono-s event-time-cell">
             {new Date(event.time).toLocaleString("en-US", {
-              year: "numeric",
               month: "short",
               day: "numeric",
               hour: "numeric",
@@ -176,7 +176,9 @@ const Events = ({
       </div>
 
       <div
-        className={`destination-events__table ${eventId ? "with-drawer" : ""}`}
+        className={`destination-events__table ${
+          eventId ? "destination-events__table--active" : ""
+        }`}
       >
         <Table
           columns={[

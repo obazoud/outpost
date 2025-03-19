@@ -1,8 +1,9 @@
 import { Route, Routes, useLocation, useParams } from "react-router-dom";
 import Button from "../../../common/Button/Button";
-import { CloseIcon, PreviousIcon } from "../../../common/Icons";
+import { CloseIcon, NextIcon, PreviousIcon } from "../../../common/Icons";
 import useSWR from "swr";
 import { Event, Delivery } from "../../../typings/Event";
+import Badge from "../../../common/Badge/Badge";
 
 const EventDetails = ({
   navigateEvent,
@@ -37,17 +38,39 @@ const EventData = ({
     `destinations/${destinationId}/events/${eventId}`
   );
 
+  if (!event) {
+    return <div>Error loading event</div>;
+  }
+
   return (
     <div className="drawer">
       <div className="drawer__header">
         <div className="drawer__header-tabs">
-          <Button onClick={() => navigateEvent(`/${eventId}`)}>Event</Button>
-          <Button onClick={() => navigateEvent(`/${eventId}/attempts`)}>
-            Attempts
-          </Button>
+          <nav className="tabs">
+            <button
+              type="button"
+              onClick={() => navigateEvent(`/${eventId}`)}
+              className={`tab tab--active`}
+            >
+              Event
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateEvent(`/${eventId}/attempts`)}
+              className={`tab`}
+            >
+              Attempts
+            </button>
+          </nav>
         </div>
 
-        <div>
+        <div className="drawer__header-actions">
+          <Badge
+            text={event.status === "success" ? "Successful" : "Failed"}
+            success={event.status === "success"}
+            danger={event.status === "failed"}
+          />
+
           <Button minimal onClick={() => navigateEvent("/")}>
             <CloseIcon />
           </Button>
@@ -56,7 +79,26 @@ const EventData = ({
 
       <div className="drawer__body">
         <div className="event-data">
-          <pre>{JSON.stringify(event, null, 2)}</pre>
+          <div className="event-data__overview">
+            <h3 className="title-m">Overview</h3>
+            <div>
+              <div>ID: {event.id}</div>
+              <div>
+                Topic: <code>{event.topic}</code>
+              </div>
+              <div>Created at: {new Date(event.time).toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div className="event-data__data">
+            <h3 className="title-m">Data</h3>
+            <pre>{JSON.stringify(event.data, null, 2)}</pre>
+          </div>
+
+          <div className="event-data__metadata">
+            <h3 className="title-m">Metadata</h3>
+            <pre>{JSON.stringify(event.metadata, null, 2)}</pre>
+          </div>
         </div>
       </div>
     </div>
@@ -78,10 +120,22 @@ const EventAttempts = ({
     <div className="drawer">
       <div className="drawer__header">
         <div className="drawer__header-tabs">
-          <Button onClick={() => navigateEvent(`/${eventId}`)}>Event</Button>
-          <Button onClick={() => navigateEvent(`/${eventId}/attempts`)}>
-            Attempts
-          </Button>
+          <nav className="tabs">
+            <button
+              type="button"
+              onClick={() => navigateEvent(`/${eventId}`)}
+              className={`tab`}
+            >
+              Event
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateEvent(`/${eventId}/attempts`)}
+              className={`tab tab--active`}
+            >
+              Attempts
+            </button>
+          </nav>
         </div>
 
         <div>
@@ -112,9 +166,37 @@ const EventAttempts = ({
                   >
                     <span className="visually-hidden">Go to attempt</span>
                   </button>
-                  <span>Attempt {deliveryIndex}</span>
-                  <span>{String(delivery.delivered_at)}</span>
-                  <span>{delivery.status}</span>
+
+                  <span className="event-attempts__list-item-content">
+                    <span>
+                      <span className="title-m">Attempt {deliveryIndex}</span>
+                      <span className="mono-s">
+                        {new Date(delivery.delivered_at).toLocaleString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          }
+                        )}
+                      </span>
+                    </span>
+                    <span>
+                      <Badge
+                        text={
+                          delivery.status === "success"
+                            ? "Successful"
+                            : "Failed"
+                        }
+                        success={delivery.status === "success"}
+                        danger={delivery.status === "failed"}
+                      />
+                      {/* TODO: use RightArrowIcon */}
+                      <NextIcon />
+                    </span>
+                  </span>
                 </li>
               );
             })}
@@ -146,7 +228,13 @@ const EventAttemptDetails = ({
           </Button>
         </div>
 
-        <div>
+        <div className="drawer__header-actions">
+          <Badge
+            text={delivery.status === "success" ? "Successful" : "Failed"}
+            success={delivery.status === "success"}
+            danger={delivery.status === "failed"}
+          />
+
           <Button minimal onClick={() => navigateEvent("/")}>
             <CloseIcon />
           </Button>
@@ -155,7 +243,22 @@ const EventAttemptDetails = ({
 
       <div className="drawer__body">
         <div className="event-attempt-details">
-          <pre>{JSON.stringify(delivery, null, 2)}</pre>
+          <div className="event-attempt-details__overview">
+            <h3 className="title-m">Overview</h3>
+
+            <div>ID: {delivery.id}</div>
+            <div>
+              Delivered at {new Date(delivery.delivered_at).toLocaleString()}
+            </div>
+          </div>
+          {/* Currently, we're not storing the exact message data sent. */}
+          {/* <div className="event-attempt-details__message">
+            <h3 className="title-s">Message</h3>
+          </div> */}
+          <div className="event-attempt-details__result">
+            <h3 className="title-m">Response</h3>
+            <pre>{JSON.stringify(delivery.response_data, null, 2)}</pre>
+          </div>
         </div>
       </div>
     </div>

@@ -87,9 +87,16 @@ const Destination = () => {
           <div className="tabs-container">
             <nav className="tabs">
               {tabs.map((tab) => {
-                const isActive =
-                  location.pathname ===
-                  `/destinations/${destination_id}${tab.path}`;
+                let isActive = false;
+                if (tab.path === "") {
+                  isActive =
+                    location.pathname === `/destinations/${destination_id}`;
+                } else {
+                  isActive = location.pathname.includes(
+                    `/destinations/${destination_id}${tab.path}`
+                  );
+                }
+
                 return (
                   <Link
                     key={tab.path}
