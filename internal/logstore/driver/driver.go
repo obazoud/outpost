@@ -2,6 +2,7 @@ package driver
 
 import (
 	"context"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/models"
 )
@@ -15,10 +16,12 @@ type LogStore interface {
 }
 
 type ListEventRequest struct {
-	TenantID       string   // required
-	DestinationIDs []string // optional
-	Status         string   // optional, "success", "failed"
-	Topics         []string // optional
+	TenantID       string     // required
+	DestinationIDs []string   // optional
+	Status         string     // optional, "success", "failed"
+	Topics         []string   // optional
+	Start          *time.Time // optional - lower bound, default End - 1h
+	End            *time.Time // optional - upper bound, default now()
 	Cursor         string
 	Limit          int
 }

@@ -40,19 +40,23 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 				event_id,
 				destination_id,
 				delivery_time,
+				event_time,
 				time_event_id,
 				status
 			FROM event_delivery_index
-			WHERE tenant_id = $3
-			AND (array_length($4::text[], 1) IS NULL OR destination_id = ANY($4))
-			AND (array_length($6::text[], 1) IS NULL OR topic = ANY($6))
+			WHERE tenant_id = $5  -- tenant_id
+			AND event_time >= COALESCE($3, COALESCE($4, NOW()) - INTERVAL '1 hour')
+			AND event_time <= COALESCE($4, NOW())
+			AND (array_length($6::text[], 1) IS NULL OR destination_id = ANY($6))  -- destination_ids
+			AND (array_length($7::text[], 1) IS NULL OR topic = ANY($7))  -- topics
 			ORDER BY event_id, destination_id, delivery_time DESC
 		),
 		filtered AS (
+			-- Step 2: Apply remaining filters
 			SELECT *
 			FROM latest_status
-			WHERE ($5 = '' OR status = $5)
-			AND ($1 = '' OR time_event_id < $1)
+			WHERE ($8 = '' OR status = $8)  -- status filter
+			AND ($1 = '' OR time_event_id < $1)  -- cursor pagination
 			ORDER BY time_event_id DESC
 			LIMIT CASE WHEN $2 = 0 THEN NULL ELSE $2 END
 		)
@@ -61,10 +65,12 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 	indexRows, err := s.db.Query(ctx, indexQuery,
 		decodedCursor,
 		req.Limit,
+		req.Start,
+		req.End,
 		req.TenantID,
 		req.DestinationIDs,
-		req.Status,
 		req.Topics,
+		req.Status,
 	)
 	if err != nil {
 		return nil, "", err
@@ -76,13 +82,14 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 		eventID       string
 		destinationID string
 		deliveryTime  time.Time
+		eventTime     time.Time
 		timeEventID   string
 		status        string
 	}
 	eventInfos := []eventInfo{}
 	for indexRows.Next() {
 		var info eventInfo
-		err := indexRows.Scan(&info.eventID, &info.destinationID, &info.deliveryTime, &info.timeEventID, &info.status)
+		err := indexRows.Scan(&info.eventID, &info.destinationID, &info.deliveryTime, &info.eventTime, &info.timeEventID, &info.status)
 		if err != nil {
 			return nil, "", err
 		}
