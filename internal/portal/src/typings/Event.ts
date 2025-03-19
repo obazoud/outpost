@@ -9,10 +9,18 @@ interface Event {
   data: any;
 }
 
+interface Delivery {
+  id: string;
+  delivered_at: Date;
+  status: "success" | "failed";
+  code: string;
+  response_data: any;
+}
+
 interface EventListResponse {
   data: Event[];
   next?: string;
   previous?: string;
 }
 
-export type { Event, EventListResponse };
+export type { Event, EventListResponse, Delivery };

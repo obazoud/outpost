@@ -140,6 +140,7 @@ func (h *LogHandlers) RetrieveEventByDestination(c *gin.Context) {
 }
 
 type DeliveryResponse struct {
+	ID           string                 `json:"id"`
 	DeliveredAt  string                 `json:"delivered_at"`
 	Status       string                 `json:"status"`
 	Code         string                 `json:"code"`
@@ -166,6 +167,7 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 	deliveryData := make([]DeliveryResponse, len(deliveries))
 	for i, delivery := range deliveries {
 		deliveryData[i] = DeliveryResponse{
+			ID:           delivery.ID,
 			DeliveredAt:  delivery.Time.UTC().Format(time.RFC3339),
 			Status:       delivery.Status,
 			Code:         delivery.Code,

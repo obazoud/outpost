@@ -26,7 +26,7 @@ const Events = ({
   navigateEvent,
 }: {
   destination: any;
-  navigateEvent: (path: string) => void;
+  navigateEvent: (path: string, state?: any) => void;
 }) => {
   const { status, topics, urlSearchParams } = useEventFilter();
   const [timeRange, setTimeRange] = useState("24h");
@@ -265,9 +265,10 @@ export const EventRoutes = ({ destination }: { destination: any }) => {
   const navigate = useNavigate();
 
   const navigateEvent = useCallback(
-    (path: string) => {
+    (path: string, state?: any) => {
       navigate(
-        `/destinations/${destination.id}/events${path}?${urlSearchParams}`
+        `/destinations/${destination.id}/events${path}?${urlSearchParams}`,
+        { state }
       );
     },
     [navigate, urlSearchParams]
