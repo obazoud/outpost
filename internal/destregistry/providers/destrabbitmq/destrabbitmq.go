@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/hookdeck/outpost/internal/destregistry"
@@ -17,9 +18,9 @@ type RabbitMQDestination struct {
 }
 
 type RabbitMQDestinationConfig struct {
-	ServerURL  string // TODO: consider renaming
-	Exchange   string
-	RoutingKey string
+	ServerURL string // TODO: consider renaming
+	Exchange  string
+	UseTLS    bool
 }
 
 type RabbitMQDestinationCredentials struct {
@@ -38,23 +39,20 @@ func New(loader metadata.MetadataLoader) (*RabbitMQDestination, error) {
 }
 
 func (d *RabbitMQDestination) Validate(ctx context.Context, destination *models.Destination) error {
-	config, _, err := d.resolveMetadata(ctx, destination)
-	if err != nil {
+	if err := d.BaseProvider.Validate(ctx, destination); err != nil {
 		return err
 	}
 
-	// At least one of exchange or routing_key must be non-empty
-	if config.Exchange == "" && config.RoutingKey == "" {
-		return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
-			{
-				Field: "config.exchange",
-				Type:  "either_required",
-			},
-			{
-				Field: "config.routing_key",
-				Type:  "either_required",
-			},
-		})
+	// Validate TLS config if provided
+	if tlsStr, ok := destination.Config["tls"]; ok {
+		if tlsStr != "on" && tlsStr != "true" && tlsStr != "false" {
+			return destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+				{
+					Field: "config.tls",
+					Type:  "invalid",
+				},
+			})
+		}
 	}
 
 	return nil
@@ -69,33 +67,66 @@ func (d *RabbitMQDestination) CreatePublisher(ctx context.Context, destination *
 		BasePublisher: &destregistry.BasePublisher{},
 		url:           rabbitURL(config, credentials),
 		exchange:      config.Exchange,
-		routingKey:    config.RoutingKey,
 	}, nil
 }
 
 func (d *RabbitMQDestination) resolveMetadata(ctx context.Context, destination *models.Destination) (*RabbitMQDestinationConfig, *RabbitMQDestinationCredentials, error) {
-	if err := d.BaseProvider.Validate(ctx, destination); err != nil {
+	if err := d.Validate(ctx, destination); err != nil {
 		return nil, nil, err
 	}
 
+	useTLS := false // default to false if omitted
+	if tlsStr, ok := destination.Config["tls"]; ok {
+		useTLS = tlsStr == "true" || tlsStr == "on"
+	}
+
 	return &RabbitMQDestinationConfig{
-			ServerURL:  destination.Config["server_url"],
-			Exchange:   destination.Config["exchange"],
-			RoutingKey: destination.Config["routing_key"],
+			ServerURL: destination.Config["server_url"],
+			Exchange:  destination.Config["exchange"],
+			UseTLS:    useTLS,
 		}, &RabbitMQDestinationCredentials{
 			Username: destination.Credentials["username"],
 			Password: destination.Credentials["password"],
 		}, nil
 }
 
+// Preprocess sets the default TLS value to "true" if not provided
+func (d *RabbitMQDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
+	if newDestination.Config == nil {
+		return nil
+	}
+	if newDestination.Config["tls"] == "on" {
+		newDestination.Config["tls"] = "true"
+	} else if newDestination.Config["tls"] == "" {
+		newDestination.Config["tls"] = "false" // default to false if omitted
+	}
+	if _, _, err := d.resolveMetadata(context.Background(), newDestination); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AMQPChannel is an interface that defines the methods we need from amqp091.Channel
+// This is exported so that tests can implement this interface
+type AMQPChannel interface {
+	PublishWithContext(ctx context.Context, exchange, key string, mandatory, immediate bool, msg amqp091.Publishing) error
+	Close() error
+	IsClosed() bool
+}
+
+// AMQPConnection is an interface that defines the methods we need from amqp091.Connection for testing
+type AMQPConnection interface {
+	Close() error
+	IsClosed() bool
+}
+
 type RabbitMQPublisher struct {
 	*destregistry.BasePublisher
-	url        string
-	exchange   string
-	routingKey string
-	conn       *amqp091.Connection
-	channel    *amqp091.Channel
-	mu         sync.Mutex
+	url      string
+	exchange string
+	conn     AMQPConnection
+	channel  AMQPChannel
+	mu       sync.Mutex
 }
 
 func (p *RabbitMQPublisher) Close() error {
@@ -138,10 +169,10 @@ func (p *RabbitMQPublisher) Publish(ctx context.Context, event *models.Event) (*
 	}
 
 	if err := p.channel.PublishWithContext(ctx,
-		p.exchange,   // exchange
-		p.routingKey, // routing key
-		false,        // mandatory
-		false,        // immediate
+		p.exchange,  // exchange
+		event.Topic, // routing key
+		false,       // mandatory
+		false,       // immediate
 		amqp091.Publishing{
 			ContentType: "application/json",
 			Headers:     headers,
@@ -202,47 +233,16 @@ func (p *RabbitMQPublisher) ensureConnection(_ context.Context) error {
 }
 
 func rabbitURL(config *RabbitMQDestinationConfig, credentials *RabbitMQDestinationCredentials) string {
-	return "amqp://" + credentials.Username + ":" + credentials.Password + "@" + config.ServerURL
-}
-
-func publishEvent(ctx context.Context, url string, exchange string, event *models.Event) error {
-	dataBytes, err := json.Marshal(event.Data)
-	if err != nil {
-		return err
+	scheme := "amqp"
+	if config.UseTLS {
+		scheme = "amqps"
 	}
-
-	conn, err := amqp091.Dial(url)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	ch, err := conn.Channel()
-	if err != nil {
-		return err
-	}
-	defer ch.Close()
-
-	headers := make(amqp091.Table)
-	for k, v := range event.Metadata {
-		headers[k] = v
-	}
-
-	return ch.PublishWithContext(ctx,
-		exchange, // exchange
-		"",       // routing key
-		false,    // mandatory
-		false,    // immediate
-		amqp091.Publishing{
-			ContentType: "application/json",
-			Headers:     headers,
-			Body:        []byte(dataBytes),
-		},
-	)
+	return fmt.Sprintf("%s://%s:%s@%s", scheme, credentials.Username, credentials.Password, config.ServerURL)
 }
 
 // ===== TEST HELPERS =====
 
-func (p *RabbitMQPublisher) GetConnection() *amqp091.Connection {
+func (p *RabbitMQPublisher) GetConnection() AMQPConnection {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return p.conn
@@ -256,14 +256,15 @@ func (p *RabbitMQPublisher) ForceConnectionClose() {
 	}
 }
 
+// SetupForTesting sets both the connection and channel for testing purposes
+func (p *RabbitMQPublisher) SetupForTesting(conn AMQPConnection, channel AMQPChannel) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.conn = conn
+	p.channel = channel
+}
+
 func (d *RabbitMQDestination) ComputeTarget(destination *models.Destination) string {
 	exchange := destination.Config["exchange"]
-	routingKey := destination.Config["routing_key"]
-	if exchange == "" {
-		return routingKey
-	}
-	if routingKey == "" {
-		return exchange
-	}
-	return exchange + " -> " + routingKey
+	return exchange + " -> " + strings.Join(destination.Topics, ", ")
 }
