@@ -10,28 +10,6 @@ const EventDetails = ({
 }: {
   navigateEvent: (path: string, params?: any) => void;
 }) => {
-  return (
-    <Routes>
-      <Route path="/" element={<EventData navigateEvent={navigateEvent} />} />
-      <Route
-        path="/attempts"
-        element={<EventAttempts navigateEvent={navigateEvent} />}
-      />
-      <Route
-        path="/attempts/:delivery_id"
-        element={<EventAttemptDetails navigateEvent={navigateEvent} />}
-      />
-    </Routes>
-  );
-};
-
-export default EventDetails;
-
-const EventData = ({
-  navigateEvent,
-}: {
-  navigateEvent: (path: string, params?: any) => void;
-}) => {
   const { destination_id: destinationId, event_id: eventId } = useParams();
 
   const { data: event } = useSWR<Event>(
@@ -43,25 +21,50 @@ const EventData = ({
   }
 
   return (
+    <Routes>
+      <Route
+        path="/"
+        element={<EventData event={event} navigateEvent={navigateEvent} />}
+      />
+      <Route
+        path="/attempts"
+        element={<EventAttempts navigateEvent={navigateEvent} />}
+      />
+      <Route
+        path="/attempts/:delivery_id"
+        element={
+          <EventAttemptDetails event={event} navigateEvent={navigateEvent} />
+        }
+      />
+    </Routes>
+  );
+};
+
+export default EventDetails;
+
+const EventData = ({
+  event,
+  navigateEvent,
+}: {
+  event: Event;
+  navigateEvent: (path: string, params?: any) => void;
+}) => {
+  const { event_id: eventId } = useParams();
+
+  return (
     <div className="drawer">
       <div className="drawer__header">
         <div className="drawer__header-tabs">
-          <nav className="tabs">
-            <button
-              type="button"
-              onClick={() => navigateEvent(`/${eventId}`)}
-              className={`tab tab--active`}
-            >
-              Event
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateEvent(`/${eventId}/attempts`)}
-              className={`tab`}
-            >
-              Attempts
-            </button>
-          </nav>
+          <Button
+            minimal
+            className="active"
+            onClick={() => navigateEvent(`/${eventId}`)}
+          >
+            Event
+          </Button>
+          <Button minimal onClick={() => navigateEvent(`/${eventId}/attempts`)}>
+            Delivery Attempts
+          </Button>
         </div>
 
         <div className="drawer__header-actions">
@@ -81,13 +84,40 @@ const EventData = ({
         <div className="event-data">
           <div className="event-data__overview">
             <h3 className="title-m">Overview</h3>
-            <div>
-              <div>ID: {event.id}</div>
+            <dl className="body-m description-list">
               <div>
-                Topic: <code>{event.topic}</code>
+                <dt>ID</dt>
+                <dd className="mono-s">{event.id}</dd>
               </div>
-              <div>Created at: {new Date(event.time).toLocaleString()}</div>
-            </div>
+              <div>
+                <dt>Topic</dt>
+                <dd className="mono-s">{event.topic}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  <Badge
+                    text={event.status === "success" ? "Successful" : "Failed"}
+                    success={event.status === "success"}
+                    danger={event.status === "failed"}
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt>Received at</dt>
+                <dd className="mono-s time">
+                  {new Date(event.time).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    timeZoneName: "short",
+                  })}
+                </dd>
+              </div>
+            </dl>
           </div>
 
           <div className="event-data__data">
@@ -120,22 +150,16 @@ const EventAttempts = ({
     <div className="drawer">
       <div className="drawer__header">
         <div className="drawer__header-tabs">
-          <nav className="tabs">
-            <button
-              type="button"
-              onClick={() => navigateEvent(`/${eventId}`)}
-              className={`tab`}
-            >
-              Event
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateEvent(`/${eventId}/attempts`)}
-              className={`tab tab--active`}
-            >
-              Attempts
-            </button>
-          </nav>
+          <Button minimal onClick={() => navigateEvent(`/${eventId}`)}>
+            Event
+          </Button>
+          <Button
+            minimal
+            className="active"
+            onClick={() => navigateEvent(`/${eventId}/attempts`)}
+          >
+            Delivery Attempts
+          </Button>
         </div>
 
         <div>
@@ -208,11 +232,12 @@ const EventAttempts = ({
 };
 
 const EventAttemptDetails = ({
+  event,
   navigateEvent,
 }: {
+  event: Event;
   navigateEvent: (path: string, params?: any) => void;
 }) => {
-  const { event_id: eventId } = useParams();
   const { deliveryIndex, delivery } = useLocation().state as {
     deliveryIndex: number;
     delivery: Delivery;
@@ -222,7 +247,10 @@ const EventAttemptDetails = ({
     <div className="drawer">
       <div className="drawer__header">
         <div className="drawer__header-tabs">
-          <Button minimal onClick={() => navigateEvent(`/${eventId}/attempts`)}>
+          <Button
+            minimal
+            onClick={() => navigateEvent(`/${event.id}/attempts`)}
+          >
             <PreviousIcon />
             Attempts {deliveryIndex}
           </Button>
@@ -246,15 +274,55 @@ const EventAttemptDetails = ({
           <div className="event-attempt-details__overview">
             <h3 className="title-m">Overview</h3>
 
-            <div>ID: {delivery.id}</div>
-            <div>
-              Delivered at {new Date(delivery.delivered_at).toLocaleString()}
-            </div>
+            <dl className="body-m description-list">
+              <div>
+                <dt>ID</dt>
+                <dd className="mono-s">{delivery.id}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  <Badge
+                    text={
+                      delivery.status === "success" ? "Successful" : "Failed"
+                    }
+                    success={delivery.status === "success"}
+                    danger={delivery.status === "failed"}
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt>Delivered at</dt>
+                <dd className="mono-s time">
+                  {new Date(delivery.delivered_at).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    timeZoneName: "short",
+                  })}
+                </dd>
+              </div>
+            </dl>
           </div>
+
           {/* Currently, we're not storing the exact message data sent. */}
-          {/* <div className="event-attempt-details__message">
+          <div className="event-attempt-details__message">
             <h3 className="title-s">Message</h3>
-          </div> */}
+            <pre>
+              {JSON.stringify(
+                {
+                  metadata: event.metadata,
+                  data: event.data,
+                },
+                null,
+                2
+              )}
+            </pre>
+          </div>
+
           <div className="event-attempt-details__result">
             <h3 className="title-m">Response</h3>
             <pre>{JSON.stringify(delivery.response_data, null, 2)}</pre>
