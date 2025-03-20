@@ -140,10 +140,10 @@ const EventAttempts = ({
 }: {
   navigateEvent: (path: string, params?: any) => void;
 }) => {
-  const { event_id: eventId } = useParams();
+  const { event_id: eventId, destination_id: destinationId } = useParams();
 
   const { data: deliveries } = useSWR<Delivery[]>(
-    `events/${eventId}/deliveries`
+    `events/${eventId}/deliveries?destination_id=${destinationId}`
   );
 
   return (

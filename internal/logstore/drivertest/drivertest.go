@@ -565,6 +565,7 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 	logStore, err := h.MakeDriver(ctx)
 	require.NoError(t, err)
 
+	destinationID := uuid.New().String()
 	event := testutil.EventFactory.Any()
 	deliveryEvents := []*models.DeliveryEvent{}
 	baseTime := time.Now()
@@ -573,7 +574,7 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 			ID:              uuid.New().String(),
 			EventID:         event.ID,
 			DeliveryEventID: uuid.New().String(),
-			DestinationID:   uuid.New().String(),
+			DestinationID:   destinationID,
 			Status:          "success",
 			Time:            baseTime.Add(-time.Duration(i) * time.Second),
 		}
@@ -591,7 +592,8 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 
 	t.Run("list delivery empty", func(t *testing.T) {
 		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
-			EventID: "unknown",
+			EventID:       "unknown",
+			DestinationID: "",
 		})
 		require.NoError(t, err)
 		assert.Empty(t, queriedDeliveries)
@@ -599,7 +601,8 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 
 	t.Run("list delivery", func(t *testing.T) {
 		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
-			EventID: event.ID,
+			EventID:       event.ID,
+			DestinationID: destinationID,
 		})
 		require.NoError(t, err)
 		assert.Len(t, queriedDeliveries, len(deliveryEvents))

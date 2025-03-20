@@ -35,5 +35,6 @@ type ListEventByDestinationRequest struct {
 }
 
 type ListDeliveryRequest struct {
-	EventID string
+	EventID       string
+	DestinationID string
 }

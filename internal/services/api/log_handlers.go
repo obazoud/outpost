@@ -153,7 +153,8 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 		return
 	}
 	deliveries, err := h.logStore.ListDelivery(c.Request.Context(), logstore.ListDeliveryRequest{
-		EventID: event.ID,
+		EventID:       event.ID,
+		DestinationID: c.Query("destination_id"),
 	})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))

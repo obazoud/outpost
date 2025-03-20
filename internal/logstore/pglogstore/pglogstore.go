@@ -256,9 +256,12 @@ func (s *logStore) ListDelivery(ctx context.Context, req driver.ListDeliveryRequ
 		SELECT id, event_id, destination_id, status, time, code, response_data
 		FROM deliveries
 		WHERE event_id = $1
+		AND ($2 = '' OR destination_id = $2)
 		ORDER BY time DESC`
 
-	rows, err := s.db.Query(ctx, query, req.EventID)
+	rows, err := s.db.Query(ctx, query,
+		req.EventID,
+		req.DestinationID)
 	if err != nil {
 		return nil, err
 	}
