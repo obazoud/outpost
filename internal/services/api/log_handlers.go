@@ -75,8 +75,9 @@ func (h *LogHandlers) listEvent(c *gin.Context, destinationIDs []string) {
 	if err != nil {
 		limit = 100
 	}
-	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
-		Cursor:         c.Query("cursor"),
+	response, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
+		Next:           c.Query("next"),
+		Prev:           c.Query("prev"),
 		Limit:          limit,
 		Start:          start,
 		End:            end,
@@ -89,16 +90,21 @@ func (h *LogHandlers) listEvent(c *gin.Context, destinationIDs []string) {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
 		return
 	}
-	if len(events) == 0 {
+	if len(response.Data) == 0 {
 		// Return an empty array instead of null
 		c.JSON(http.StatusOK, gin.H{
-			"data": []models.Event{},
+			"data":  []models.Event{},
+			"next":  "",
+			"prev":  "",
+			"count": 0,
 		})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"data": events,
-		"next": nextCursor,
+		"data":  response.Data,
+		"next":  response.Next,
+		"prev":  response.Prev,
+		"count": response.Count,
 	})
 }
 

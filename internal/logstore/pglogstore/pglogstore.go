@@ -23,18 +23,28 @@ func NewLogStore(db *pgxpool.Pool) driver.LogStore {
 	}
 }
 
-func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) ([]*models.Event, string, error) {
-	var decodedCursor string
-	if req.Cursor != "" {
+func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (driver.ListEventResponse, error) {
+	// TODO: validate only one of next or prev is set
+
+	var decodedNext, decodedPrev string
+	if req.Next != "" {
 		var err error
-		decodedCursor, err = s.cursorParser.Parse(req.Cursor)
+		decodedNext, err = s.cursorParser.Parse(req.Next)
 		if err != nil {
-			return nil, "", fmt.Errorf("invalid cursor: %v", err)
+			return driver.ListEventResponse{}, fmt.Errorf("invalid cursor: %v", err)
+		}
+	}
+	if req.Prev != "" {
+		var err error
+		decodedPrev, err = s.cursorParser.Parse(req.Prev)
+		if err != nil {
+			return driver.ListEventResponse{}, fmt.Errorf("invalid cursor: %v", err)
 		}
 	}
 
 	// Step 1: Query the index to get relevant event IDs and their status
 	indexQuery := `
+		-- Step 1: Apply some filters & dedup index table to get event with status
 		WITH latest_status AS (
 			SELECT DISTINCT ON (event_id, destination_id) 
 				event_id,
@@ -44,26 +54,47 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 				time_event_id,
 				status
 			FROM event_delivery_index
-			WHERE tenant_id = $5  -- tenant_id
-			AND event_time >= COALESCE($3, COALESCE($4, NOW()) - INTERVAL '1 hour')
-			AND event_time <= COALESCE($4, NOW())
-			AND (array_length($6::text[], 1) IS NULL OR destination_id = ANY($6))  -- destination_ids
-			AND (array_length($7::text[], 1) IS NULL OR topic = ANY($7))  -- topics
+			WHERE tenant_id = $6  -- tenant_id
+			AND event_time >= COALESCE($4, COALESCE($5, NOW()) - INTERVAL '1 hour')
+			AND event_time <= COALESCE($5, NOW())
+			AND (array_length($7::text[], 1) IS NULL OR destination_id = ANY($7))  -- destination_ids
+			AND (array_length($8::text[], 1) IS NULL OR topic = ANY($8))  -- topics
 			ORDER BY event_id, destination_id, delivery_time DESC
 		),
-		filtered AS (
-			-- Step 2: Apply remaining filters
+		-- Step 2: Apply status filter
+		filtered_before_cursor AS (
 			SELECT *
 			FROM latest_status
-			WHERE ($8 = '' OR status = $8)  -- status filter
-			AND ($1 = '' OR time_event_id < $1)  -- cursor pagination
+			WHERE ($9 = '' OR status = $9)  -- status filter
+		),
+		-- Step 3: Apply pagination (cursor & limit)
+		filtered AS (
+			SELECT 
+				event_id,
+				destination_id,
+				delivery_time,
+				event_time,
+				time_event_id,
+				status,
+				(SELECT COUNT(*) FROM filtered_before_cursor) as total_count
+			FROM filtered_before_cursor
+			WHERE ($1 = '' OR time_event_id < $1) AND ($2 = '' OR time_event_id > $2)  -- cursor pagination
+			ORDER BY 
+				CASE WHEN $2 != '' THEN time_event_id END ASC, -- prev cursor: sort ascending to get right window
+				time_event_id DESC -- default sort and next cursor sort
+			LIMIT CASE WHEN $3 = 0 THEN NULL ELSE $3 + 1 END
+		),
+		-- Step 4: Re-sort for consistent response
+		final AS (
+			SELECT *
+			FROM filtered
 			ORDER BY time_event_id DESC
-			LIMIT CASE WHEN $2 = 0 THEN NULL ELSE $2 END
 		)
-		SELECT * FROM filtered`
+		SELECT * FROM final`
 
 	indexRows, err := s.db.Query(ctx, indexQuery,
-		decodedCursor,
+		decodedNext,
+		decodedPrev,
 		req.Limit,
 		req.Start,
 		req.End,
@@ -73,7 +104,7 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 		req.Status,
 	)
 	if err != nil {
-		return nil, "", err
+		return driver.ListEventResponse{}, err
 	}
 	defer indexRows.Close()
 
@@ -87,17 +118,46 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 		status        string
 	}
 	eventInfos := []eventInfo{}
+	var totalCount int64
 	for indexRows.Next() {
 		var info eventInfo
-		err := indexRows.Scan(&info.eventID, &info.destinationID, &info.deliveryTime, &info.eventTime, &info.timeEventID, &info.status)
+		err := indexRows.Scan(&info.eventID, &info.destinationID, &info.deliveryTime, &info.eventTime, &info.timeEventID, &info.status, &totalCount)
 		if err != nil {
-			return nil, "", err
+			return driver.ListEventResponse{}, err
 		}
 		eventInfos = append(eventInfos, info)
 	}
 
 	if len(eventInfos) == 0 {
-		return []*models.Event{}, "", nil
+		return driver.ListEventResponse{
+			Data:  []*models.Event{},
+			Next:  "",
+			Prev:  "",
+			Count: 0,
+		}, nil
+	}
+
+	// Handle pagination
+	var hasNext, hasPrev bool
+	if req.Prev != "" {
+		hasNext = true                                          // We came backwards, so definitely more ahead
+		hasPrev = len(eventInfos) > req.Limit || req.Limit == 0 // Check if more behind
+		if len(eventInfos) > req.Limit && req.Limit > 0 {
+			eventInfos = eventInfos[1:] // Trim first item (newest) when going backward
+		}
+	} else if req.Next != "" {
+		hasPrev = true                                          // We came forwards, so definitely more behind
+		hasNext = len(eventInfos) > req.Limit || req.Limit == 0 // Check if more ahead
+		if len(eventInfos) > req.Limit && req.Limit > 0 {
+			eventInfos = eventInfos[:len(eventInfos)-1] // Trim last item when going forward
+		}
+	} else {
+		// First page
+		hasPrev = false
+		hasNext = len(eventInfos) > req.Limit || req.Limit == 0
+		if len(eventInfos) > req.Limit && req.Limit > 0 {
+			eventInfos = eventInfos[:len(eventInfos)-1] // Trim last item on first page
+		}
 	}
 
 	// Step 2: Get full event data
@@ -120,7 +180,7 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 
 	eventRows, err := s.db.Query(ctx, eventQuery, eventIDs)
 	if err != nil {
-		return nil, "", err
+		return driver.ListEventResponse{}, err
 	}
 	defer eventRows.Close()
 
@@ -138,7 +198,7 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 			&event.Metadata,
 		)
 		if err != nil {
-			return nil, "", err
+			return driver.ListEventResponse{}, err
 		}
 		eventMap[event.ID] = event
 	}
@@ -155,12 +215,25 @@ func (s *logStore) ListEvent(ctx context.Context, req driver.ListEventRequest) (
 		}
 	}
 
-	var nextCursor string
+	var nextCursor, prevCursor string
 	if len(events) > 0 {
-		nextCursor = s.cursorParser.Format(eventInfos[len(eventInfos)-1].timeEventID)
+		lastItem := eventInfos[len(eventInfos)-1].timeEventID
+		firstItem := eventInfos[0].timeEventID
+
+		if hasNext {
+			nextCursor = s.cursorParser.Format(lastItem)
+		}
+		if hasPrev {
+			prevCursor = s.cursorParser.Format(firstItem)
+		}
 	}
 
-	return events, nextCursor, nil
+	return driver.ListEventResponse{
+		Data:  events,
+		Next:  nextCursor,
+		Prev:  prevCursor,
+		Count: totalCount,
+	}, nil
 }
 
 func (s *logStore) RetrieveEvent(ctx context.Context, tenantID, eventID string) (*models.Event, error) {
