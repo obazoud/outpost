@@ -53,71 +53,125 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 	destinationEvents := map[string][]*models.Event{}
 	statusEvents := map[string][]*models.Event{}
 	destinationStatusEvents := map[string]map[string][]*models.Event{}
-	deliveries := []*models.Delivery{}
+	topicEvents := map[string][]*models.Event{}
+	timeEvents := map[string][]*models.Event{} // key is like "1h", "24h", etc.
+	deliveryEvents := []*models.DeliveryEvent{}
 	events := []*models.Event{}
+
+	startTime := time.Now().Add(-48 * time.Hour) // before ALL events
+	start := &startTime
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
 		destinationID := destinationIDs[i%len(destinationIDs)]
+		topic := testutil.TestTopics[i%len(testutil.TestTopics)]
 		shouldSucceed := i%2 == 0
 		shouldRetry := i%3 == 0
 
-		events = append(events,
-			testutil.EventFactory.AnyPointer(
-				testutil.EventFactory.WithTenantID(tenantID),
-				testutil.EventFactory.WithTime(baseTime.Add(-time.Duration(i)*time.Second)),
-				testutil.EventFactory.WithDestinationID(destinationID),
-				testutil.EventFactory.WithEligibleForRetry(shouldRetry),
-				testutil.EventFactory.WithMetadata(map[string]string{
-					"index": strconv.Itoa(i),
-				}),
-			),
+		var eventTime time.Time
+		switch {
+		case i < 5:
+			eventTime = baseTime.Add(-time.Duration(i) * time.Minute)
+			// i=0: now-0m  (newest)
+			// i=1: now-1m
+			// i=2: now-2m
+			// i=3: now-3m
+			// i=4: now-4m  (all within first hour)
+
+		case i < 10:
+			eventTime = baseTime.Add(-time.Duration(2*60+i) * time.Minute)
+			// i=5: now-125m  (2h5m ago)
+			// i=6: now-126m  (2h6m ago)
+			// i=7: now-127m  (2h7m ago)
+			// i=8: now-128m  (2h8m ago)
+			// i=9: now-129m  (2h9m ago)
+
+		case i < 15:
+			eventTime = baseTime.Add(-time.Duration(5*60+i) * time.Minute)
+			// i=10: now-310m  (5h10m ago)
+			// i=11: now-311m  (5h11m ago)
+			// i=12: now-312m  (5h12m ago)
+			// i=13: now-313m  (5h13m ago)
+			// i=14: now-314m  (5h14m ago)
+
+		default:
+			eventTime = baseTime.Add(-time.Duration(23*60+i) * time.Minute)
+			// i=15: now-1395m  (23h15m ago)
+			// i=16: now-1396m  (23h16m ago)
+			// i=17: now-1397m  (23h17m ago)
+			// i=18: now-1398m  (23h18m ago)
+			// i=19: now-1399m  (23h19m ago)
+		}
+
+		event := testutil.EventFactory.AnyPointer(
+			testutil.EventFactory.WithTenantID(tenantID),
+			testutil.EventFactory.WithTime(eventTime),
+			testutil.EventFactory.WithDestinationID(destinationID),
+			testutil.EventFactory.WithEligibleForRetry(shouldRetry),
+			testutil.EventFactory.WithTopic(topic),
+			testutil.EventFactory.WithMetadata(map[string]string{
+				"index": strconv.Itoa(i),
+			}),
 		)
-		destinationEvents[destinationID] = append(destinationEvents[destinationID], events[i])
+		events = append(events, event)
+		destinationEvents[destinationID] = append(destinationEvents[destinationID], event)
 		if _, ok := destinationStatusEvents[destinationID]; !ok {
 			destinationStatusEvents[destinationID] = map[string][]*models.Event{}
 		}
+		topicEvents[topic] = append(topicEvents[topic], event)
+		switch {
+		case i < 5:
+			timeEvents["1h"] = append(timeEvents["1h"], event)
+		case i < 10:
+			timeEvents["3h"] = append(timeEvents["3h"], event)
+		case i < 15:
+			timeEvents["6h"] = append(timeEvents["6h"], event)
+		default:
+			timeEvents["24h"] = append(timeEvents["24h"], event)
+		}
 
-		eventDeliveries := []*models.Delivery{}
+		var delivery *models.Delivery
 		if shouldRetry {
-			eventDeliveries = append(eventDeliveries,
-				testutil.DeliveryFactory.AnyPointer(
-					testutil.DeliveryFactory.WithEventID(events[i].ID),
-					testutil.DeliveryFactory.WithDestinationID(destinationID),
-					testutil.DeliveryFactory.WithStatus("failed"),
-				),
+			delivery = testutil.DeliveryFactory.AnyPointer(
+				testutil.DeliveryFactory.WithEventID(event.ID),
+				testutil.DeliveryFactory.WithDestinationID(destinationID),
+				testutil.DeliveryFactory.WithStatus("failed"),
+			)
+			deliveryEvents = append(deliveryEvents, &models.DeliveryEvent{
+				ID:            uuid.New().String(),
+				DestinationID: destinationID,
+				Event:         *event,
+				Delivery:      delivery,
+			})
+		}
+
+		if shouldSucceed {
+			statusEvents["success"] = append(statusEvents["success"], event)
+			destinationStatusEvents[destinationID]["success"] = append(destinationStatusEvents[destinationID]["success"], event)
+			delivery = testutil.DeliveryFactory.AnyPointer(
+				testutil.DeliveryFactory.WithEventID(event.ID),
+				testutil.DeliveryFactory.WithDestinationID(destinationID),
+				testutil.DeliveryFactory.WithStatus("success"),
+			)
+		} else {
+			statusEvents["failed"] = append(statusEvents["failed"], event)
+			destinationStatusEvents[destinationID]["failed"] = append(destinationStatusEvents[destinationID]["failed"], event)
+			delivery = testutil.DeliveryFactory.AnyPointer(
+				testutil.DeliveryFactory.WithEventID(event.ID),
+				testutil.DeliveryFactory.WithDestinationID(destinationID),
+				testutil.DeliveryFactory.WithStatus("failed"),
 			)
 		}
-		if shouldSucceed {
-			statusEvents["success"] = append(statusEvents["success"], events[i])
-			destinationStatusEvents[destinationID]["success"] = append(destinationStatusEvents[destinationID]["success"], events[i])
-			eventDeliveries = append(eventDeliveries,
-				testutil.DeliveryFactory.AnyPointer(
-					testutil.DeliveryFactory.WithEventID(events[i].ID),
-					testutil.DeliveryFactory.WithDestinationID(destinationID),
-					testutil.DeliveryFactory.WithStatus("success"),
-				))
-		} else {
-			statusEvents["failed"] = append(statusEvents["failed"], events[i])
-			destinationStatusEvents[destinationID]["failed"] = append(destinationStatusEvents[destinationID]["failed"], events[i])
-			eventDeliveries = append(eventDeliveries,
-				testutil.DeliveryFactory.AnyPointer(
-					testutil.DeliveryFactory.WithEventID(events[i].ID),
-					testutil.DeliveryFactory.WithDestinationID(destinationID),
-					testutil.DeliveryFactory.WithStatus("failed"),
-				))
-		}
 
-		deliveries = append(deliveries, eventDeliveries...)
+		deliveryEvents = append(deliveryEvents, &models.DeliveryEvent{
+			ID:            uuid.New().String(),
+			DestinationID: destinationID,
+			Event:         *event,
+			Delivery:      delivery,
+		})
 	}
 
 	// Setup | Insert
-	t.Run("insert many event", func(t *testing.T) {
-		assert.NoError(t, logStore.InsertManyEvent(ctx, events))
-	})
-
-	t.Run("insert many delivery", func(t *testing.T) {
-		assert.NoError(t, logStore.InsertManyDelivery(ctx, deliveries))
-	})
+	require.NoError(t, logStore.InsertManyDeliveryEvent(ctx, deliveryEvents))
 
 	// Queries
 	t.Run("base queries", func(t *testing.T) {
@@ -126,6 +180,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				TenantID: "unknown",
 				Limit:    5,
 				Cursor:   "",
+				Start:    start,
 			})
 			require.NoError(t, err)
 			assert.Empty(t, queriedEvents)
@@ -138,6 +193,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				TenantID: tenantID,
 				Limit:    5,
 				Cursor:   "",
+				Start:    start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 5)
@@ -152,6 +208,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				TenantID: tenantID,
 				Limit:    5,
 				Cursor:   cursor,
+				Start:    start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 5)
@@ -169,6 +226,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				DestinationIDs: []string{destinationIDs[0]},
 				Limit:          3,
 				Cursor:         "",
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 3)
@@ -184,6 +242,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				DestinationIDs: []string{destinationIDs[0]},
 				Limit:          3,
 				Cursor:         cursor,
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 3)
@@ -198,6 +257,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				DestinationIDs: []string{destinationIDs[0], destinationIDs[1]},
 				Limit:          3,
 				Cursor:         "",
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 3)
@@ -216,6 +276,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				DestinationIDs: []string{destinationIDs[0], destinationIDs[1]},
 				Limit:          3,
 				Cursor:         cursor,
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 3)
@@ -234,11 +295,13 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				TenantID: tenantID,
 				Status:   "success",
 				Limit:    5,
+				Start:    start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 5)
 			for i := 0; i < 5; i++ {
 				require.Equal(t, statusEvents["success"][i].ID, queriedEvents[i].ID)
+				require.Equal(t, "success", queriedEvents[i].Status)
 			}
 			cursor = nextCursor
 		})
@@ -249,11 +312,13 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				Status:   "success",
 				Limit:    5,
 				Cursor:   cursor,
+				Start:    start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 5)
 			for i := 0; i < 5; i++ {
 				require.Equal(t, statusEvents["success"][5+i].ID, queriedEvents[i].ID)
+				require.Equal(t, "success", queriedEvents[i].Status)
 			}
 		})
 
@@ -261,12 +326,26 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
 				TenantID: tenantID,
 				Status:   "failed",
+				Start:    start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, len(statusEvents["failed"]))
 			for i := 0; i < len(statusEvents["failed"]); i++ {
 				require.Equal(t, statusEvents["failed"][i].ID, queriedEvents[i].ID)
+				require.Equal(t, "failed", queriedEvents[i].Status)
 			}
+		})
+
+		t.Run("retrieve event status", func(t *testing.T) {
+			// Test success case
+			event, err := logStore.RetrieveEvent(ctx, tenantID, statusEvents["success"][0].ID)
+			require.NoError(t, err)
+			require.Equal(t, "success", event.Status)
+
+			// Test failed case
+			event, err = logStore.RetrieveEvent(ctx, tenantID, statusEvents["failed"][0].ID)
+			require.NoError(t, err)
+			require.Equal(t, "failed", event.Status)
 		})
 	})
 
@@ -278,6 +357,7 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				DestinationIDs: []string{destinationIDs[0]},
 				Status:         "success",
 				Limit:          2,
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 2)
@@ -294,11 +374,181 @@ func testIntegrationLogStore_EventCRUD(t *testing.T, newHarness HarnessMaker) {
 				Status:         "success",
 				Limit:          2,
 				Cursor:         cursor,
+				Start:          start,
 			})
 			require.NoError(t, err)
 			require.Len(t, queriedEvents, 2)
 			for i := 0; i < 2; i++ {
 				require.Equal(t, destinationStatusEvents[destinationIDs[0]]["success"][2+i].ID, queriedEvents[i].ID)
+			}
+		})
+	})
+
+	t.Run("query by topic", func(t *testing.T) {
+		var cursor string
+		t.Run("list events with single topic", func(t *testing.T) {
+			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   []string{testutil.TestTopics[0]},
+				Limit:    2,
+				Start:    start,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for index, e := range queriedEvents {
+				require.Equal(t, testutil.TestTopics[0], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][index].ID, e.ID)
+			}
+			cursor = nextCursor
+		})
+
+		t.Run("list events with single topic and cursor", func(t *testing.T) {
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   []string{testutil.TestTopics[0]},
+				Limit:    2,
+				Cursor:   cursor,
+				Start:    start,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for index, e := range queriedEvents {
+				require.Equal(t, testutil.TestTopics[0], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][2+index].ID, e.ID)
+			}
+		})
+
+		t.Run("list events with multiple topics", func(t *testing.T) {
+			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   testutil.TestTopics[:2], // first two topics
+				Limit:    2,
+				Start:    start,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for _, e := range queriedEvents {
+				require.Contains(t, testutil.TestTopics[:2], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][0].ID, e.ID) // first event of each topic
+			}
+			cursor = nextCursor
+		})
+
+		t.Run("list events with multiple topics and cursor", func(t *testing.T) {
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Topics:   testutil.TestTopics[:2],
+				Limit:    2,
+				Cursor:   cursor,
+				Start:    start,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for _, e := range queriedEvents {
+				require.Contains(t, testutil.TestTopics[:2], e.Topic)
+				require.Equal(t, topicEvents[e.Topic][1].ID, e.ID) // second event of each topic
+			}
+		})
+	})
+
+	t.Run("query by time", func(t *testing.T) {
+		t.Run("list events with no time params (defaults to last hour)", func(t *testing.T) {
+			// First page
+			queriedEvents, nextCursor, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Limit:    2, // Smaller limit to test pagination
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for i, e := range queriedEvents {
+				require.Equal(t, timeEvents["1h"][i].ID, e.ID)
+			}
+			require.NotEmpty(t, nextCursor)
+
+			// Second page
+			queriedEvents, nextCursor, err = logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Limit:    2,
+				Cursor:   nextCursor,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 2)
+			for i, e := range queriedEvents {
+				require.Equal(t, timeEvents["1h"][i+2].ID, e.ID)
+			}
+			// Should still have one more event in the 1h bucket
+			require.NotEmpty(t, nextCursor)
+
+			// Final page
+			queriedEvents, _, err = logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Limit:    2,
+				Cursor:   nextCursor,
+			})
+			require.NoError(t, err)
+			require.Len(t, queriedEvents, 1) // Last event in the 1h bucket
+			require.Equal(t, timeEvents["1h"][4].ID, queriedEvents[0].ID)
+			// require.Empty(t, nextCursor) // No more events
+		})
+
+		t.Run("list events from 3 hours ago", func(t *testing.T) {
+			threeHoursAgo := baseTime.Add(-3 * time.Hour)
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Start:    &threeHoursAgo,
+				// Limit:    5,
+			})
+			require.NoError(t, err)
+			// Should include events from 1h and 3h buckets
+			expectedCount := len(timeEvents["1h"]) + len(timeEvents["3h"])
+			require.Len(t, queriedEvents, expectedCount)
+		})
+
+		t.Run("list events with explicit window", func(t *testing.T) {
+			sevenHoursAgo := baseTime.Add(-7 * time.Hour)
+			fiveHoursAgo := baseTime.Add(-5 * time.Hour)
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				Start:    &sevenHoursAgo,
+				End:      &fiveHoursAgo,
+				Limit:    5,
+			})
+			require.NoError(t, err)
+			// Should only include events from 6h bucket (5-6h ago)
+			require.Len(t, queriedEvents, len(timeEvents["6h"]))
+			for i, e := range queriedEvents {
+				require.Equal(t, timeEvents["6h"][i].ID, e.ID)
+			}
+		})
+
+		t.Run("list events with end time only (defaults start to end-1h)", func(t *testing.T) {
+			twoHoursAgo := baseTime.Add(-2 * time.Hour)
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID: tenantID,
+				End:      &twoHoursAgo,
+				Limit:    5,
+			})
+			require.NoError(t, err)
+			// Should include events from 3h bucket only (2-3h ago)
+			require.Len(t, queriedEvents, len(timeEvents["3h"]))
+		})
+
+		t.Run("list events with combined time and other filters", func(t *testing.T) {
+			threeHoursAgo := baseTime.Add(-3 * time.Hour)
+			queriedEvents, _, err := logStore.ListEvent(ctx, driver.ListEventRequest{
+				TenantID:       tenantID,
+				Start:          &threeHoursAgo,
+				Topics:         []string{testutil.TestTopics[0]},
+				DestinationIDs: []string{destinationIDs[0]},
+				Status:         "success",
+				Limit:          5,
+			})
+			require.NoError(t, err)
+			for _, e := range queriedEvents {
+				require.Equal(t, testutil.TestTopics[0], e.Topic)
+				require.Equal(t, destinationIDs[0], e.DestinationID)
+				require.Equal(t, "success", e.Status)
+				require.True(t, e.Time.After(threeHoursAgo))
 			}
 		})
 	})
@@ -315,29 +565,35 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 	logStore, err := h.MakeDriver(ctx)
 	require.NoError(t, err)
 
+	destinationID := uuid.New().String()
 	event := testutil.EventFactory.Any()
-	require.NoError(t, logStore.InsertManyEvent(ctx, []*models.Event{&event}))
-
-	deliveries := []*models.Delivery{}
+	deliveryEvents := []*models.DeliveryEvent{}
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
-		deliveries = append(deliveries, &models.Delivery{
+		delivery := &models.Delivery{
 			ID:              uuid.New().String(),
 			EventID:         event.ID,
 			DeliveryEventID: uuid.New().String(),
-			DestinationID:   uuid.New().String(),
+			DestinationID:   destinationID,
 			Status:          "success",
 			Time:            baseTime.Add(-time.Duration(i) * time.Second),
+		}
+		deliveryEvents = append(deliveryEvents, &models.DeliveryEvent{
+			ID:            delivery.ID,
+			DestinationID: delivery.DestinationID,
+			Event:         event,
+			Delivery:      delivery,
 		})
 	}
 
 	t.Run("insert many delivery", func(t *testing.T) {
-		require.NoError(t, logStore.InsertManyDelivery(ctx, deliveries))
+		require.NoError(t, logStore.InsertManyDeliveryEvent(ctx, deliveryEvents))
 	})
 
 	t.Run("list delivery empty", func(t *testing.T) {
 		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
-			EventID: "unknown",
+			EventID:       "unknown",
+			DestinationID: "",
 		})
 		require.NoError(t, err)
 		assert.Empty(t, queriedDeliveries)
@@ -345,12 +601,13 @@ func testIntegrationLogStore_DeliveryCRUD(t *testing.T, newHarness HarnessMaker)
 
 	t.Run("list delivery", func(t *testing.T) {
 		queriedDeliveries, err := logStore.ListDelivery(ctx, driver.ListDeliveryRequest{
-			EventID: event.ID,
+			EventID:       event.ID,
+			DestinationID: destinationID,
 		})
 		require.NoError(t, err)
-		assert.Len(t, queriedDeliveries, len(deliveries))
-		for i := 0; i < len(deliveries); i++ {
-			assert.Equal(t, deliveries[i].ID, queriedDeliveries[i].ID)
+		assert.Len(t, queriedDeliveries, len(deliveryEvents))
+		for i := 0; i < len(deliveryEvents); i++ {
+			assert.Equal(t, deliveryEvents[i].Delivery.ID, queriedDeliveries[i].ID)
 		}
 	})
 }

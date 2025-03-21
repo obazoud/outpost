@@ -29,7 +29,6 @@ const ConfigurationModal = ({
     };
   }, []);
 
-  console.log(portalRef);
   if (!portalRef) {
     return null;
   }

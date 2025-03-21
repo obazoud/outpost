@@ -11,6 +11,7 @@ interface TableRow {
   entries: (string | React.ReactNode)[];
   link?: string;
   onClick?: () => void;
+  active?: boolean;
 }
 
 interface TableProps {
@@ -60,6 +61,7 @@ const Table: React.FC<TableProps> = ({ columns, rows, footer_label }) => {
               gridTemplateColumns: columns_widths,
             }}
             onClick={() => handle_row_click(row)}
+            data-active={row.active}
           >
             {row.entries.map((entry, index) => (
               <div

@@ -27,20 +27,63 @@ func NewLogHandlers(
 }
 
 func (h *LogHandlers) ListEvent(c *gin.Context) {
+	h.listEvent(c, c.QueryArray("destination_id"))
+}
+
+func (h *LogHandlers) ListEventByDestination(c *gin.Context) {
+	h.listEvent(c, []string{c.Param("destinationID")})
+}
+
+func (h *LogHandlers) listEvent(c *gin.Context, destinationIDs []string) {
 	tenant := mustTenantFromContext(c)
 	if tenant == nil {
 		return
 	}
-	cursor := c.Query("cursor")
+
+	var start, end *time.Time
+	if startStr := c.Query("start"); startStr != "" {
+		t, err := time.Parse(time.RFC3339, startStr)
+		if err != nil {
+			AbortWithError(c, http.StatusUnprocessableEntity, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Data: map[string]string{
+					"query.start": "invalid format, expected RFC3339",
+				},
+			})
+			return
+		}
+		start = &t
+	}
+	if endStr := c.Query("end"); endStr != "" {
+		t, err := time.Parse(time.RFC3339, endStr)
+		if err != nil {
+			AbortWithError(c, http.StatusUnprocessableEntity, ErrorResponse{
+				Code:    http.StatusUnprocessableEntity,
+				Message: "validation error",
+				Data: map[string]string{
+					"query.end": "invalid format, expected RFC3339",
+				},
+			})
+			return
+		}
+		end = &t
+	}
+
 	limitStr := c.Query("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
 		limit = 100
 	}
 	events, nextCursor, err := h.logStore.ListEvent(c.Request.Context(), logstore.ListEventRequest{
-		TenantID: tenant.ID,
-		Cursor:   cursor,
-		Limit:    limit,
+		Cursor:         c.Query("cursor"),
+		Limit:          limit,
+		Start:          start,
+		End:            end,
+		TenantID:       tenant.ID,
+		DestinationIDs: destinationIDs,
+		Topics:         c.QueryArray("topic"),
+		Status:         c.Query("status"),
 	})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
@@ -77,7 +120,27 @@ func (h *LogHandlers) RetrieveEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
+func (h *LogHandlers) RetrieveEventByDestination(c *gin.Context) {
+	tenant := mustTenantFromContext(c)
+	if tenant == nil {
+		return
+	}
+	destinationID := c.Param("destinationID")
+	eventID := c.Param("eventID")
+	event, err := h.logStore.RetrieveEventByDestination(c.Request.Context(), tenant.ID, destinationID, eventID)
+	if err != nil {
+		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
+		return
+	}
+	if event == nil {
+		c.Status(http.StatusNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, event)
+}
+
 type DeliveryResponse struct {
+	ID           string                 `json:"id"`
 	DeliveredAt  string                 `json:"delivered_at"`
 	Status       string                 `json:"status"`
 	Code         string                 `json:"code"`
@@ -90,7 +153,8 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 		return
 	}
 	deliveries, err := h.logStore.ListDelivery(c.Request.Context(), logstore.ListDeliveryRequest{
-		EventID: event.ID,
+		EventID:       event.ID,
+		DestinationID: c.Query("destination_id"),
 	})
 	if err != nil {
 		AbortWithError(c, http.StatusInternalServerError, NewErrInternalServer(err))
@@ -104,6 +168,7 @@ func (h *LogHandlers) ListDeliveryByEvent(c *gin.Context) {
 	deliveryData := make([]DeliveryResponse, len(deliveries))
 	for i, delivery := range deliveries {
 		deliveryData[i] = DeliveryResponse{
+			ID:           delivery.ID,
 			DeliveredAt:  delivery.Time.UTC().Format(time.RFC3339),
 			Status:       delivery.Status,
 			Code:         delivery.Code,

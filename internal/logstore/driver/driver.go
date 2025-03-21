@@ -2,6 +2,7 @@ package driver
 
 import (
 	"context"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/models"
 )
@@ -9,19 +10,31 @@ import (
 type LogStore interface {
 	ListEvent(context.Context, ListEventRequest) ([]*models.Event, string, error)
 	RetrieveEvent(ctx context.Context, tenantID, eventID string) (*models.Event, error)
+	RetrieveEventByDestination(ctx context.Context, tenantID, destinationID, eventID string) (*models.Event, error)
 	ListDelivery(ctx context.Context, request ListDeliveryRequest) ([]*models.Delivery, error)
-	InsertManyEvent(context.Context, []*models.Event) error
-	InsertManyDelivery(context.Context, []*models.Delivery) error
+	InsertManyDeliveryEvent(context.Context, []*models.DeliveryEvent) error
 }
 
 type ListEventRequest struct {
-	TenantID       string   // required
-	DestinationIDs []string // optional
-	Status         string   // optional, "success", "failed"
+	TenantID       string     // required
+	DestinationIDs []string   // optional
+	Status         string     // optional, "success", "failed"
+	Topics         []string   // optional
+	Start          *time.Time // optional - lower bound, default End - 1h
+	End            *time.Time // optional - upper bound, default now()
 	Cursor         string
 	Limit          int
 }
 
+type ListEventByDestinationRequest struct {
+	TenantID      string // required
+	DestinationID string // required
+	Status        string // optional, "success", "failed"
+	Cursor        string
+	Limit         int
+}
+
 type ListDeliveryRequest struct {
-	EventID string
+	EventID       string
+	DestinationID string
 }
