@@ -8,6 +8,7 @@ import { EditIcon, HelpIcon } from "../Icons";
 import Tooltip from "../Tooltip/Tooltip";
 import Button from "../Button/Button";
 import ConfigurationModal from "../ConfigurationModal/ConfigurationModal";
+import { Checkbox } from "../Checkbox/Checkbox";
 
 const DestinationConfigFields = ({
   destination,
@@ -44,6 +45,10 @@ const DestinationConfigFields = ({
     }
   }, [lastUnlockedField]);
 
+  console.log(type);
+  console.log(destination);
+  console.log(unlockedFields);
+
   return (
     <>
       {type.instructions && (
@@ -78,7 +83,7 @@ const DestinationConfigFields = ({
                     ? unlockedFields[field.key]
                       ? ""
                       : destination?.credentials[field.key] || field.default
-                    : destination?.config[field.key] || field.default
+                    : destination?.config[field.key] || destination?.credentials[field.key] || field.default
                 }
                 disabled={
                   "sensitive" in field && field.sensitive
@@ -104,8 +109,8 @@ const DestinationConfigFields = ({
             </div>
           )}
           {field.type === "checkbox" && (
-            <input
-              type="checkbox"
+            <Checkbox
+              label=""
               id={field.key}
               name={field.key}
               defaultChecked={
@@ -117,6 +122,7 @@ const DestinationConfigFields = ({
               disabled={field.disabled}
               required={field.required}
             />
+
           )}
           {field.description && (
             <p className="description">{field.description}</p>

@@ -1,6 +1,6 @@
 # AWS SQS Configuration Instructions
 
-Basic setup instructions for aws sqs destination.
+Basic setup instructions for AWS SQS destination.
 
 ## Using AWS CLI
 
@@ -39,8 +39,12 @@ $ aws iam create-user --user-name USERNAME
 $ aws iam attach-user-policy --user-name USERNAME --policy-arn arn:aws:iam::ACCOUNTID:policy/POLICYNAME
 ```
 
-5. Create an access key
+5. Create an Access Key
 
 ```sh
 $ aws iam create-access-key --user-name USERNAME
 ```
+
+6. Configure your AWS SQS Event Destination
+
+Use the Access Key and Access Secret created in step 5 to configure your AWS SQS Event Destination.
