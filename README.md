@@ -183,7 +183,7 @@ Continue to use the [Outpost API](https://outpost.hookdeck.com/docs/references/a
 - [Get Started](https://outpost.hookdeck.com/docs/quickstarts)
 - [Overview](https://outpost.hookdeck.com/docs/overview)
 - [Features](https://outpost.hookdeck.com/docs/features)
-- [Guides](https://outpost.hookdeck.com/docs/guides/deployment)
+- [Guides](https://outpost.hookdeck.com/docs/guides)
 - References
     - [API Reference](https://outpost.hookdeck.com/docs/references/api)
     - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configuration)

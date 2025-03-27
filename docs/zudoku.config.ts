@@ -32,7 +32,6 @@ const config: ZudokuConfig = {
   // },
   redirects: [
     { from: "/", to: "/overview" },
-    { from: "/guides", to: "/guides/deployment" },
     { from: "/references", to: "/references/api" },
   ],
   plugins: [htmlPlugin({ headScript: ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT })],
@@ -100,6 +99,7 @@ const config: ZudokuConfig = {
         label: "Guides",
         collapsed: false,
         collapsible: false,
+        link: "guides",
         items: [
           {
             type: "doc",
