@@ -26,6 +26,7 @@ const main = async () => {
       id: `msg-${Date.now()}`,
       topic: sub.topics[0],
       tenant_id: org.id,
+      eligible_for_retry: true,
       data: {
         user_id: `user-${Math.floor(Math.random() * 10000)}`,
         name: "Test User",

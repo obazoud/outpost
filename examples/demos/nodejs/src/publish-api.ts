@@ -12,6 +12,7 @@ const main = async () => {
       const event = {
         tenant_id: organization.id,
         topic: destination.topics[0],
+        eligible_for_retry: true,
         data: {
           test: "data",
           from_organization_id: organization.id,

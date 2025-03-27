@@ -33,17 +33,20 @@ class OutpostClient {
   async publishEvent({
     tenant_id,
     topic,
+    eligible_for_retry,
     data,
     metadata,
   }: {
     tenant_id: string;
     topic: string;
+    eligible_for_retry: boolean;
     data: any;
     metadata: any;
   }): Promise<boolean> {
     const response = await this.request("/publish", "POST", {
       tenant_id,
       topic,
+      eligible_for_retry,
       data,
       metadata,
     });
