@@ -11,8 +11,8 @@ URL=your_webhook_url
 You'd do this whenever a new organization signups up.
 
 ```sh
-curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID \
---header 'Authorization: Bearer $API_KEY'
+curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID" \
+--header "Authorization: Bearer $API_KEY"
 ```
 
 ## Create a Destination
