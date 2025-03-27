@@ -115,8 +115,8 @@ Create a tenant with the following command, replacing `$TENANT_ID` with a unique
 > ```
 
 ```sh
-curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID \
---header 'Authorization: Bearer $API_KEY'
+curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID" \
+--header "Authorization: Bearer $API_KEY"
 ```
 
 Run a local server exposed via a localtunnel or use a hosted service such as the [Hookdeck Console](https://console.hookdeck.com?ref=github-outpost) to capture webhook events.
