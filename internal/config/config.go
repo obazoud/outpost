@@ -158,7 +158,7 @@ func (c *Config) InitDefaults() {
 		Disabled:          false,
 		BatchSize:         100,
 		BatchInterval:     5,
-		HookdeckSourceURL: "https://hkdk.events/ih7t3hukydzlge",
+		HookdeckSourceURL: "https://hkdk.events/yhk665ljz3rn6l",
 		SentryDSN:         "https://examplePublicKey@o0.ingest.sentry.io/0",
 	}
 }
