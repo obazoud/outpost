@@ -22,6 +22,7 @@ components:
       bearerFormat: JWT
       description: Per-tenant JWT token valid for 24 hours. When used, tenant_id path parameter is inferred.
   schemas:
+    # Base Schemas
     Tenant:
       type: object
       properties:
@@ -65,8 +66,114 @@ components:
         success:
           type: boolean
           example: true
-    Destination:
+    DestinationOAuthRedirect:
       type: object
+      properties:
+        redirect_url:
+          type: string
+          format: url
+          description: Redirect URL for OAuth flow if applicable during destination update.
+          example: "https://dashboard.hookdeck.com/authorize?token=12313123"
+    Topics:
+      oneOf:
+        - type: string
+          enum: ["*"]
+        - type: array
+          items:
+            type: string
+      description: '"*" or an array of enabled topics.'
+      example: "*"
+
+    # Destination Type Specific Config/Credentials Schemas
+    WebhookConfig:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: url
+          description: The URL to send the webhook events to.
+          example: "https://example.com/webhooks/user"
+    WebhookCredentials:
+      type: object
+      properties:
+        secret:
+          type: string
+          description: The secret used for signing webhook requests. Auto-generated if omitted on creation by admin. Read-only for tenants unless rotating.
+          example: "whsec_abc123"
+        previous_secret:
+          type: string
+          description: The previous secret used during rotation. Valid for 24 hours by default. Read-only.
+          example: "whsec_xyz789"
+        previous_secret_invalid_at:
+          type: string
+          format: date-time
+          description: ISO timestamp when the previous secret becomes invalid. Read-only.
+          example: "2024-01-02T00:00:00Z"
+    AWSSQSConfig:
+      type: object
+      required: [queue_url]
+      properties:
+        endpoint:
+          type: string
+          format: url
+          description: Optional. Custom AWS endpoint URL (e.g., for LocalStack or specific regions).
+          example: "https://sqs.us-east-1.amazonaws.com" # Corrected Example
+        queue_url:
+          type: string
+          format: url # Technically an ARN/URL hybrid, but URL format is close enough
+          description: The URL of the SQS queue.
+          example: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue"
+    AWSSQSCredentials:
+      type: object
+      required: [key, secret]
+      properties:
+        key:
+          type: string
+          description: AWS Access Key ID.
+          example: "AKIAIOSFODNN7EXAMPLE"
+        secret:
+          type: string
+          description: AWS Secret Access Key.
+          example: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        session:
+          type: string
+          description: Optional AWS Session Token (for temporary credentials).
+          example: "AQoDYXdzEPT//////////wEXAMPLE..."
+    RabbitMQConfig:
+      type: object
+      required: [server_url, exchange]
+      properties:
+        server_url:
+          type: string
+          description: RabbitMQ server address (host:port).
+          example: "localhost:5672"
+        exchange:
+          type: string
+          description: The exchange to publish messages to.
+          example: "my-exchange"
+        tls:
+          type: string
+          enum: ["true", "false"]
+          description: Whether to use TLS connection (amqps). Defaults to "false".
+          example: "false"
+    RabbitMQCredentials:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          description: RabbitMQ username.
+          example: "guest"
+        password:
+          type: string
+          description: RabbitMQ password.
+          example: "guest"
+
+    # Base Destination Schema (Common Fields)
+    DestinationBase:
+      type: object
+      required: [id, type, topics, config, credentials, created_at, disabled_at]
       properties:
         id:
           type: string
@@ -74,24 +181,10 @@ components:
           example: "des_12345"
         type:
           type: string
-          description: Type of the destination (e.g., 'webhooks').
-          example: "webhooks"
+          description: Type of the destination.
+          enum: [webhook, aws_sqs, rabbitmq]
         topics:
-          type: array
-          items:
-            type: string
-          description: Topics of events this destination is eligible for. Can contain '*' for all topics.
-          example: ["user.created", "user.updated"]
-        config:
-          type: object
-          description: Destination type-specific configuration. Schema depends on the 'type'.
-          example: { "url": "https://example.com/webhooks/user" }
-          additionalProperties: true # Allow any structure
-        credentials:
-          type: object
-          description: Destination type-specific credentials (AES encrypted, obfuscated by default). Schema depends on the 'type'.
-          example: { "secret": "some***********" }
-          additionalProperties: true # Allow any structure
+          $ref: "#/components/schemas/Topics"
         disabled_at:
           type: string
           format: date-time
@@ -103,70 +196,190 @@ components:
           format: date-time
           description: ISO Date when the destination was created.
           example: "2024-01-01T00:00:00Z"
-    DestinationCreate:
+
+    # Type-Specific Destination Schemas (for Responses)
+    DestinationWebhook:
+      allOf:
+        - $ref: "#/components/schemas/DestinationBase"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [webhook]
+              example: "webhook"
+            config:
+              $ref: "#/components/schemas/WebhookConfig"
+            credentials:
+              $ref: "#/components/schemas/WebhookCredentials"
+    DestinationAWSSQS:
+      allOf:
+        - $ref: "#/components/schemas/DestinationBase"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [aws_sqs]
+              example: "aws_sqs"
+            config:
+              $ref: "#/components/schemas/AWSSQSConfig"
+            credentials:
+              $ref: "#/components/schemas/AWSSQSCredentials"
+    DestinationRabbitMQ:
+      allOf:
+        - $ref: "#/components/schemas/DestinationBase"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [rabbitmq]
+              example: "rabbitmq"
+            config:
+              $ref: "#/components/schemas/RabbitMQConfig"
+            credentials:
+              $ref: "#/components/schemas/RabbitMQCredentials"
+
+    # Polymorphic Destination Schema (for Responses)
+    Destination:
+      oneOf:
+        - $ref: "#/components/schemas/DestinationWebhook"
+        - $ref: "#/components/schemas/DestinationAWSSQS"
+        - $ref: "#/components/schemas/DestinationRabbitMQ"
+      discriminator:
+        propertyName: type
+        mapping:
+          webhook: "#/components/schemas/DestinationWebhook"
+          aws_sqs: "#/components/schemas/DestinationAWSSQS"
+          rabbitmq: "#/components/schemas/DestinationRabbitMQ"
+
+    # Type-Specific Destination Creation Schemas (for Request Bodies)
+    DestinationCreateBase:
       type: object
+      required: [type, topics, config]
       properties:
         id:
           type: string
           description: Optional user-provided ID. A UUID will be generated if empty.
-          example: "123"
+          example: "user-provided-id"
         type:
           type: string
-          description: String of a valid destination type.
-          example: "webhooks"
+          description: Type of the destination.
         topics:
-          oneOf:
-            - type: string
-              enum: ["*"]
-            - type: array
-              items:
-                type: string
-          description: '"*" or an array of enabled topics.'
-          example: "*"
-        config:
-          type: object
-          description: Config object for the given destination type.
-          example: { "url": "https://example.com/webhooks" }
-          additionalProperties: true
-        credentials:
-          type: object
-          nullable: true
-          description: Credentials for the given destination type. Can be empty or null. Specific fields depend on type (e.g., secret, previous_secret, rotate_secret for webhooks).
-          additionalProperties: true
+          $ref: "#/components/schemas/Topics"
+    DestinationCreateWebhook:
+      allOf:
+        - $ref: "#/components/schemas/DestinationCreateBase"
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [webhook]
+            config:
+              $ref: "#/components/schemas/WebhookConfig"
+            credentials:
+              # Secret is optional on create for admin, forbidden for tenant
+              $ref: "#/components/schemas/WebhookCredentials"
+    DestinationCreateAWSSQS:
+      allOf:
+        - $ref: "#/components/schemas/DestinationCreateBase"
+        - type: object
+          required: [credentials] # Credentials required for AWS SQS
+          properties:
+            type:
+              type: string
+              enum: [aws_sqs]
+            config:
+              $ref: "#/components/schemas/AWSSQSConfig"
+            credentials:
+              $ref: "#/components/schemas/AWSSQSCredentials"
+    DestinationCreateRabbitMQ:
+      allOf:
+        - $ref: "#/components/schemas/DestinationCreateBase"
+        - type: object
+          required: [credentials] # Credentials required for RabbitMQ
+          properties:
+            type:
+              type: string
+              enum: [rabbitmq]
+            config:
+              $ref: "#/components/schemas/RabbitMQConfig"
+            credentials:
+              $ref: "#/components/schemas/RabbitMQCredentials"
+
+    # Polymorphic Destination Creation Schema (for Request Bodies)
+    DestinationCreate:
+      oneOf:
+        - $ref: "#/components/schemas/DestinationCreateWebhook"
+        - $ref: "#/components/schemas/DestinationCreateAWSSQS"
+        - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
+      discriminator:
+        propertyName: type
+        mapping:
+          webhook: "#/components/schemas/DestinationCreateWebhook"
+          aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
+          rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+
+    # Type-Specific Destination Update Schemas (for Request Bodies)
+    DestinationUpdateBase:
+      type: object
+      properties:
+        # Type cannot be updated
+        topics:
+          $ref: "#/components/schemas/Topics"
+    WebhookCredentialsUpdate:
+      type: object
+      properties:
+        secret:
+          type: string
+          description: New secret (only allowed for admin).
+        previous_secret:
+          type: string
+          description: Previous secret for rotation (only allowed for admin).
+        previous_secret_invalid_at:
+          type: string
+          format: date-time
+          description: Invalidation time for previous secret (only allowed for admin).
+        rotate_secret:
+          type: boolean
+          description: Set to true to rotate the secret. The current secret becomes the previous_secret, and a new secret is generated. `previous_secret_invalid_at` defaults to 24h if not provided.
+    DestinationUpdateWebhook:
+      allOf:
+        - $ref: "#/components/schemas/DestinationUpdateBase"
+        - type: object
+          properties:
+            config:
+              $ref: "#/components/schemas/WebhookConfig" # URL is required here, but PATCH means it's optional in the request
+            credentials:
+              $ref: "#/components/schemas/WebhookCredentialsUpdate"
+    DestinationUpdateAWSSQS:
+      allOf:
+        - $ref: "#/components/schemas/DestinationUpdateBase"
+        - type: object
+          properties:
+            config:
+              $ref: "#/components/schemas/AWSSQSConfig" # queue_url is required here, but PATCH means it's optional
+            credentials:
+              $ref: "#/components/schemas/AWSSQSCredentials" # key/secret required here, but PATCH means optional
+    DestinationUpdateRabbitMQ:
+      allOf:
+        - $ref: "#/components/schemas/DestinationUpdateBase"
+        - type: object
+          properties:
+            config:
+              $ref: "#/components/schemas/RabbitMQConfig" # server_url/exchange required here, but PATCH means optional
+            credentials:
+              $ref: "#/components/schemas/RabbitMQCredentials" # username/password required here, but PATCH means optional
+
+    # Polymorphic Destination Update Schema (for Request Bodies)
     DestinationUpdate:
-      type: object
-      properties:
-        type:
-          type: string
-          description: Optional. String of a valid destination type.
-          example: "webhooks"
-        topics:
-          oneOf:
-            - type: string
-              enum: ["*"]
-            - type: array
-              items:
-                type: string
-          description: Optional. '*' or an array of enabled topics.
-          example: "*"
-        config:
-          type: object
-          description: Optional. Config object for the given destination type.
-          example: { "url": "https://example.com/webhooks" }
-          additionalProperties: true
-        credentials:
-          type: object
-          nullable: true
-          description: Optional. Credentials for the given destination type. Can be empty or null.
-          additionalProperties: true
-    DestinationOAuthRedirect:
-      type: object
-      properties:
-        redirect_url:
-          type: string
-          format: url
-          description: Redirect URL for OAuth flow if applicable during destination update.
-          example: "https://dashboard.hookdeck.com/authorize?token=12313123"
+      oneOf:
+        - $ref: "#/components/schemas/DestinationUpdateWebhook"
+        - $ref: "#/components/schemas/DestinationUpdateAWSSQS"
+        - $ref: "#/components/schemas/DestinationUpdateRabbitMQ"
+      # Discriminator not strictly needed for PATCH request body, but good practice
+      discriminator:
+        propertyName: type # Note: type itself cannot be sent in PATCH body
+
+    # Event Schemas
     PublishRequest:
       type: object
       required:
@@ -192,14 +405,73 @@ components:
           description: Should event delivery be retried on failure.
         metadata:
           type: object
-          description: Any JSON payload for metadata.
-          additionalProperties: true
-          example: { "meta": "data" }
+          description: Any key-value string pairs for metadata.
+          additionalProperties:
+            type: string
+          example: { "source": "crm" }
         data:
           type: object
           description: Any JSON payload for the event data.
           additionalProperties: true
-          example: { "user_id": "userid" }
+          example: { "user_id": "userid", "status": "active" }
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "evt_123"
+        destination_id:
+          type: string
+          example: "des_456"
+        topic:
+          type: string
+          example: "user.created"
+        time:
+          type: string
+          format: date-time
+          description: Time the event was received/processed.
+          example: "2024-01-01T00:00:00Z"
+        successful_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Time the event was successfully delivered.
+          example: "2024-01-01T00:00:00Z"
+        metadata:
+          type: object
+          description: Key-value string pairs of metadata associated with the event.
+          additionalProperties:
+            type: string
+          example: { "source": "crm" }
+        data:
+          type: object
+          description: Freeform JSON data of the event.
+          additionalProperties: true
+          example: { "user_id": "userid", "status": "active" }
+    DeliveryAttempt:
+      type: object
+      properties:
+        delivered_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        status:
+          type: string
+          enum: [success, failed]
+          example: "success"
+        response_status_code:
+          type: integer
+          example: 200
+        response_body:
+          type: string # Or potentially object if JSON
+          example: '{"status":"ok"}'
+        response_headers:
+          type: object
+          additionalProperties:
+            type: string
+          example: { "content-type": "application/json" }
+
+    # Destination Type Schema (for Metadata endpoint)
     DestinationTypeSchema:
       type: object
       properties:
@@ -258,64 +530,7 @@ components:
         required:
           type: boolean
           example: true
-    Event:
-      type: object
-      properties:
-        id:
-          type: string
-          example: "123"
-        destination_id:
-          type: string
-          example: "456"
-        topic:
-          type: string
-          example: "user.created"
-        time:
-          type: string
-          format: date-time
-          description: Time the event was received/processed.
-          example: "2024-01-01T00:00:00Z"
-        successful_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: Time the event was successfully delivered.
-          example: "2024-01-01T00:00:00Z"
-        metadata:
-          type: object
-          additionalProperties:
-            anyOf:
-              - type: string
-              - type: number
-              - type: boolean
-          example: { "key": "value" }
-        data:
-          type: object
-          description: Freeform JSON data of the event.
-          additionalProperties: true
-          example: { "hello": "world" }
-    DeliveryAttempt:
-      type: object
-      properties:
-        delivered_at:
-          type: string
-          format: date-time
-          example: "2024-01-01T00:00:00Z"
-        status:
-          type: string
-          enum: [success, failed] # Assuming based on example
-          example: "success"
-        response_status_code:
-          type: integer
-          example: 200
-        response_body:
-          type: string # Or potentially object if JSON
-          example: '{"status":"ok"}'
-        response_headers:
-          type: object
-          additionalProperties:
-            type: string
-          example: { "content-type": "application/json" }
+
 # Security is applied per-operation based on AuthScope
 
 tags:
@@ -473,9 +688,8 @@ paths:
   # Destinations
   /{tenant_id}/destinations:
     description: |
-      The `topics` array can contain either a list of topics or a wildcard `*` implying that all topics are supported. If you do not wish to implement topics for your application, you set all destination topics to `*`.
-
-      By default all destination `credentials` are obfuscated and the values cannot be read. This does not apply to the `webhook` type destination secret and each destination can expose their own obfuscation logic.
+      Manage destinations for a specific tenant. Destinations determine where events are sent.
+      The structure of `config` and `credentials` depends on the destination `type`.
     parameters:
       - name: tenant_id
         in: path
@@ -486,7 +700,7 @@ paths:
     get:
       tags: [Destinations]
       summary: List Destinations
-      description: Return a list of the destinations. The endpoint is not paged, and the maximum number is equivalent to the maximum configured number of destinations per tenant through the `MAX_DESTINATIONS_PER_TENANT` env variable.
+      description: Return a list of the destinations for the tenant. The endpoint is not paged.
       operationId: listTenantDestinations
       security:
         - AdminApiKey: []
@@ -498,9 +712,11 @@ paths:
           schema:
             oneOf:
               - type: string
+                enum: [webhook, aws_sqs, rabbitmq]
               - type: array
                 items:
                   type: string
+                  enum: [webhook, aws_sqs, rabbitmq]
           description: Filter destinations by type(s).
         - name: topics
           in: query
@@ -527,16 +743,7 @@ paths:
     post:
       tags: [Destinations]
       summary: Create Destination
-      description: |
-        Creates a new destination for the tenant.
-
-        #### Webhook secret & rotation
-
-        Webhook secrets and rotations are a special case for the `webhook` destination type. The destination type `credentials.secret` is only a valid input when using the Admin API and can be omited when a secret is generated automatically.
-
-        Additionally, `credentials.previous_secret` can be used to set a rotated secret during a migration. `credentials.rotate_secret` can be used to automatically rotate the existing secret which results in a new `credentials.secret` and `credentials.previous_secret` value.
-
-        `previous_secret` are valid and used to “double” sign the request for 24 hours.
+      description: Creates a new destination for the tenant. The request body structure depends on the `type`.
       operationId: createTenantDestination
       security:
         - AdminApiKey: []
@@ -548,7 +755,7 @@ paths:
             schema:
               $ref: "#/components/schemas/DestinationCreate"
       responses:
-        "201": # Assuming 201 Created
+        "201":
           description: Destination created successfully.
           content:
             application/json:
@@ -594,7 +801,7 @@ paths:
     patch:
       tags: [Destinations]
       summary: Update Destination
-      description: Updates the configuration of an existing destination. May return an OAuth redirect URL.
+      description: Updates the configuration of an existing destination. The request body structure depends on the destination's `type`. Type itself cannot be updated. May return an OAuth redirect URL for certain types.
       operationId: updateTenantDestination
       security:
         - AdminApiKey: []
@@ -770,7 +977,8 @@ paths:
         required: true
         schema:
           type: string
-        description: The type of the destination (e.g., 'webhook').
+          enum: [webhook, aws_sqs, rabbitmq]
+        description: The type of the destination.
     get:
       tags: [Schemas]
       summary: Get Destination Type Schema (for Tenant)
@@ -1133,7 +1341,8 @@ paths:
         required: true
         schema:
           type: string
-        description: The type of the destination (e.g., 'webhook').
+          enum: [webhook, aws_sqs, rabbitmq]
+        description: The type of the destination.
     get:
       tags: [Schemas]
       summary: Get Destination Type Schema (JWT Auth)
@@ -1189,9 +1398,11 @@ paths:
           schema:
             oneOf:
               - type: string
+                enum: [webhook, aws_sqs, rabbitmq]
               - type: array
                 items:
                   type: string
+                  enum: [webhook, aws_sqs, rabbitmq]
           description: Filter destinations by type(s).
         - name: topics
           in: query
@@ -1217,7 +1428,7 @@ paths:
     post:
       tags: [Destinations]
       summary: Create Destination (JWT Auth)
-      description: Creates a new destination for the tenant identified by JWT.
+      description: Creates a new destination for the tenant identified by JWT. The request body structure depends on the `type`.
       operationId: createDestinationJwt
       security:
         - TenantJwt: []
@@ -1268,7 +1479,7 @@ paths:
     patch:
       tags: [Destinations]
       summary: Update Destination (JWT Auth)
-      description: Updates an existing destination for the tenant identified by JWT.
+      description: Updates an existing destination for the tenant identified by JWT. The request body structure depends on the destination's `type`. Type itself cannot be updated.
       operationId: updateDestinationJwt
       security:
         - TenantJwt: []
