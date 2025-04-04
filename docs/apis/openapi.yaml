@@ -121,7 +121,7 @@ components:
             - type: array
               items:
                 type: string
-          description: '*' or an array of enabled topics.
+          description: '"*" or an array of enabled topics.'
           example: "*"
         config:
           type: object
@@ -223,16 +223,21 @@ components:
         remote_setup_url:
           type: string
           format: url
-          description: Optional URL for remote OAuth-like setup.
+          description: >-
+            Some destinations may have Oauth flow or other managed-setup flow that can be triggered with a link. If a `remote_setup_url` is set then the user should be prompted to follow the link to configure the destination.
+
+            See the [dashboard design guide](https://outpost.hookdeck.com/guides/dashboard-design.mdx) for recommended UI patterns and wireframes for implementation in your own app.
           example: "https://dashboard.hookdeck.com/authorize?provider=acme"
         config_fields:
           type: array
+          description: Config fields are non-secret values that can be stored and displayed to the user in plain text.
           items:
-            $ref: '#/components/schemas/DestinationSchemaField'
+            $ref: "#/components/schemas/DestinationSchemaField"
         credential_fields:
           type: array
+          description: Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
           items:
-            $ref: '#/components/schemas/DestinationSchemaField'
+            $ref: "#/components/schemas/DestinationSchemaField"
     DestinationSchemaField:
       type: object
       properties:
@@ -305,7 +310,7 @@ components:
           example: 200
         response_body:
           type: string # Or potentially object if JSON
-          example: "{\"status\":\"ok\"}"
+          example: '{"status":"ok"}'
         response_headers:
           type: object
           additionalProperties:
@@ -343,12 +348,12 @@ paths:
       description: Idempotently creates or updates a tenant. Required before associating destinations.
       operationId: putTenant
       responses:
-        '200':
+        "200":
           description: Tenant details.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tenant'
+                $ref: "#/components/schemas/Tenant"
         # Add error responses
     get:
       tags: [Tenants]
@@ -356,13 +361,13 @@ paths:
       description: Retrieves details for a specific tenant.
       operationId: getTenant
       responses:
-        '200':
+        "200":
           description: Tenant details.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tenant'
-        '404':
+                $ref: "#/components/schemas/Tenant"
+        "404":
           description: Tenant not found.
         # Add other error responses
     delete:
@@ -371,13 +376,13 @@ paths:
       description: Deletes the tenant and all associated destinations.
       operationId: deleteTenant
       responses:
-        '200':
+        "200":
           description: Success confirmation.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '404':
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
           description: Tenant not found.
         # Add other error responses
 
@@ -403,13 +408,13 @@ paths:
             enum: [light, dark]
           description: Optional theme preference for the portal.
       responses:
-        '200':
+        "200":
           description: Portal redirect URL.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PortalRedirect'
-        '404':
+                $ref: "#/components/schemas/PortalRedirect"
+        "404":
           description: Tenant not found.
         # Add other error responses
 
@@ -427,18 +432,22 @@ paths:
       description: Returns a JWT token scoped to the tenant for safe browser API calls.
       operationId: getTenantToken
       responses:
-        '200':
+        "200":
           description: Tenant JWT token.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TenantToken'
-        '404':
+                $ref: "#/components/schemas/TenantToken"
+        "404":
           description: Tenant not found.
         # Add other error responses
 
   # Destinations
   /{tenant_id}/destinations:
+    description: |
+      The `topics` array can contain either a list of topics or a wildcard `*` implying that all topics are supported. If you do not wish to implement topics for your application, you set all destination topics to `*`.
+
+      By default all destination `credentials` are obfuscated and the values cannot be read. This does not apply to the `webhook` type destination secret and each destination can expose their own obfuscation logic.
     parameters:
       - name: tenant_id
         in: path
@@ -449,7 +458,7 @@ paths:
     get:
       tags: [Destinations]
       summary: List Destinations
-      description: Returns a list of destinations for the tenant. Not paginated.
+      description: Return a list of the destinations. The endpoint is not paged, and the maximum number is equivalent to the maximum configured number of destinations per tenant through the `MAX_DESTINATIONS_PER_TENANT` env variable.
       operationId: listDestinations
       parameters:
         - name: type
@@ -473,38 +482,47 @@ paths:
                   type: string
           description: Filter destinations by supported topic(s).
       responses:
-        '200':
+        "200":
           description: A list of destinations.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Destination'
-        '404':
+                  $ref: "#/components/schemas/Destination"
+        "404":
           description: Tenant not found.
         # Add other error responses
     post:
       tags: [Destinations]
       summary: Create Destination
-      description: Creates a new destination for the tenant.
+      description: |
+        Creates a new destination for the tenant.
+
+        #### Webhook secret & rotation
+
+        Webhook secrets and rotations are a special case for the `webhook` destination type. The destination type `credentials.secret` is only a valid input when using the Admin API and can be omited when a secret is generated automatically.
+
+        Additionally, `credentials.previous_secret` can be used to set a rotated secret during a migration. `credentials.rotate_secret` can be used to automatically rotate the existing secret which results in a new `credentials.secret` and `credentials.previous_secret` value.
+
+        `previous_secret` are valid and used to “double” sign the request for 24 hours.
       operationId: createDestination
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DestinationCreate'
+              $ref: "#/components/schemas/DestinationCreate"
       responses:
-        '201': # Assuming 201 Created
+        "201": # Assuming 201 Created
           description: Destination created successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Destination'
-        '400':
+                $ref: "#/components/schemas/Destination"
+        "400":
           description: Invalid request body or configuration.
-        '404':
+        "404":
           description: Tenant not found.
         # Add other error responses (e.g., max destinations reached)
 
@@ -532,19 +550,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DestinationUpdate'
+              $ref: "#/components/schemas/DestinationUpdate"
       responses:
-        '200':
+        "200":
           description: Destination updated successfully or OAuth redirect needed.
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/Destination'
-                  - $ref: '#/components/schemas/DestinationOAuthRedirect'
-        '400':
+                  - $ref: "#/components/schemas/Destination"
+                  - $ref: "#/components/schemas/DestinationOAuthRedirect"
+        "400":
           description: Invalid request body or configuration.
-        '404':
+        "404":
           description: Tenant or Destination not found.
         # Add other error responses
     delete:
@@ -553,13 +571,13 @@ paths:
       description: Deletes a specific destination.
       operationId: deleteDestination
       responses:
-        '200':
+        "200":
           description: Success confirmation.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '404':
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
           description: Tenant or Destination not found.
         # Add other error responses
 
@@ -583,13 +601,13 @@ paths:
       description: Enables a previously disabled destination.
       operationId: enableDestination
       responses:
-        '200':
+        "200":
           description: Destination enabled successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Destination'
-        '404':
+                $ref: "#/components/schemas/Destination"
+        "404":
           description: Tenant or Destination not found.
         # Add other error responses
 
@@ -613,13 +631,13 @@ paths:
       description: Disables a previously enabled destination.
       operationId: disableDestination
       responses:
-        '200':
+        "200":
           description: Destination disabled successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Destination'
-        '404':
+                $ref: "#/components/schemas/Destination"
+        "404":
           description: Tenant or Destination not found.
         # Add other error responses
 
@@ -637,13 +655,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PublishRequest'
+              $ref: "#/components/schemas/PublishRequest"
       responses:
-        '202': # Accepted seems appropriate as processing is likely async
+        "202": # Accepted seems appropriate as processing is likely async
           description: Event accepted for publishing. Empty body.
-        '400':
+        "400":
           description: Invalid request body.
-        '401':
+        "401":
           description: Unauthorized (Admin API Key missing or invalid).
         # Add other error responses
 
@@ -655,14 +673,14 @@ paths:
       description: Returns a list of JSON-based input schemas for each available destination type. Requires Admin API Key or Tenant JWT.
       operationId: listDestinationTypeSchemas
       responses:
-        '200':
+        "200":
           description: A list of destination type schemas.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DestinationTypeSchema'
+                  $ref: "#/components/schemas/DestinationTypeSchema"
         # Add error responses
 
   /destination-types/{type}:
@@ -679,13 +697,13 @@ paths:
       description: Returns the input schema for a specific destination type. Requires Admin API Key or Tenant JWT.
       operationId: getDestinationTypeSchema
       responses:
-        '200':
+        "200":
           description: The schema for the specified destination type.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DestinationTypeSchema'
-        '404':
+                $ref: "#/components/schemas/DestinationTypeSchema"
+        "404":
           description: Destination type not found.
         # Add other error responses
 
@@ -723,15 +741,15 @@ paths:
           description: Filter events by delivery status.
         # Add cursor parameters (e.g., 'after', 'limit') when defined
       responses:
-        '200':
+        "200":
           description: A list of events.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Event'
-        '404':
+                  $ref: "#/components/schemas/Event"
+        "404":
           description: Tenant not found.
         # Add other error responses
 
@@ -755,14 +773,14 @@ paths:
       description: Retrieves a list of delivery attempts for a specific event, including response details.
       operationId: listEventDeliveries
       responses:
-        '200':
+        "200":
           description: A list of delivery attempts.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DeliveryAttempt'
-        '404':
+                  $ref: "#/components/schemas/DeliveryAttempt"
+        "404":
           description: Tenant or Event not found.
         # Add other error responses
