@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -55,7 +54,6 @@ func AddRoutes(router *gin.Engine, config PortalConfig) {
 				c.Next()
 				return
 			}
-			log.Println(c.Request.Method, c.Request.URL.Path, c.Request.URL.RawQuery)
 			proxy.ServeHTTP(c.Writer, c.Request)
 		})
 	} else {
