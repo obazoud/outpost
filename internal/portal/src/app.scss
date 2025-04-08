@@ -11,6 +11,7 @@
   &__header {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-2);
     margin-top: calc(var(--base-grid-multiplier) * 20);
     margin-bottom: calc(var(--base-grid-multiplier) * 12);
@@ -39,7 +40,8 @@
     gap: var(--spacing-2);
     color: var(--colors-foreground-neutral-3);
 
-    span, a {
+    span,
+    a {
       color: var(--colors-foreground-neutral-3);
     }
 
