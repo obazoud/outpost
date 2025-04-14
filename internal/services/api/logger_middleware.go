@@ -15,6 +15,12 @@ import (
 
 func LoggerMiddleware(logger *logging.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Skip logging portal requests
+		if !strings.Contains(c.Request.URL.Path, "api/v") {
+			c.Next()
+			return
+		}
+
 		logger := logger.Ctx(c.Request.Context()).WithOptions(zap.AddStacktrace(zap.FatalLevel))
 		c.Next()
 

@@ -63,7 +63,7 @@ const Events = ({
     }
 
     if (!searchParams.has("limit")) {
-      searchParams.set("limit", "10");
+      searchParams.set("limit", "15");
     }
 
     return `destinations/${destination.id}/events?${searchParams.toString()}`;
