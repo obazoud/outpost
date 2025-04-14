@@ -60,7 +60,7 @@ const config: ZudokuConfig = {
   // },
   topNavigation: [
     { id: "docs", label: "Documentation", default: "overview" },
-    { label: "API Reference", id: "docs/api" },
+    { label: "API Reference", id: "api" },
   ],
   sidebar: {
     docs: [
@@ -150,7 +150,7 @@ const config: ZudokuConfig = {
           {
             type: "link",
             label: "API",
-            href: "/docs/api",
+            href: "/api",
           },
         ],
       },
@@ -160,7 +160,10 @@ const config: ZudokuConfig = {
   apis: {
     type: "file",
     input: "./apis/openapi.yaml",
-    navigationId: "docs/api",
+    navigationId: "/api",
+    options: {
+      disablePlayground: true,
+    },
   },
   docs: {
     files: "/pages/**/*.{md,mdx}",
