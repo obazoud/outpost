@@ -123,6 +123,11 @@ const config: ZudokuConfig = {
           },
           {
             type: "doc",
+            label: "Publish from GCP Pub/Sub",
+            id: "guides/publish-from-gcp-pubsub",
+          },
+          {
+            type: "doc",
             label: "Deployment",
             id: "guides/deployment",
           },
