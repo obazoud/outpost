@@ -2,6 +2,7 @@ import type { ZudokuConfig } from "zudoku";
 import { HeadNavigation } from "./src/components/HeadNavigation";
 import { htmlPlugin } from "./src/plugins/htmlPlugin";
 import process from "node:process";
+import { ApiAuthSideNav } from "./src/components/ApiAuthSideNav";
 
 const ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT =
   process.env.ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT || "";
@@ -32,11 +33,12 @@ const config: ZudokuConfig = {
   // },
   redirects: [
     { from: "/", to: "/overview" },
-    { from: "/references", to: "/references/api" },
+    { from: "/api", to: "/api/authentication" },
   ],
   plugins: [htmlPlugin({ headScript: ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT })],
   UNSAFE_slotlets: {
     "head-navigation-start": HeadNavigation,
+    "zudoku-before-navigation": ApiAuthSideNav,
   },
   page: {
     pageTitle: "",
@@ -58,7 +60,10 @@ const config: ZudokuConfig = {
   //     YamlConfig,
   //   },
   // },
-  topNavigation: [{ id: "docs", label: "Documentation", default: "overview" }],
+  topNavigation: [
+    { id: "docs", label: "Documentation", default: "overview" },
+    { label: "API Reference", id: "api/authentication" },
+  ],
   sidebar: {
     docs: [
       {
@@ -118,6 +123,11 @@ const config: ZudokuConfig = {
           },
           {
             type: "doc",
+            label: "Publish from GCP Pub/Sub",
+            id: "guides/publish-from-gcp-pubsub",
+          },
+          {
+            type: "doc",
             label: "Deployment",
             id: "guides/deployment",
           },
@@ -141,13 +151,13 @@ const config: ZudokuConfig = {
           },
           {
             type: "doc",
-            label: "API",
-            id: "references/api",
-          },
-          {
-            type: "doc",
             label: "Roadmap",
             id: "references/roadmap",
+          },
+          {
+            type: "link",
+            label: "API",
+            href: "api/authentication",
           },
         ],
       },
@@ -157,7 +167,10 @@ const config: ZudokuConfig = {
   apis: {
     type: "file",
     input: "./apis/openapi.yaml",
-    navigationId: "docs/api",
+    navigationId: "/api",
+    options: {
+      disablePlayground: true,
+    },
   },
   docs: {
     files: "/pages/**/*.{md,mdx}",
