@@ -1,6 +1,13 @@
 export const HeadNavigation = () => {
   return (
-    <div className="flex gap-8 mr-2">
+    <div className="flex gap-4 mr-8 items-center">
+      {/* <a
+        href="/"
+        className="px-[--padding-nav-item] py-1.5 rounded-lg hover:bg-accent"
+      >
+        {" "}
+        Website -&gt;{" "}
+      </a> */}
       <a href="https://github.com/hookdeck/outpost" target="_blank">
         <svg
           xmlns="http://www.w3.org/2000/svg"

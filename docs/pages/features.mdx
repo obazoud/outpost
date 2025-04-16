@@ -62,26 +62,19 @@ curl --location 'localhost:3333/api/v1/<TENANT_ID>/destinations' \
 Destinations must be asynchronous and not run any business logic. At release, multiple "Event Gateways" and message buses will be supported.
 
 - Webhooks
-- Hookdeck Event Gateway
 - AWS SQS
-- AWS EventBridge
-- GCP Pub/Sub
 - RabbitMQ
+- Hookdeck Event Gateway
+
+Plans for additional event destination types include:
+
+- GCP Pub/Sub
+- Amazon Kinesis
+- Azure EventBus
+- Amazon EventBridge
 - Kafka
 
-<details>
-<summary>Future Roadmap</summary>
-
-- Azure EventGrid
-- Azure Service Bus
-- MQTT
-- Segment & other CDPs
-- Zapier & other no-code tools
-- S3 API
-
-See the [roadmap](/docs/references/roadmap) for more information.
-
-</details>
+See the [roadmap](/docs/references/roadmap) for more information on planned destination types.
 
 ### Getting Destination Types
 
@@ -188,7 +181,7 @@ Messages are guaranteed to be delivered at least once and never lost.
 
 Webhook best practices, such as headers for idempotency, timestamp, signature, and signature rotation, are in place by default. You must explicitly opt-out of webhook best practices.
 
-## User Alerts
+## User Alerts (planned)
 
 Alerts are triggered when an event fails to deliver to a destination. The `ALERT_DEBOUNCING_INTERVAL_SECOND` variable can configure alerting behavior. The debouncing interval represents the amount of time that needs to elapse for a new alert to be triggered. Alerts are scoped per destination.
 
@@ -197,15 +190,6 @@ Alerts support 2 types of triggers by consecutive failures or by failure rate. D
 Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. The server does not respond with a `200` there will be an exponential backoff and log the failure. Authentication is handled using the Admin API Key via a bearer token.
 
 It's your responsibility to format and deliver the alert to your tenant using your existing notification system.
-
-<details>
-<summary>Future roadmap</summary>
-
-- Support publishing the event to an MQ instead of via an HTTP callback url
-
-See the [roadmap](/docs/references/roadmap) for more information.
-
-</details>
 
 ### Consecutive failure alerts
 
