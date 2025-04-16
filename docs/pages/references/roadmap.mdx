@@ -2,9 +2,51 @@
 title: "Outpost Roadmap"
 ---
 
-## ALPHA
+## Upcoming Releases
 
-### Core Functionality
+### v0.1.0
+
+#### Core Functionality
+
+- ❌ [Postgres partition management](https://github.com/hookdeck/outpost/issues/249)
+
+#### Internal Message Queues
+
+- ✅ [GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/138)
+
+#### Publish Message Queues
+
+- ✅ [GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/325)
+
+#### Destination Types
+
+- 🚧 [Hookdeck Event Gateway](https://github.com/hookdeck/outpost/issues/136)
+- 🚧 [Amazon Kinesis](https://github.com/hookdeck/outpost/issues/305)
+
+### v0.2.0
+
+#### Publish Message Queues
+
+- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/139)
+
+#### Destination Types
+
+- ❌ [GCP PubSub](https://github.com/hookdeck/outpost/issues/140)
+- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/241)
+- ❌ [Amazon EventBridge](https://github.com/hookdeck/outpost/issues/201)
+- ❌ [Kafka](https://github.com/hookdeck/outpost/issues/141)
+
+### Later
+
+#### Core Functionality
+
+- 🚧 [Clickhouse log storage](https://github.com/hookdeck/outpost/issues/52)
+
+## Previous Notable Milestones
+
+### ALPHA
+
+#### Core Functionality
 
 - ✅ Tenant & Destination APIs (Redis storage)
 - ✅ Destination registry pattern
@@ -16,43 +58,28 @@ title: "Outpost Roadmap"
 
 See Outpost [Concepts](/docs/concepts) and [Features](/docs/features) for more information.
 
-### Internal Message Queues
+#### Internal Message Queues
 
 - ✅ AWS SQS
 - ✅ RabbitMQ
 
-### Publish Message Queues
+#### Publish Message Queues
 
 - ✅ AWS SQS
 - ✅ RabbitMQ
 
-### Destination Types
+#### Destination Types
 
 - ✅ Webhooks
 - ✅ AWS SQS
 - ✅ RabbitMQ
 
-## BETA
-
-## Core Functionality
-
-- ❌ [Postgres partition management](https://github.com/hookdeck/outpost/issues/249)
-- 🚧 [Clickhouse log storage](https://github.com/hookdeck/outpost/issues/52)
-- 🚧 [User Portal v0.2](https://github.com/hookdeck/outpost/issues/299)
-
-### Internal Message Queues
-
-- ✅ [GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/138)
-
-### Publish Message Queues
-
-- ✅ [GCP Pub/Sub](https://github.com/hookdeck/outpost/issues/325)
-- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/139)
-
-### Destination Types
-
-- 🚧 [Hookdeck Event Gateway](https://github.com/hookdeck/outpost/issues/136)
-- ❌ [GCP PubSub](https://github.com/hookdeck/outpost/issues/140)
-- ❌ [Azure EventBus](https://github.com/hookdeck/outpost/issues/241)
-- ❌ [Amazon EventBridge](https://github.com/hookdeck/outpost/issues/201)
-- ❌ [Kafka](https://github.com/hookdeck/outpost/issues/141)
+<style jsx>
+  {`
+    h3 {
+      border-bottom: 1px solid hsl(var(--foreground) / 0.8);
+      margin-top: 2.5rem !important;
+      margin-bottom: 1rem !important;
+    }
+  `}
+</style>
