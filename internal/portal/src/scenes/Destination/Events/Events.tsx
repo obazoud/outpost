@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import Badge from "../../../common/Badge/Badge";
-// import Button from "../../../common/Button/Button";
+import Button from "../../../common/Button/Button";
 // import SearchInput from "../../../common/SearchInput/SearchInput";
 import "./Events.scss";
 import Table from "../../../common/Table/Table";
@@ -13,6 +13,7 @@ import {
   PreviousIcon,
   RefreshIcon,
   NextIcon,
+  ReplayIcon,
 } from "../../../common/Icons";
 import { Checkbox } from "../../../common/Checkbox/Checkbox";
 import {
@@ -23,9 +24,10 @@ import {
   Outlet,
   useParams,
 } from "react-router-dom";
-import Button from "../../../common/Button/Button";
 import CONFIGS from "../../../config";
 import EventDetails from "./EventDetails";
+import { ApiContext } from "../../../app";
+import { showToast } from "../../../common/Toast/Toast";
 
 const Events = ({
   destination,
@@ -36,7 +38,10 @@ const Events = ({
 }) => {
   const { status, topics, pagination, urlSearchParams } = useEventFilter();
   const [timeRange, setTimeRange] = useState("24h");
+  const [ retryingId, setRetryingId ] = useState<null|string>(null);
   const { event_id: eventId } = useParams();
+
+  const apiClient = useContext(ApiContext);
 
   const queryUrl = useMemo(() => {
     const searchParams = new URLSearchParams(urlSearchParams);
@@ -69,6 +74,24 @@ const Events = ({
     return `destinations/${destination.id}/events?${searchParams.toString()}`;
   }, [destination.id, timeRange, urlSearchParams]);
 
+  const retryEvent = async (e: Event, event_id: string) => {
+    e.stopPropagation();
+    setRetryingId(event_id);
+    try {
+      await apiClient.fetch(`destinations/${destination.id}/events/${event_id}/retry`,
+        {
+          method: "POST",
+        }
+      );
+      showToast("success", "Retry successful.");
+      mutate();
+    } catch (error: any) {
+      showToast("error", "Retry failed. " + `${error.message.charAt(0).toUpperCase() + error.message.slice(1)}`);
+    }
+      
+    setRetryingId(null);
+  }
+
   const {
     data: eventsList,
     mutate,
@@ -98,6 +121,16 @@ const Events = ({
               <Badge text="Failed" danger />
             ) : (
               <Badge text="Pending" />
+            )}
+            {(event.status === "success" || event.status === "failed") && (
+              <Button
+                minimal
+                onClick={(e) => retryEvent(e, event.id)}
+                disabled={retryingId === event.id || isValidating}
+                loading={retryingId === event.id || isValidating}
+              >
+                <ReplayIcon />
+              </Button>
             )}
           </span>,
           <span className="mono-s">{event.topic}</span>,
