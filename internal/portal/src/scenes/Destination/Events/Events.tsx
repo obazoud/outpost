@@ -108,7 +108,11 @@ const Events: React.FC<EventsProps> = ({
             destinationId={destination.id}
             disabled={isValidating}
             loading={isValidating}
-            mutate={mutate}
+            completed={(success) => {
+              if (success) {
+                mutate();
+              }
+            }}
           />
         )}
       </span>,

@@ -9,7 +9,7 @@ interface RetryEventButtonProps {
     destinationId: string;
     disabled: boolean;
     loading: boolean;
-    mutate: () => void;
+    completed: (success: boolean) => void;
 }
 
 const RetryEventButton: React.FC<RetryEventButtonProps> = ({
@@ -17,14 +17,14 @@ const RetryEventButton: React.FC<RetryEventButtonProps> = ({
     destinationId,
     disabled,
     loading,
-    mutate
+    completed
 }) => {
-    const apiClient = useContext(ApiContext);
-    const [ retryingId, setRetryingId ] = useState<null|string>(null);
+  const apiClient = useContext(ApiContext);
+  const [retrying, setRetrying] = useState<boolean>(false);
 
     const retryEvent = useCallback(async (e: MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        setRetryingId(eventId);
+        setRetrying(true);
         try {
           await apiClient.fetch(`destinations/${destinationId}/events/${eventId}/retry`,
             {
@@ -32,20 +32,22 @@ const RetryEventButton: React.FC<RetryEventButtonProps> = ({
             }
           );
           showToast("success", "Retry successful.");
-          mutate();
+          completed(true);
         } catch (error: any) {
           showToast("error", "Retry failed. " + `${error.message.charAt(0).toUpperCase() + error.message.slice(1)}`);
+          completed(false);
         }
-          
-        setRetryingId(null);
-      }, [apiClient, destinationId, eventId, mutate]);
+
+        setRetrying(false);
+
+      }, [apiClient, destinationId, eventId, completed]);
 
     return (
         <Button
           minimal
           onClick={(e) => retryEvent(e)}
-          disabled={disabled || retryingId === eventId}
-          loading={loading || retryingId === eventId}
+          disabled={disabled || retrying}
+          loading={loading || retrying}
         >
           <ReplayIcon />
         </Button>
