@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Badge from "../../../common/Badge/Badge";
 import Button from "../../../common/Button/Button";
 // import SearchInput from "../../../common/SearchInput/SearchInput";
@@ -13,8 +13,8 @@ import {
   PreviousIcon,
   RefreshIcon,
   NextIcon,
-  ReplayIcon,
 } from "../../../common/Icons";
+import RetryEventButton from "../../../common/RetryEventButton/RetryEventButton";
 import { Checkbox } from "../../../common/Checkbox/Checkbox";
 import {
   Route,
@@ -26,22 +26,19 @@ import {
 } from "react-router-dom";
 import CONFIGS from "../../../config";
 import EventDetails from "./EventDetails";
-import { ApiContext } from "../../../app";
-import { showToast } from "../../../common/Toast/Toast";
 
-const Events = ({
-  destination,
-  navigateEvent,
-}: {
+interface EventsProps {
   destination: any;
   navigateEvent: (path: string, state?: any) => void;
-}) => {
-  const { status, topics, pagination, urlSearchParams } = useEventFilter();
-  const [timeRange, setTimeRange] = useState("24h");
-  const [ retryingId, setRetryingId ] = useState<null|string>(null);
-  const { event_id: eventId } = useParams();
+}
 
-  const apiClient = useContext(ApiContext);
+const Events: React.FC<EventsProps> = ({
+  destination,
+  navigateEvent,
+}) => {
+  const [timeRange, setTimeRange] = useState("24h");
+  const { event_id: eventId } = useParams<{ event_id: string }>();
+  const { status, topics, pagination, urlSearchParams } = useEventFilter();
 
   const queryUrl = useMemo(() => {
     const searchParams = new URLSearchParams(urlSearchParams);
@@ -74,71 +71,52 @@ const Events = ({
     return `destinations/${destination.id}/events?${searchParams.toString()}`;
   }, [destination.id, timeRange, urlSearchParams]);
 
-  const retryEvent = async (e: Event, event_id: string) => {
-    e.stopPropagation();
-    setRetryingId(event_id);
-    try {
-      await apiClient.fetch(`destinations/${destination.id}/events/${event_id}/retry`,
-        {
-          method: "POST",
-        }
-      );
-      showToast("success", "Retry successful.");
-      mutate();
-    } catch (error: any) {
-      showToast("error", "Retry failed. " + `${error.message.charAt(0).toUpperCase() + error.message.slice(1)}`);
-    }
-      
-    setRetryingId(null);
-  }
-
   const {
     data: eventsList,
     mutate,
     isValidating,
-  } = useSWR<EventListResponse>(queryUrl);
+  } = useSWR<EventListResponse>(queryUrl, {
+    revalidateOnFocus: false,
+  });
 
   const topicsList = CONFIGS.TOPICS.split(",");
 
-  const table_rows = eventsList
-    ? eventsList.data.map((event) => ({
-        id: event.id,
-        active: event.id === eventId,
-        entries: [
-          <span className="mono-s event-time-cell">
-            {new Date(event.time).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </span>,
-          <span className="mono-s">
-            {event.status === "success" ? (
-              <Badge text="Successful" success />
-            ) : event.status === "failed" ? (
-              <Badge text="Failed" danger />
-            ) : (
-              <Badge text="Pending" />
-            )}
-            {(event.status === "success" || event.status === "failed") && (
-              <Button
-                minimal
-                onClick={(e) => retryEvent(e, event.id)}
-                disabled={retryingId === event.id || isValidating}
-                loading={retryingId === event.id || isValidating}
-              >
-                <ReplayIcon />
-              </Button>
-            )}
-          </span>,
-          <span className="mono-s">{event.topic}</span>,
-          <span className="mono-s">{event.id}</span>,
-        ],
-        onClick: () => navigateEvent(`/${event.id}`),
-      }))
-    : [];
+  const table_rows = eventsList?.data ? eventsList.data.map((event) => ({
+    id: event.id,
+    active: event.id === (eventId || ''),
+    entries: [
+      <span className="mono-s event-time-cell">
+        {new Date(event.time).toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })}
+      </span>,
+      <span className="mono-s">
+        {event.status === "success" ? (
+          <Badge text="Successful" success />
+        ) : event.status === "failed" ? (
+          <Badge text="Failed" danger />
+        ) : (
+          <Badge text="Pending" />
+        )}
+        {(event.status === "success" || event.status === "failed") && (
+          <RetryEventButton
+            eventId={event.id}
+            destinationId={destination.id}
+            disabled={isValidating}
+            loading={isValidating}
+            mutate={mutate}
+          />
+        )}
+      </span>,
+      <span className="mono-s">{event.topic}</span>,
+      <span className="mono-s">{event.id}</span>,
+    ],
+    onClick: () => navigateEvent(`/${event.id}`),
+  })) : [];
 
   return (
     <div className="destination-events">
