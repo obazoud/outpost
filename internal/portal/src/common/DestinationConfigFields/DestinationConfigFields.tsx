@@ -9,6 +9,7 @@ import Tooltip from "../Tooltip/Tooltip";
 import Button from "../Button/Button";
 import ConfigurationModal from "../ConfigurationModal/ConfigurationModal";
 import { Checkbox } from "../Checkbox/Checkbox";
+import { isCheckedValue } from "../../utils/formHelper";
 
 const DestinationConfigFields = ({
   destination,
@@ -114,9 +115,9 @@ const DestinationConfigFields = ({
               id={field.key}
               name={field.key}
               defaultChecked={
-                destination?.config[field.key] ??
-                destination?.credentials[field.key] ??
-                field.default == "on" ??
+                isCheckedValue(destination?.config[field.key]) ??
+                isCheckedValue(destination?.credentials[field.key]) ??
+                isCheckedValue(field.default) ??
                 false
               }
               disabled={field.disabled}

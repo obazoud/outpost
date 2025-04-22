@@ -10,6 +10,7 @@ import useSWR, { mutate } from "swr";
 import TopicPicker from "../../common/TopicPicker/TopicPicker";
 import { DestinationTypeReference } from "../../typings/Destination";
 import DestinationConfigFields from "../../common/DestinationConfigFields/DestinationConfigFields";
+import { getFormValues } from "../../utils/formHelper";
 
 const steps = [
   {
@@ -218,8 +219,8 @@ export default function CreateDestination() {
         <form
           key={currentStepIndex}
           onChange={(e) => {
-            const formData = new FormData(e.currentTarget);
-            const values = Object.fromEntries(formData.entries());
+            const form = e.target as HTMLFormElement;
+            const values = getFormValues(form);
 
             if (currentStep.isValid) {
               setIsValid(currentStep.isValid(values));
@@ -229,8 +230,8 @@ export default function CreateDestination() {
           }}
           onSubmit={(e) => {
             e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            const values = Object.fromEntries(formData.entries());
+            const form = e.target as HTMLFormElement;
+            const values = getFormValues(form);
 
             const newValues = { ...stepValues, ...values };
             if (nextStep) {
