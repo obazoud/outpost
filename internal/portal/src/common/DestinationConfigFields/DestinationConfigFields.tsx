@@ -115,9 +115,15 @@ const DestinationConfigFields = ({
               id={field.key}
               name={field.key}
               defaultChecked={
-                isCheckedValue(destination?.config[field.key]) ??
-                isCheckedValue(destination?.credentials[field.key]) ??
-                isCheckedValue(field.default) ??
+                (destination?.config[field.key] !== undefined
+                  ? isCheckedValue(destination?.config[field.key])
+                  : undefined) ??
+                (destination?.credentials[field.key] !== undefined
+                  ? isCheckedValue(destination?.credentials[field.key])
+                  : undefined) ??
+                (field.default !== undefined
+                  ? isCheckedValue(field.default)
+                  : undefined) ??
                 false
               }
               disabled={field.disabled}
