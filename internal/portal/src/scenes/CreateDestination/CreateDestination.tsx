@@ -219,8 +219,8 @@ export default function CreateDestination() {
         <form
           key={currentStepIndex}
           onChange={(e) => {
-            const form = e.target as HTMLFormElement;
-            const values = getFormValues(form);
+            const formData = new FormData(e.currentTarget);
+            const values = Object.fromEntries(formData.entries());
 
             if (currentStep.isValid) {
               setIsValid(currentStep.isValid(values));
