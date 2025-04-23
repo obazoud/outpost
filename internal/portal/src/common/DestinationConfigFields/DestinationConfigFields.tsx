@@ -9,6 +9,7 @@ import Tooltip from "../Tooltip/Tooltip";
 import Button from "../Button/Button";
 import ConfigurationModal from "../ConfigurationModal/ConfigurationModal";
 import { Checkbox } from "../Checkbox/Checkbox";
+import { isCheckedValue } from "../../utils/formHelper";
 
 const DestinationConfigFields = ({
   destination,
@@ -44,10 +45,6 @@ const DestinationConfigFields = ({
       inputRefs.current[lastUnlockedField].focus();
     }
   }, [lastUnlockedField]);
-
-  console.log(type);
-  console.log(destination);
-  console.log(unlockedFields);
 
   return (
     <>
@@ -114,9 +111,15 @@ const DestinationConfigFields = ({
               id={field.key}
               name={field.key}
               defaultChecked={
-                destination?.config[field.key] ??
-                destination?.credentials[field.key] ??
-                field.default == "on" ??
+                (destination?.config[field.key] !== undefined
+                  ? isCheckedValue(destination?.config[field.key])
+                  : undefined) ??
+                (destination?.credentials[field.key] !== undefined
+                  ? isCheckedValue(destination?.credentials[field.key])
+                  : undefined) ??
+                (field.default !== undefined
+                  ? isCheckedValue(field.default)
+                  : undefined) ??
                 false
               }
               disabled={field.disabled}
