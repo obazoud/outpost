@@ -46,10 +46,6 @@ const DestinationConfigFields = ({
     }
   }, [lastUnlockedField]);
 
-  console.log(type);
-  console.log(destination);
-  console.log(unlockedFields);
-
   return (
     <>
       {type.instructions && (
