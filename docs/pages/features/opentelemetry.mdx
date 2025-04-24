@@ -1,0 +1,33 @@
+---
+title: OpenTelemetry
+---
+
+OpenTelemetry supports the service's key performance metrics. You need to bring your own OpenTelemetry target for the metrics to be produced and exported. These metrics are all exported in the form of [histograms](https://opentelemetry.io/docs/specs/otel/metrics/data-model/#histogram).
+
+Supported metrics are:
+
+## `delivery_latency`
+
+Delivery latency to the destination. Dimensions: `type`
+
+## `delivered_events`
+
+The number of delivered events. `type` `status`
+
+## `published_events`
+
+The number of published events. `topic`
+
+## `eligible_events`
+
+The number of published events that matched at least one destination. `topic`
+
+## `api_response_latency`
+
+The API response latency. `endpoint` `method` `path`
+
+## `api_calls`
+
+The number of API calls. `endpoint` `method` `path`
+
+CPU and memory usage needs to be monitored by your VM / runtime provider.
