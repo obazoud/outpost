@@ -51,7 +51,7 @@ type Provider interface {
 	// ObfuscateDestination returns a copy of the destination with sensitive fields masked
 	ObfuscateDestination(destination *models.Destination) *models.Destination
 	// ComputeTarget returns a human-readable target string for the destination
-	ComputeTarget(destination *models.Destination) string
+	ComputeTarget(destination *models.Destination) DestinationTarget
 	// Preprocess modifies the destination before it is stored in the DB
 	Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *PreprocessDestinationOpts) error
 }
@@ -71,6 +71,7 @@ type registry struct {
 	metadataLoader metadata.MetadataLoader
 	metadata       map[string]*metadata.ProviderMetadata
 	providers      map[string]Provider
+	providerList   []string
 	publishers     *lru.Cache[string, Publisher]
 	config         Config
 }
@@ -220,6 +221,7 @@ func (r *registry) PublishEvent(ctx context.Context, destination *models.Destina
 func (r *registry) RegisterProvider(destinationType string, provider Provider) error {
 	r.providers[destinationType] = provider
 	r.metadata[destinationType] = provider.Metadata()
+	r.providerList = append(r.providerList, destinationType)
 	return nil
 }
 
@@ -278,9 +280,9 @@ func (r *registry) RetrieveProviderMetadata(providerType string) (*metadata.Prov
 // ListProviderMetadata returns a list of all registered provider metadata
 func (r *registry) ListProviderMetadata() []*metadata.ProviderMetadata {
 	// Convert map to slice
-	metadataList := make([]*metadata.ProviderMetadata, 0, len(r.metadata))
-	for _, v := range r.metadata {
-		metadataList = append(metadataList, v)
+	metadataList := make([]*metadata.ProviderMetadata, 0, len(r.providerList))
+	for _, v := range r.providerList {
+		metadataList = append(metadataList, r.metadata[v])
 	}
 	return metadataList
 }
@@ -306,8 +308,8 @@ func (r *registry) DisplayDestination(destination *models.Destination) (*Destina
 	target := provider.ComputeTarget(destination)
 
 	return &DestinationDisplay{
-		Destination: obfuscated,
-		Target:      target,
+		Destination:       obfuscated,
+		DestinationTarget: target,
 	}, nil
 }
 

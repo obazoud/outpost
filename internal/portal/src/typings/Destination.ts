@@ -25,6 +25,10 @@ interface DestinationTypeReference {
   instructions: string;
   label: string;
   description: string;
+  setup_link?: {
+    href: string;
+    cta: string;
+  };
   icon: string;
 }
 
@@ -37,6 +41,7 @@ interface Destination {
   label: string;
   description: string;
   target: string;
+  target_url?: string;
   disabled_at: string;
   created_at: string;
 }

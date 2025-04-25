@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -65,8 +64,6 @@ func New(loader metadata.MetadataLoader, opts ...Option) (*AWSKinesisProvider, e
 	for _, opt := range opts {
 		opt(provider)
 	}
-
-	log.Println("AWS Kinesis provider initialized", provider.metadataInPayload)
 
 	return provider, nil
 }
@@ -146,10 +143,13 @@ func (p *AWSKinesisProvider) resolveConfig(ctx context.Context, destination *mod
 }
 
 // ComputeTarget returns a human-readable target for display
-func (p *AWSKinesisProvider) ComputeTarget(destination *models.Destination) string {
+func (p *AWSKinesisProvider) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
 	streamName := destination.Config["stream_name"]
 	region := destination.Config["region"]
-	return fmt.Sprintf("%s in %s", streamName, region)
+	return destregistry.DestinationTarget{
+		Target:    fmt.Sprintf("%s in %s", streamName, region),
+		TargetURL: "",
+	}
 }
 
 // Preprocess sets defaults and standardizes values
