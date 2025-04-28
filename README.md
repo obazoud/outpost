@@ -51,7 +51,7 @@ See the [Outpost Concepts](https://outpost.hookdeck.com/docs/concepts) for more 
 - **User portal**: Allow customers to view metrics, manage, debug, and observe their event destinations.
 - **Automatic and manual retries**: Configure retry strategies for event destinations and manually trigger event delivery retries via the API or user portal.
 - **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
-- **User alerts**: Allow customers to manage event delivery alerts.
+- **Delivery failure alerts**: Manage event delivery failure alerts.
 - **OpenTelemetry**: OTel standardized traces, metrics, and logs.
 - **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka.
 - **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
