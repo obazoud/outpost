@@ -103,7 +103,7 @@ const config: ZudokuConfig = {
           { type: "doc", id: "features/event-topics-and-subscriptions" },
           { type: "doc", id: "features/publish-events" },
           { type: "doc", id: "features/event-delivery" },
-          { type: "doc", id: "features/user-alerts" },
+          { type: "doc", id: "features/delivery-failure-alerts" },
           { type: "doc", id: "features/tenant-user-portal" },
           { type: "doc", id: "features/configurable-log-levels" },
           { type: "doc", id: "features/opentelemetry" },
