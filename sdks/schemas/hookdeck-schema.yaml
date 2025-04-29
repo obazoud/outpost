@@ -1,0 +1,2106 @@
+openapi: 3.1.0
+info:
+    title: Outpost API
+    version: "0.0.1"
+    description: The Outpost API is a REST-based JSON API for managing tenants, destinations, and publishing events.
+    contact:
+        name: Outpost Support
+        email: support@hookdeck.com
+        url: https://outpost.hookdeck.com/docs
+servers:
+    - url: http://localhost:3333/api/v1
+      description: Local development server base path
+components:
+    securitySchemes:
+        AdminApiKey:
+            type: http
+            scheme: bearer
+            description: Admin API Key configured via API_KEY environment variable.
+        TenantJwt:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+            description: Per-tenant JWT token valid for 24 hours. When used, tenant_id path parameter is inferred.
+    schemas:
+        # Base Schemas
+        Tenant:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: User-defined system ID for the tenant.
+                    example: "123"
+                destinations_count:
+                    type: integer
+                    description: Number of destinations associated with the tenant.
+                    example: 5
+                topics:
+                    type: array
+                    items:
+                        type: string
+                    description: List of subscribed topics across all destinations for this tenant.
+                    example: ["user.created", "user.deleted"]
+                created_at:
+                    type: string
+                    format: date-time
+                    description: ISO Date when the tenant was created.
+                    example: "2024-01-01T00:00:00Z"
+        PortalRedirect:
+            type: object
+            properties:
+                redirect_url:
+                    type: string
+                    format: url
+                    description: Redirect URL containing a JWT to authenticate the user with the portal.
+                    example: "https://webhooks.acme.com/?token=JWT_TOKEN"
+        TenantToken:
+            type: object
+            properties:
+                token:
+                    type: string
+                    description: JWT token scoped to the tenant for safe browser API calls.
+                    example: "SOME_JWT_TOKEN"
+        SuccessResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                    example: true
+        DestinationOAuthRedirect:
+            type: object
+            properties:
+                redirect_url:
+                    type: string
+                    format: url
+                    description: Redirect URL for OAuth flow if applicable during destination update.
+                    example: "https://dashboard.hookdeck.com/authorize?token=12313123"
+        Topics:
+            oneOf:
+                - type: string
+                  enum: ["*"]
+                - type: array
+                  items:
+                    type: string
+            description: '"*" or an array of enabled topics.'
+            example: "*"
+        # Destination Type Specific Config/Credentials Schemas
+        WebhookConfig:
+            type: object
+            required: [url]
+            properties:
+                url:
+                    type: string
+                    format: url
+                    description: The URL to send the webhook events to.
+                    example: "https://example.com/webhooks/user"
+        WebhookCredentials:
+            type: object
+            properties:
+                secret:
+                    type: string
+                    description: The secret used for signing webhook requests. Auto-generated if omitted on creation by admin. Read-only for tenants unless rotating.
+                    example: "whsec_abc123"
+                previous_secret:
+                    type: string
+                    description: The previous secret used during rotation. Valid for 24 hours by default. Read-only.
+                    example: "whsec_xyz789"
+                previous_secret_invalid_at:
+                    type: string
+                    format: date-time
+                    description: ISO timestamp when the previous secret becomes invalid. Read-only.
+                    example: "2024-01-02T00:00:00Z"
+        AWSSQSConfig:
+            type: object
+            required: [queue_url]
+            properties:
+                endpoint:
+                    type: string
+                    format: url
+                    description: Optional. Custom AWS endpoint URL (e.g., for LocalStack or specific regions).
+                    example: "https://sqs.us-east-1.amazonaws.com" # Corrected Example
+                queue_url:
+                    type: string
+                    format: url # Technically an ARN/URL hybrid, but URL format is close enough
+                    description: The URL of the SQS queue.
+                    example: "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue"
+        AWSSQSCredentials:
+            type: object
+            required: [key, secret]
+            properties:
+                key:
+                    type: string
+                    description: AWS Access Key ID.
+                    example: "AKIAIOSFODNN7EXAMPLE"
+                secret:
+                    type: string
+                    description: AWS Secret Access Key.
+                    example: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                session:
+                    type: string
+                    description: Optional AWS Session Token (for temporary credentials).
+                    example: "AQoDYXdzEPT//////////wEXAMPLE..."
+        RabbitMQConfig:
+            type: object
+            required: [server_url, exchange]
+            properties:
+                server_url:
+                    type: string
+                    description: RabbitMQ server address (host:port).
+                    example: "localhost:5672"
+                exchange:
+                    type: string
+                    description: The exchange to publish messages to.
+                    example: "my-exchange"
+                tls:
+                    type: string
+                    enum: ["true", "false"]
+                    description: Whether to use TLS connection (amqps). Defaults to "false".
+                    example: "false"
+        RabbitMQCredentials:
+            type: object
+            required: [username, password]
+            properties:
+                username:
+                    type: string
+                    description: RabbitMQ username.
+                    example: "guest"
+                password:
+                    type: string
+                    description: RabbitMQ password.
+                    example: "guest"
+        # Type-Specific Destination Schemas (for Responses)
+        DestinationWebhook:
+            type: object
+            # Properties duplicated from DestinationBase
+            required: [id, type, topics, config, credentials, created_at, disabled_at]
+            properties:
+                id:
+                    type: string
+                    description: Control plane generated ID or user provided ID for the destination.
+                    example: "des_12345"
+                type:
+                    type: string
+                    description: Type of the destination.
+                    enum: [webhook] # Specific type
+                    example: "webhook"
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                disabled_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: ISO Date when the destination was disabled, or null if enabled.
+                    example: null
+                created_at:
+                    type: string
+                    format: date-time
+                    description: ISO Date when the destination was created.
+                    example: "2024-01-01T00:00:00Z"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/WebhookConfig"
+                credentials:
+                    $ref: "#/components/schemas/WebhookCredentials"
+            example:
+                id: "des_webhook_123"
+                type: "webhook"
+                topics: ["user.created", "order.shipped"]
+                disabled_at: null
+                created_at: "2024-02-15T10:00:00Z"
+                config:
+                    url: "https://my-service.com/webhook/handler"
+                credentials:
+                    secret: "whsec_abc123def456"
+                    previous_secret: "whsec_prev789xyz012"
+                    previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+        DestinationAWSSQS:
+            type: object
+            # Properties duplicated from DestinationBase
+            required: [id, type, topics, config, credentials, created_at, disabled_at]
+            properties:
+                id:
+                    type: string
+                    description: Control plane generated ID or user provided ID for the destination.
+                    example: "des_12345"
+                type:
+                    type: string
+                    description: Type of the destination.
+                    enum: [aws_sqs] # Specific type
+                    example: "aws_sqs"
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                disabled_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: ISO Date when the destination was disabled, or null if enabled.
+                    example: null
+                created_at:
+                    type: string
+                    format: date-time
+                    description: ISO Date when the destination was created.
+                    example: "2024-01-01T00:00:00Z"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/AWSSQSConfig"
+                credentials:
+                    $ref: "#/components/schemas/AWSSQSCredentials"
+            example:
+                id: "des_sqs_456"
+                type: "aws_sqs"
+                topics: ["*"]
+                disabled_at: "2024-03-01T12:00:00Z"
+                created_at: "2024-02-20T11:30:00Z"
+                config:
+                    queue_url: "https://sqs.us-west-2.amazonaws.com/123456789012/my-app-queue"
+                    endpoint: "https://sqs.us-west-2.amazonaws.com"
+                credentials:
+                    key: "AKIAIOSFODNN7EXAMPLE"
+                    secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        DestinationRabbitMQ:
+            type: object
+            # Properties duplicated from DestinationBase
+            required: [id, type, topics, config, credentials, created_at, disabled_at]
+            properties:
+                id:
+                    type: string
+                    description: Control plane generated ID or user provided ID for the destination.
+                    example: "des_12345"
+                type:
+                    type: string
+                    description: Type of the destination.
+                    enum: [rabbitmq] # Specific type
+                    example: "rabbitmq"
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                disabled_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: ISO Date when the destination was disabled, or null if enabled.
+                    example: null
+                created_at:
+                    type: string
+                    format: date-time
+                    description: ISO Date when the destination was created.
+                    example: "2024-01-01T00:00:00Z"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/RabbitMQConfig"
+                credentials:
+                    $ref: "#/components/schemas/RabbitMQCredentials"
+            example:
+                id: "des_rmq_789"
+                type: "rabbitmq"
+                topics: ["inventory.updated"]
+                disabled_at: null
+                created_at: "2024-01-10T09:00:00Z"
+                config:
+                    server_url: "amqp.cloudamqp.com:5671"
+                    exchange: "events-exchange"
+                    tls: "true"
+                credentials:
+                    username: "app_user"
+                    password: "secure_password_123"
+        # Polymorphic Destination Schema (for Responses)
+        Destination:
+            oneOf:
+                - $ref: "#/components/schemas/DestinationWebhook"
+                - $ref: "#/components/schemas/DestinationAWSSQS"
+                - $ref: "#/components/schemas/DestinationRabbitMQ"
+            discriminator:
+                propertyName: type
+                mapping:
+                    webhook: "#/components/schemas/DestinationWebhook"
+                    aws_sqs: "#/components/schemas/DestinationAWSSQS"
+                    rabbitmq: "#/components/schemas/DestinationRabbitMQ"
+        DestinationCreateWebhook:
+            type: object
+            # Properties duplicated from DestinationCreateBase
+            required: [type, topics, config] # Credentials not required for webhook create base
+            properties:
+                id:
+                    type: string
+                    description: Optional user-provided ID. A UUID will be generated if empty.
+                    example: "user-provided-id"
+                type:
+                    type: string
+                    description: Type of the destination. Must be 'webhook'.
+                    enum: [webhook] # Specific type
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/WebhookConfig"
+                credentials:
+                    # Secret is optional on create for admin, forbidden for tenant
+                    $ref: "#/components/schemas/WebhookCredentials"
+        DestinationCreateAWSSQS:
+            type: object
+            # Properties duplicated from DestinationCreateBase + specific required
+            required: [type, topics, config, credentials]
+            properties:
+                id:
+                    type: string
+                    description: Optional user-provided ID. A UUID will be generated if empty.
+                    example: "user-provided-id"
+                type:
+                    type: string
+                    description: Type of the destination. Must be 'aws_sqs'.
+                    enum: [aws_sqs] # Specific type
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/AWSSQSConfig"
+                credentials:
+                    $ref: "#/components/schemas/AWSSQSCredentials"
+        DestinationCreateRabbitMQ:
+            type: object
+            # Properties duplicated from DestinationCreateBase + specific required
+            required: [type, topics, config, credentials]
+            properties:
+                id:
+                    type: string
+                    description: Optional user-provided ID. A UUID will be generated if empty.
+                    example: "user-provided-id"
+                type:
+                    type: string
+                    description: Type of the destination. Must be 'rabbitmq'.
+                    enum: [rabbitmq] # Specific type
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/RabbitMQConfig"
+                credentials:
+                    $ref: "#/components/schemas/RabbitMQCredentials"
+        # Polymorphic Destination Creation Schema (for Request Bodies)
+        DestinationCreate:
+            oneOf:
+                - $ref: "#/components/schemas/DestinationCreateWebhook"
+                - $ref: "#/components/schemas/DestinationCreateAWSSQS"
+                - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
+        # Type-Specific Destination Update Schemas (for Request Bodies)
+        WebhookCredentialsUpdate:
+            type: object
+            properties:
+                secret:
+                    type: string
+                    description: New secret (only allowed for admin).
+                previous_secret:
+                    type: string
+                    description: Previous secret for rotation (only allowed for admin).
+                previous_secret_invalid_at:
+                    type: string
+                    format: date-time
+                    description: Invalidation time for previous secret (only allowed for admin).
+                rotate_secret:
+                    type: boolean
+                    description: Set to true to rotate the secret. The current secret becomes the previous_secret, and a new secret is generated. `previous_secret_invalid_at` defaults to 24h if not provided.
+        DestinationUpdateWebhook:
+            type: object
+            # Properties duplicated from DestinationUpdateBase
+            properties:
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/WebhookConfig" # URL is required here, but PATCH means it's optional in the request
+                credentials:
+                    $ref: "#/components/schemas/WebhookCredentialsUpdate"
+        DestinationUpdateAWSSQS:
+            type: object
+            # Properties duplicated from DestinationUpdateBase
+            properties:
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/AWSSQSConfig" # queue_url is required here, but PATCH means it's optional
+                credentials:
+                    $ref: "#/components/schemas/AWSSQSCredentials" # key/secret required here, but PATCH means optional
+        DestinationUpdateRabbitMQ:
+            type: object
+            # Properties duplicated from DestinationUpdateBase
+            properties:
+                topics:
+                    $ref: "#/components/schemas/Topics"
+                # Type-specific properties
+                config:
+                    $ref: "#/components/schemas/RabbitMQConfig" # server_url/exchange required here, but PATCH means optional
+                credentials:
+                    $ref: "#/components/schemas/RabbitMQCredentials" # username/password required here, but PATCH means optional
+        # Polymorphic Destination Update Schema (for Request Bodies)
+        DestinationUpdate:
+            oneOf:
+                - $ref: "#/components/schemas/DestinationUpdateWebhook"
+                - $ref: "#/components/schemas/DestinationUpdateAWSSQS"
+                - $ref: "#/components/schemas/DestinationUpdateRabbitMQ"
+        # Event Schemas
+        PublishRequest:
+            type: object
+            required:
+                - tenant_id
+                - topic
+                - eligible_for_retry
+                - data
+            properties:
+                tenant_id:
+                    type: string
+                    description: The ID of the tenant to publish for.
+                    example: "<TENANT_ID>"
+                destination_id:
+                    type: string
+                    description: Optional. Route event to a specific destination.
+                    example: "<DESTINATION_ID>"
+                topic:
+                    type: string
+                    description: Topic name for the event.
+                    example: "topic.name"
+                eligible_for_retry:
+                    type: boolean
+                    description: Should event delivery be retried on failure.
+                metadata:
+                    type: object
+                    description: Any key-value string pairs for metadata.
+                    additionalProperties:
+                        type: string
+                    example: {"source": "crm"}
+                data:
+                    type: object
+                    description: Any JSON payload for the event data.
+                    additionalProperties: true
+                    example: {"user_id": "userid", "status": "active"}
+        Event:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: "evt_123"
+                destination_id:
+                    type: string
+                    example: "des_456"
+                topic:
+                    type: string
+                    example: "user.created"
+                time:
+                    type: string
+                    format: date-time
+                    description: Time the event was received/processed.
+                    example: "2024-01-01T00:00:00Z"
+                successful_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    description: Time the event was successfully delivered.
+                    example: "2024-01-01T00:00:00Z"
+                metadata:
+                    type: object
+                    description: Key-value string pairs of metadata associated with the event.
+                    additionalProperties:
+                        type: string
+                    example: {"source": "crm"}
+                data:
+                    type: object
+                    description: Freeform JSON data of the event.
+                    additionalProperties: true
+                    example: {"user_id": "userid", "status": "active"}
+        DeliveryAttempt:
+            type: object
+            properties:
+                delivered_at:
+                    type: string
+                    format: date-time
+                    example: "2024-01-01T00:00:00Z"
+                status:
+                    type: string
+                    enum: [success, failed]
+                    example: "success"
+                response_status_code:
+                    type: integer
+                    example: 200
+                response_body:
+                    type: string # Or potentially object if JSON
+                    example: '{"status":"ok"}'
+                response_headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    example: {"content-type": "application/json"}
+        # Destination Type Schema (for Metadata endpoint)
+        DestinationTypeSchema:
+            type: object
+            properties:
+                type:
+                    type: string
+                    example: "webhook"
+                label:
+                    type: string
+                    example: "Webhook"
+                description:
+                    type: string
+                    example: "Send event via an HTTP POST request to a URL"
+                icon:
+                    type: string
+                    description: SVG icon string.
+                    example: "<svg />"
+                instructions:
+                    type: string
+                    description: Markdown instructions.
+                    example: "Some *markdown*"
+                remote_setup_url:
+                    type: string
+                    format: url
+                    # Property is optional, not nullable
+                    description: >-
+                        Some destinations may have Oauth flow or other managed-setup flow that can be triggered with a link. If a `remote_setup_url` is set then the user should be prompted to follow the link to configure the destination.
+
+                        See the [dashboard design guide](https://outpost.hookdeck.com/guides/dashboard-design.mdx) for recommended UI patterns and wireframes for implementation in your own app.
+                    example: "https://dashboard.hookdeck.com/authorize?provider=acme"
+                config_fields:
+                    type: array
+                    description: Config fields are non-secret values that can be stored and displayed to the user in plain text.
+                    items:
+                        $ref: "#/components/schemas/DestinationSchemaField"
+                credential_fields:
+                    type: array
+                    description: Credential fields are secret values that will be AES encrypted and obfuscated to the user. Some credentials may not be obfuscated; the destination type dictates the obfuscation logic.
+                    items:
+                        $ref: "#/components/schemas/DestinationSchemaField"
+        DestinationSchemaField:
+            type: object
+            properties:
+                type:
+                    type: string
+                    enum: [text, number, boolean] # Extend as needed
+                    example: "text"
+                label:
+                    type: string
+                    example: "URL"
+                description:
+                    type: string
+                    example: "The URL to send the event to"
+                validation:
+                    type: string
+                    description: Regex string for validation.
+                    example: "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/"
+                required:
+                    type: boolean
+                    example: true
+# Security is applied per-operation based on AuthScope
+tags:
+    - name: Health
+      description: API Health Check
+    - name: Tenants
+      description: |
+        The API segments resources per `tenant`. A tenant represents a user/team/organization in your product. The provided value determines the tenant's ID, which can be any string representation.
+
+        If your system is not multi-tenant, create a single tenant with a hard-code tenant ID upon initialization. If your system has a single tenant but multiple environments, create a tenant per environment, like `live` and `test`.
+    - name: Destinations
+      description: |
+        Destinations are the endpoints where events are sent. Each destination is associated with a tenant and can be configured to receive specific event topics.
+
+        ```json
+        {
+          "id": "des_12345", // Control plane generated ID or user provided ID
+          "type": "webhooks", // Type of the destination
+          "topics": ["user.created", "user.updated"], // Topics of events this destination is eligible for
+          "config": {
+            // Destination type specific configuration. Schema of depends on type
+            "url": "https://example.com/webhooks/user"
+          },
+          "credentials": {
+            // Destination type specific credentials. AES encrypted. Schema depends on type
+            "secret": "some***********"
+          },
+          "disabled_at": null, // null or ISO date if disabled
+          "created_at": "2024-01-01T00:00:00Z" // Date the destination was created
+        }
+        ```
+
+        The `topics` array can contain either a list of topics or a wildcard `*` implying that all topics are supported. If you do not wish to implement topics for your application, you set all destination topics to `*`.
+
+        By default all destination `credentials` are obfuscated and the values cannot be read. This does not apply to the `webhook` type destination secret and each destination can expose their own obfuscation logic.
+    - name: Publish
+      description: Operations for publishing events.
+    - name: Schemas
+      description: Operations for retrieving destination type schemas.
+    - name: Topics
+      description: Operations for retrieving available event topics.
+    - name: Events
+      description: Operations related to event history and deliveries.
+paths:
+    /healthz:
+        get:
+            tags: [Health]
+            summary: Health Check
+            description: Simple health check endpoint.
+            operationId: healthCheck
+            responses:
+                "200":
+                    description: Service is healthy.
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                                example: OK
+    # Tenants
+    /{tenant_id}:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        put:
+            tags: [Tenants]
+            summary: Create or Update Tenant
+            description: Idempotently creates or updates a tenant. Required before associating destinations.
+            operationId: upsertTenant
+            security:
+                - AdminApiKey: []
+            responses:
+                "200":
+                    description: Tenant details.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Tenant"
+                            examples:
+                                TenantExample:
+                                    value:
+                                        id: "tenant_123"
+                                        destinations_count: 5
+                                        topics: ["user.created", "user.deleted"]
+                                        created_at: "2024-01-01T00:00:00Z"
+                                        # Add error responses
+        get:
+            tags: [Tenants]
+            summary: Get Tenant
+            description: Retrieves details for a specific tenant.
+            operationId: getTenant
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Tenant details.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Tenant"
+                            examples:
+                                TenantExample:
+                                    value:
+                                        id: "tenant_123"
+                                        destinations_count: 5
+                                        topics: ["user.created", "user.deleted"]
+                                        created_at: "2024-01-01T00:00:00Z"
+                "404":
+                    description: Tenant not found.
+                    # Add other error responses
+        delete:
+            tags: [Tenants]
+            summary: Delete Tenant
+            description: Deletes the tenant and all associated destinations.
+            operationId: deleteTenant
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Success confirmation.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SuccessResponse"
+                            examples:
+                                SuccessExample:
+                                    value:
+                                        success: true
+                "404":
+                    description: Tenant not found.
+                # Add other error responses
+    /{tenant_id}/portal:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Tenants]
+            summary: Get Portal Redirect URL
+            description: Returns a redirect URL containing a JWT to authenticate the user with the portal.
+            operationId: getTenantPortalUrl
+            security:
+                - AdminApiKey: [] # Portal routes require Admin key
+            parameters:
+                - name: theme
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+                    enum: [light, dark]
+                  description: Optional theme preference for the portal.
+            responses:
+                "200":
+                    description: Portal redirect URL.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalRedirect"
+                            examples:
+                                PortalRedirectExample:
+                                    value:
+                                        redirect_url: "https://webhooks.acme.com/?token=JWT_TOKEN"
+                "404":
+                    description: Tenant not found.
+                # Add other error responses
+    /{tenant_id}/token:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Tenants]
+            summary: Get Tenant JWT Token
+            description: Returns a JWT token scoped to the tenant for safe browser API calls.
+            operationId: getTenantToken
+            security:
+                - AdminApiKey: [] # Portal routes require Admin key
+            responses:
+                "200":
+                    description: Tenant JWT token.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TenantToken"
+                            examples:
+                                TenantTokenExample:
+                                    value:
+                                        token: "SOME_JWT_TOKEN"
+                "404":
+                    description: Tenant not found.
+                # Add other error responses
+    # Destinations
+    /{tenant_id}/destinations:
+        description: |
+            Manage destinations for a specific tenant. Destinations determine where events are sent.
+            The structure of `config` and `credentials` depends on the destination `type`.
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Destinations]
+            summary: List Destinations
+            description: Return a list of the destinations for the tenant. The endpoint is not paged.
+            operationId: listTenantDestinations
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            parameters:
+                - name: type
+                  in: query
+                  required: false
+                  schema:
+                    oneOf:
+                        - type: string
+                          enum: [webhook, aws_sqs, rabbitmq]
+                        - type: array
+                          items:
+                            type: string
+                            enum: [webhook, aws_sqs, rabbitmq]
+                  description: Filter destinations by type(s).
+                - name: topics
+                  in: query
+                  required: false
+                  schema:
+                    oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+                  description: Filter destinations by supported topic(s).
+            responses:
+                "200":
+                    description: A list of destinations.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Destination"
+                            examples:
+                                DestinationsListExample:
+                                    value:
+                                        - id: "des_webhook_123"
+                                          type: "webhook"
+                                          topics: ["user.created", "order.shipped"]
+                                          disabled_at: null
+                                          created_at: "2024-02-15T10:00:00Z"
+                                          config:
+                                            url: "https://my-service.com/webhook/handler"
+                                          credentials:
+                                            secret: "whsec_abc123def456"
+                                            previous_secret: "whsec_prev789xyz012"
+                                            previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+                                        - id: "des_sqs_456"
+                                          type: "aws_sqs"
+                                          topics: ["*"]
+                                          disabled_at: "2024-03-01T12:00:00Z"
+                                          created_at: "2024-02-20T11:30:00Z"
+                                          config:
+                                            queue_url: "https://sqs.us-west-2.amazonaws.com/123456789012/my-app-queue"
+                                            endpoint: "https://sqs.us-west-2.amazonaws.com"
+                                          credentials:
+                                            key: "AKIAIOSFODNN7EXAMPLE"
+                                            secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                "404":
+                    description: Tenant not found.
+                    # Add other error responses
+        post:
+            tags: [Destinations]
+            summary: Create Destination
+            description: Creates a new destination for the tenant. The request body structure depends on the `type`.
+            operationId: createTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DestinationCreate"
+            responses:
+                "201":
+                    description: Destination created successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Destination"
+                            examples:
+                                WebhookCreatedExample: # Example for one type, others similar
+                                    value:
+                                        id: "des_webhook_123"
+                                        type: "webhook"
+                                        topics: ["user.created", "order.shipped"]
+                                        disabled_at: null
+                                        created_at: "2024-02-15T10:00:00Z"
+                                        config:
+                                            url: "https://my-service.com/webhook/handler"
+                                        credentials:
+                                            secret: "whsec_abc123def456"
+                                            # previous_secret and previous_secret_invalid_at are absent on creation
+                "400":
+                    description: Invalid request body or configuration.
+                "404":
+                    description: Tenant not found.
+                # Add other error responses (e.g., max destinations reached)
+    /{tenant_id}/destinations/{destination_id}:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+        get:
+            tags: [Destinations]
+            summary: Get Destination
+            description: Retrieves details for a specific destination.
+            operationId: getTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Destination details.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Destination"
+                            examples:
+                                WebhookGetExample: # Example for one type, others similar
+                                    value:
+                                        id: "des_webhook_123"
+                                        type: "webhook"
+                                        topics: ["user.created", "order.shipped"]
+                                        disabled_at: null
+                                        created_at: "2024-02-15T10:00:00Z"
+                                        config:
+                                            url: "https://my-service.com/webhook/handler"
+                                        credentials:
+                                            secret: "whsec_abc123def456"
+                                            previous_secret: "whsec_prev789xyz012"
+                                            previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+                "404":
+                    description: Tenant or Destination not found.
+        patch:
+            tags: [Destinations]
+            summary: Update Destination
+            description: Updates the configuration of an existing destination. The request body structure depends on the destination's `type`. Type itself cannot be updated. May return an OAuth redirect URL for certain types.
+            operationId: updateTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DestinationUpdate"
+            responses:
+                "200":
+                    description: Destination updated successfully or OAuth redirect needed.
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/Destination"
+                                    - $ref: "#/components/schemas/DestinationOAuthRedirect"
+                            examples:
+                                DestinationUpdatedExample:
+                                    summary: Example of successful update returning destination details
+                                    value:
+                                        id: "des_webhook_123"
+                                        type: "webhook"
+                                        topics: ["user.*"] # Updated topics
+                                        disabled_at: null
+                                        created_at: "2024-02-15T10:00:00Z"
+                                        config:
+                                            url: "https://my-service.com/webhook/new-handler" # Updated URL
+                                        credentials:
+                                            secret: "whsec_abc123def456"
+                                            previous_secret: "whsec_prev789xyz012"
+                                            previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+                                OAuthRedirectExample:
+                                    summary: Example of update requiring OAuth redirect
+                                    value:
+                                        redirect_url: "https://dashboard.hookdeck.com/authorize?token=12313123"
+                "400":
+                    description: Invalid request body or configuration.
+                "404":
+                    description: Tenant or Destination not found.
+                    # Add other error responses
+        delete:
+            tags: [Destinations]
+            summary: Delete Destination
+            description: Deletes a specific destination.
+            operationId: deleteTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Success confirmation.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/SuccessResponse"
+                            examples:
+                                SuccessExample:
+                                    value:
+                                        success: true
+                "404":
+                    description: Tenant or Destination not found.
+                # Add other error responses
+    /{tenant_id}/destinations/{destination_id}/enable:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+        put:
+            tags: [Destinations]
+            summary: Enable Destination
+            description: Enables a previously disabled destination.
+            operationId: enableTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Destination enabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Destination"
+                            examples:
+                                WebhookEnabledExample: # Example for one type, others similar
+                                    value:
+                                        id: "des_webhook_123"
+                                        type: "webhook"
+                                        topics: ["user.created", "order.shipped"]
+                                        disabled_at: null # Now enabled
+                                        created_at: "2024-02-15T10:00:00Z"
+                                        config:
+                                            url: "https://my-service.com/webhook/handler"
+                                        credentials:
+                                            secret: "whsec_abc123def456"
+                                            previous_secret: "whsec_prev789xyz012"
+                                            previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+                "404":
+                    description: Tenant or Destination not found.
+                # Add other error responses
+    /{tenant_id}/destinations/{destination_id}/disable:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+        put:
+            tags: [Destinations]
+            summary: Disable Destination
+            description: Disables a previously enabled destination.
+            operationId: disableTenantDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Destination disabled successfully.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Destination"
+                            examples:
+                                WebhookDisabledExample: # Example for one type, others similar
+                                    value:
+                                        id: "des_webhook_123"
+                                        type: "webhook"
+                                        topics: ["user.created", "order.shipped"]
+                                        disabled_at: "2024-04-11T21:00:00Z" # Now disabled
+                                        created_at: "2024-02-15T10:00:00Z"
+                                        config:
+                                            url: "https://my-service.com/webhook/handler"
+                                        credentials:
+                                            secret: "whsec_abc123def456"
+                                            previous_secret: "whsec_prev789xyz012"
+                                            previous_secret_invalid_at: "2024-02-16T10:00:00Z"
+                "404":
+                    description: Tenant or Destination not found.
+                # Add other error responses
+    # Publish (Admin Only)
+    /publish:
+        post:
+            tags: [Publish]
+            summary: Publish Event
+            description: Publishes an event to the specified topic, potentially routed to a specific destination. Requires Admin API Key.
+            operationId: publishEvent
+            security: # Override global security, only Admin Key allowed here
+                - AdminApiKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PublishRequest"
+            responses:
+                "202": # Accepted seems appropriate as processing is likely async
+                    description: Event accepted for publishing. Empty body.
+                "400":
+                    description: Invalid request body.
+                "401":
+                    description: Unauthorized (Admin API Key missing or invalid).
+                # Add other error responses
+    # Schemas (Tenant Specific - Admin or JWT)
+    /{tenant_id}/destination-types:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Schemas]
+            summary: List Destination Type Schemas (for Tenant)
+            description: Returns a list of JSON-based input schemas for each available destination type. Requires Admin API Key or Tenant JWT.
+            operationId: listTenantDestinationTypeSchemas
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: A list of destination type schemas.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/DestinationTypeSchema"
+                            examples:
+                                DestinationTypesExample:
+                                    value:
+                                        - type: "webhook"
+                                          label: "Webhook"
+                                          description: "Send event via an HTTP POST request to a URL"
+                                          icon: "<svg />"
+                                          instructions: "Enter the URL..."
+                                          config_fields: [{type: "text", label: "URL", description: "...", validation: "...", required: true}]
+                                          credential_fields: [{type: "text", label: "Secret", description: "...",
+                                                # validation is optional, removed null value
+                                                required: false}]
+                                        - type: "aws_sqs"
+                                          label: "AWS SQS"
+                                          description: "Send event to an AWS SQS queue"
+                                          icon: "<svg />"
+                                          instructions: "Enter Queue URL..."
+                                          config_fields: [{type: "text", label: "Queue URL", '...': ''}, {type: "text", label: "Endpoint", '...': ''}]
+                                          credential_fields: [{type: "text", label: "Key", '...': ''}, {type: "text", label: "Secret", '...': ''}, {type: "text", label: "Session", '...': ''}]
+                "404":
+                    description: Tenant not found.
+    /{tenant_id}/destination-types/{type}:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: type
+              in: path
+              required: true
+              schema:
+                type: string
+                enum: [webhook, aws_sqs, rabbitmq]
+              description: The type of the destination.
+        get:
+            tags: [Schemas]
+            summary: Get Destination Type Schema (for Tenant)
+            description: Returns the input schema for a specific destination type. Requires Admin API Key or Tenant JWT.
+            operationId: getTenantDestinationTypeSchema
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: The schema for the specified destination type.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DestinationTypeSchema"
+                            examples:
+                                WebhookSchemaExample:
+                                    value:
+                                        type: "webhook"
+                                        label: "Webhook"
+                                        description: "Send event via an HTTP POST request to a URL"
+                                        icon: "<svg />"
+                                        instructions: "Enter the URL..."
+                                        config_fields: [{type: "text", label: "URL", description: "...", validation: "...", required: true}]
+                                        credential_fields: [{type: "text", label: "Secret", description: "...",
+                                                # validation is optional, removed null value
+                                                required: false}]
+                "404":
+                    description: Tenant or Destination type not found.
+    # Topics (Tenant Specific - Admin or JWT)
+    /{tenant_id}/topics:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Topics]
+            summary: List Available Topics (for Tenant)
+            description: Returns a list of available event topics configured in the Outpost instance. Requires Admin API Key or Tenant JWT.
+            operationId: listTenantTopics
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: A list of topic names.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: string
+                            examples:
+                                TopicsListExample:
+                                    value: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+                "404":
+                    description: Tenant not found.
+    # Events (Tenant Specific - Admin or JWT)
+    /{tenant_id}/events:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+        get:
+            tags: [Events]
+            summary: List Events
+            description: Retrieves a list of events for the tenant, supporting cursor navigation (details TBD) and filtering.
+            operationId: listTenantEvents
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            parameters:
+                - name: destination_id
+                  in: query
+                  required: false
+                  schema:
+                    oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+                  description: Filter events by destination ID(s).
+                - name: status
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+                    enum: [success, failed]
+                  description: Filter events by delivery status.
+                  # Add cursor parameters (e.g., 'after', 'limit') when defined
+            responses:
+                "200":
+                    description: A list of events.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Event"
+                            examples:
+                                EventsListExample:
+                                    value:
+                                        - id: "evt_123"
+                                          destination_id: "des_456"
+                                          topic: "user.created"
+                                          time: "2024-01-01T00:00:00Z"
+                                          successful_at: "2024-01-01T00:00:05Z"
+                                          metadata: {"source": "crm"}
+                                          data: {"user_id": "userid", "status": "active"}
+                                        - id: "evt_789"
+                                          destination_id: "des_456"
+                                          topic: "order.shipped"
+                                          time: "2024-01-02T10:00:00Z"
+                                          successful_at: null
+                                          metadata: {"source": "oms"}
+                                          data: {"order_id": "orderid", "tracking": "1Z..."}
+                "404":
+                    description: Tenant not found.
+                # Add other error responses
+    /{tenant_id}/events/{event_id}:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: event_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the event.
+        get:
+            tags: [Events]
+            summary: Get Event
+            description: Retrieves details for a specific event.
+            operationId: getTenantEvent
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Event details.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Event"
+                            examples:
+                                EventExample:
+                                    value:
+                                        id: "evt_123"
+                                        destination_id: "des_456"
+                                        topic: "user.created"
+                                        time: "2024-01-01T00:00:00Z"
+                                        successful_at: "2024-01-01T00:00:05Z"
+                                        metadata: {"source": "crm"}
+                                        data: {"user_id": "userid", "status": "active"}
+                "404":
+                    description: Tenant or Event not found.
+    /{tenant_id}/events/{event_id}/deliveries:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: event_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the event.
+        get:
+            tags: [Events]
+            summary: List Event Delivery Attempts
+            description: Retrieves a list of delivery attempts for a specific event, including response details.
+            operationId: listTenantEventDeliveries
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: A list of delivery attempts.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/DeliveryAttempt"
+                            examples:
+                                DeliveriesListExample:
+                                    value:
+                                        - delivered_at: "2024-01-01T00:00:05Z"
+                                          status: "success"
+                                          response_status_code: 200
+                                          response_body: '{"status":"ok"}'
+                                          response_headers: {"content-type": "application/json"}
+                                        - delivered_at: "2024-01-01T00:00:01Z"
+                                          status: "failed"
+                                          response_status_code: 503
+                                          response_body: "Service Unavailable"
+                                          response_headers: {"content-type": "text/plain"}
+                "404":
+                    description: Tenant or Event not found.
+    /{tenant_id}/destinations/{destination_id}/events:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+        get:
+            tags: [Events]
+            summary: List Events by Destination
+            description: Retrieves events associated with a specific destination for the tenant.
+            operationId: listTenantEventsByDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            parameters:
+                - name: status
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+                    enum: [success, failed]
+                  description: Filter events by delivery status.
+                  # Add cursor parameters
+            responses:
+                "200":
+                    description: A list of events for the destination.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Event"
+                            examples:
+                                EventsListExample: # Same as /{tenant_id}/events example
+                                    value:
+                                        - id: "evt_123"
+                                          destination_id: "des_456"
+                                          topic: "user.created"
+                                          time: "2024-01-01T00:00:00Z"
+                                          successful_at: "2024-01-01T00:00:05Z"
+                                          metadata: {"source": "crm"}
+                                          data: {"user_id": "userid", "status": "active"}
+                                        - id: "evt_789"
+                                          destination_id: "des_456"
+                                          topic: "order.shipped"
+                                          time: "2024-01-02T10:00:00Z"
+                                          successful_at: null
+                                          metadata: {"source": "oms"}
+                                          data: {"order_id": "orderid", "tracking": "1Z..."}
+                "404":
+                    description: Tenant or Destination not found.
+    /{tenant_id}/destinations/{destination_id}/events/{event_id}:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+            - name: event_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the event.
+        get:
+            tags: [Events]
+            summary: Get Event by Destination
+            description: Retrieves a specific event associated with a specific destination for the tenant.
+            operationId: getTenantEventByDestination
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: Event details.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Event"
+                            examples:
+                                EventExample: # Same as /{tenant_id}/events/{event_id} example
+                                    value:
+                                        id: "evt_123"
+                                        destination_id: "des_456"
+                                        topic: "user.created"
+                                        time: "2024-01-01T00:00:00Z"
+                                        successful_at: "2024-01-01T00:00:05Z"
+                                        metadata: {"source": "crm"}
+                                        data: {"user_id": "userid", "status": "active"}
+                "404":
+                    description: Tenant, Destination or Event not found.
+    /{tenant_id}/destinations/{destination_id}/events/{event_id}/retry:
+        parameters:
+            - name: tenant_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the tenant. Required when using AdminApiKey authentication.
+            - name: destination_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the destination.
+            - name: event_id
+              in: path
+              required: true
+              schema:
+                type: string
+              description: The ID of the event to retry.
+        post:
+            tags: [Events]
+            summary: Retry Event Delivery
+            description: Triggers a retry for a failed event delivery.
+            operationId: retryTenantEvent
+            security:
+                - AdminApiKey: []
+                - TenantJwt: []
+            responses:
+                "202":
+                    description: Retry accepted for processing.
+                "404":
+                    description: Tenant, Destination or Event not found.
+                "409": # Conflict might be appropriate if event is not retryable
+                    description: Event not eligible for retry.
+    # Tenant Agnostic Routes (JWT Auth Only) - Mirroring tenant-specific routes where AllowTenantFromJWT=true
+
+    # Note: Portal routes (/portal, /token) still require AdminApiKey even when tenant is inferred from JWT,
+    # as per router.go logic (Mode=RouteModePortal, AuthScope=AuthScopeAdmin).
+    # They are included here for completeness of paths derived from AllowTenantFromJWT=true,
+    # but their security reflects the Admin requirement.
+    /portal:
+        get:
+            tags: [Tenants]
+            summary: Get Portal Redirect URL (JWT Auth Context)
+            description: Returns a redirect URL containing a JWT to authenticate the user with the portal (infers tenant from JWT). Requires Admin API Key.
+            operationId: getPortalUrlJwtContext # Renamed for clarity
+            security:
+                - AdminApiKey: [] # Requires Admin key even with JWT context
+            parameters:
+                - name: theme
+                  in: query
+                  required: false
+                  schema:
+                    type: string
+                    enum: [light, dark]
+                  description: Optional theme preference for the portal.
+            responses:
+                "200":
+                    description: Portal redirect URL.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalRedirect"
+                            examples:
+                                PortalRedirectExample:
+                                    value:
+                                        redirect_url: "https://webhooks.acme.com/?token=JWT_TOKEN"
+                "401":
+                    description: Unauthorized (Admin API Key missing or invalid).
+                "404":
+                    description: Tenant (inferred from JWT) not found.
+    /token:
+        get:
+            tags: [Tenants]
+            summary: Get Tenant JWT Token (JWT Auth Context)
+            description: Returns a JWT token scoped to the tenant (infers tenant from JWT). Requires Admin API Key.
+            operationId: getTenantTokenJwtContext # Renamed for clarity
+            security:
+                - AdminApiKey: [] # Requires Admin key even with JWT context
+            responses:
+                "200":
+                    description: Tenant JWT token.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TenantToken"
+                            examples:
+                                TenantTokenExample:
+                                    value:
+                                        token: "SOME_JWT_TOKEN"
+                "401":
+                    description: Unauthorized (Admin API Key missing or invalid).
+                "404":
+                    description: Tenant (inferred from JWT) not found.
+    /destination-types:
+        get:
+            tags: [Schemas]
+            summary: List Destination Type Schemas (JWT Auth)
+            description: Returns a list of JSON-based input schemas for each available destination type (infers tenant from JWT).
+            operationId: listDestinationTypeSchemasJwt
+            security:
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: A list of destination type schemas.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/DestinationTypeSchema"
+                            examples:
+                                DestinationTypesExample: # Same as /{tenant_id}/destination-types example
+                                    value:
+                                        - type: "webhook"
+                                          label: "Webhook"
+                                          description: "Send event via an HTTP POST request to a URL"
+                                          icon: "<svg />"
+                                          instructions: "Enter the URL..."
+                                          config_fields: [{type: "text", label: "URL", description: "...", validation: "...", required: true}]
+                                          credential_fields: [{type: "text", label: "Secret", description: "...",
+                                                # validation is optional, removed null value
+                                                required: false}]
+                                        - type: "aws_sqs"
+                                          label: "AWS SQS"
+                                          description: "Send event to an AWS SQS queue"
+                                          icon: "<svg />"
+                                          instructions: "Enter Queue URL..."
+                                          config_fields: [{type: "text", label: "Queue URL", '...': ''}, {type: "text", label: "Endpoint", '...': ''}]
+                                          credential_fields: [{type: "text", label: "Key", '...': ''}, {type: "text", label: "Secret", '...': ''}, {type: "text", label: "Session", '...': ''}]
+                "401":
+                    description: Unauthorized (Tenant JWT missing or invalid).
+    /destination-types/{type}:
+        parameters:
+            - name: type
+              in: path
+              required: true
+              schema:
+                type: string
+                enum: [webhook, aws_sqs, rabbitmq]
+              description: The type of the destination.
+        get:
+            tags: [Schemas]
+            summary: Get Destination Type Schema (JWT Auth)
+            description: Returns the input schema for a specific destination type (infers tenant from JWT).
+            operationId: getDestinationTypeSchemaJwt
+            security:
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: The schema for the specified destination type.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DestinationTypeSchema"
+                            examples:
+                                WebhookSchemaExample: # Same as /{tenant_id}/destination-types/{type} example
+                                    value:
+                                        type: "webhook"
+                                        label: "Webhook"
+                                        description: "Send event via an HTTP POST request to a URL"
+                                        icon: "<svg />"
+                                        instructions: "Enter the URL..."
+                                        # remote_setup_url is optional, omitted here
+                                        config_fields: [{type: "text", label: "URL", description: "...", validation: "...", required: true}]
+                                        credential_fields: [{type: "text", label: "Secret", description: "...",
+                                                # validation is optional, removed null value
+                                                required: false}]
+                "401":
+                    description: Unauthorized (Tenant JWT missing or invalid).
+                "404":
+                    description: Destination type not found.
+    /topics:
+        get:
+            tags: [Topics]
+            summary: List Available Topics (JWT Auth)
+            description: Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
+            operationId: listTopicsJwt
+            security:
+                - TenantJwt: []
+            responses:
+                "200":
+                    description: A list of topic names.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    type: string
+                            examples:
+                                TopicsListExample: # Same as /{tenant_id}/topics example
+                                    value: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+                "401":
+                    description: Unauthorized (Tenant JWT missing or invalid).
+
+# Note: Hide convenience routes for destinations (e.g., /destinations/{destination_id}/events) in JWT context.
+# /destinations:
+#   get:
+#     tags: [Destinations]
+#     summary: List Destinations (JWT Auth)
+#     description: Return a list of the destinations for the tenant identified by JWT.
+#     operationId: listDestinationsJwt
+#     security:
+#       - TenantJwt: []
+#     parameters:
+#       - name: type
+#         in: query
+#         required: false
+#         schema:
+#           oneOf:
+#             - type: string
+#               enum: [webhook, aws_sqs, rabbitmq]
+#             - type: array
+#               items:
+#                 type: string
+#                 enum: [webhook, aws_sqs, rabbitmq]
+#         description: Filter destinations by type(s).
+#       - name: topics
+#         in: query
+#         required: false
+#         schema:
+#           oneOf:
+#             - type: string
+#             - type: array
+#               items:
+#                 type: string
+#         description: Filter destinations by supported topic(s).
+#     responses:
+#       "200":
+#         description: A list of destinations.
+#         content:
+#           application/json:
+#             schema:
+#               type: array
+#               items:
+#                 $ref: "#/components/schemas/Destination"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#   post:
+#     tags: [Destinations]
+#     summary: Create Destination (JWT Auth)
+#     description: Creates a new destination for the tenant identified by JWT. The request body structure depends on the `type`.
+#     operationId: createDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     requestBody:
+#       required: true
+#       content:
+#         application/json:
+#           schema:
+#             $ref: "#/components/schemas/DestinationCreate"
+#     responses:
+#       "201":
+#         description: Destination created successfully.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Destination"
+#       "400":
+#         description: Invalid request body or configuration.
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+
+# /destinations/{destination_id}:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#   get:
+#     tags: [Destinations]
+#     summary: Get Destination (JWT Auth)
+#     description: Retrieves details for a specific destination for the tenant identified by JWT.
+#     operationId: getDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Destination details.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Destination"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+#   patch:
+#     tags: [Destinations]
+#     summary: Update Destination (JWT Auth)
+#     description: Updates an existing destination for the tenant identified by JWT. The request body structure depends on the destination's `type`. Type itself cannot be updated.
+#     operationId: updateDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     requestBody:
+#       required: true
+#       content:
+#         application/json:
+#           schema:
+#             $ref: "#/components/schemas/DestinationUpdate"
+#     responses:
+#       "200":
+#         description: Destination updated successfully or OAuth redirect needed.
+#         content:
+#           application/json:
+#             schema:
+#               oneOf:
+#                 - $ref: "#/components/schemas/Destination"
+#                 - $ref: "#/components/schemas/DestinationOAuthRedirect"
+#       "400":
+#         description: Invalid request body or configuration.
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+#   delete:
+#     tags: [Destinations]
+#     summary: Delete Destination (JWT Auth)
+#     description: Deletes a specific destination for the tenant identified by JWT.
+#     operationId: deleteDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Success confirmation.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/SuccessResponse"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+
+# /destinations/{destination_id}/enable:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#   put:
+#     tags: [Destinations]
+#     summary: Enable Destination (JWT Auth)
+#     description: Enables a previously disabled destination for the tenant identified by JWT.
+#     operationId: enableDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Destination enabled successfully.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Destination"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+
+# /destinations/{destination_id}/disable:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#   put:
+#     tags: [Destinations]
+#     summary: Disable Destination (JWT Auth)
+#     description: Disables a previously enabled destination for the tenant identified by JWT.
+#     operationId: disableDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Destination disabled successfully.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Destination"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+
+# /events:
+#   get:
+#     tags: [Events]
+#     summary: List Events (JWT Auth)
+#     description: Retrieves a list of events for the tenant identified by JWT, supporting filtering.
+#     operationId: listEventsJwt
+#     security:
+#       - TenantJwt: []
+#     parameters:
+#       - name: destination_id
+#         in: query
+#         required: false
+#         schema:
+#           oneOf:
+#             - type: string
+#             - type: array
+#               items:
+#                 type: string
+#         description: Filter events by destination ID(s).
+#       - name: status
+#         in: query
+#         required: false
+#         schema:
+#           type: string
+#           enum: [success, failed]
+#         description: Filter events by delivery status.
+#       # Add cursor parameters (e.g., 'after', 'limit') when defined
+#     responses:
+#       "200":
+#         description: A list of events.
+#         content:
+#           application/json:
+#             schema:
+#               type: array
+#               items:
+#                 $ref: "#/components/schemas/Event"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+
+# /events/{event_id}:
+#   parameters:
+#     - name: event_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the event.
+#   get:
+#     tags: [Events]
+#     summary: Get Event (JWT Auth)
+#     description: Retrieves details for a specific event for the tenant identified by JWT.
+#     operationId: getEventJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Event details.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Event"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Event not found for this tenant.
+
+# /events/{event_id}/deliveries:
+#   parameters:
+#     - name: event_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the event.
+#   get:
+#     tags: [Events]
+#     summary: List Event Delivery Attempts (JWT Auth)
+#     description: Retrieves delivery attempts for a specific event for the tenant identified by JWT.
+#     operationId: listEventDeliveriesJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: A list of delivery attempts.
+#         content:
+#           application/json:
+#             schema:
+#               type: array
+#               items:
+#                 $ref: "#/components/schemas/DeliveryAttempt"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Event not found for this tenant.
+
+# /destinations/{destination_id}/events:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#   get:
+#     tags: [Events]
+#     summary: List Events by Destination (JWT Auth)
+#     description: Retrieves events associated with a specific destination for the tenant identified by JWT.
+#     operationId: listEventsByDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     parameters:
+#       - name: status
+#         in: query
+#         required: false
+#         schema:
+#           type: string
+#           enum: [success, failed]
+#         description: Filter events by delivery status.
+#       # Add cursor parameters
+#     responses:
+#       "200":
+#         description: A list of events for the destination.
+#         content:
+#           application/json:
+#             schema:
+#               type: array
+#               items:
+#                 $ref: "#/components/schemas/Event"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination not found for this tenant.
+
+# /destinations/{destination_id}/events/{event_id}:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#     - name: event_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the event.
+#   get:
+#     tags: [Events]
+#     summary: Get Event by Destination (JWT Auth)
+#     description: Retrieves a specific event associated with a specific destination for the tenant identified by JWT.
+#     operationId: getEventByDestinationJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "200":
+#         description: Event details.
+#         content:
+#           application/json:
+#             schema:
+#               $ref: "#/components/schemas/Event"
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination or Event not found for this tenant.
+
+# /destinations/{destination_id}/events/{event_id}/retry:
+#   parameters:
+#     - name: destination_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the destination.
+#     - name: event_id
+#       in: path
+#       required: true
+#       schema:
+#         type: string
+#       description: The ID of the event to retry.
+#   post:
+#     tags: [Events]
+#     summary: Retry Event Delivery (JWT Auth)
+#     description: Triggers a retry for a failed event delivery for the tenant identified by JWT.
+#     operationId: retryEventJwt
+#     security:
+#       - TenantJwt: []
+#     responses:
+#       "202":
+#         description: Retry accepted for processing.
+#       "401":
+#         description: Unauthorized (Tenant JWT missing or invalid).
+#       "404":
+#         description: Destination or Event not found for this tenant.
+#       "409": # Conflict might be appropriate if event is not retryable
+#         description: Event not eligible for retry.

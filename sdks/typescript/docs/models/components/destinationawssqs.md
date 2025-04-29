@@ -1,0 +1,37 @@
+# DestinationAWSSQS
+
+## Example Usage
+
+```typescript
+import { DestinationAWSSQS } from "openapi/models/components";
+
+let value: DestinationAWSSQS = {
+  id: "des_sqs_456",
+  type: "aws_sqs",
+  topics: [
+    "*",
+  ],
+  disabledAt: new Date("2024-03-01T12:00:00Z"),
+  createdAt: new Date("2024-02-20T11:30:00Z"),
+  config: {
+    endpoint: "https://sqs.us-west-2.amazonaws.com",
+    queueUrl: "https://sqs.us-west-2.amazonaws.com/123456789012/my-app-queue",
+  },
+  credentials: {
+    key: "AKIAIOSFODNN7EXAMPLE",
+    secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  },
+};
+```
+
+## Fields
+
+| Field                                                                                         | Type                                                                                          | Required                                                                                      | Description                                                                                   | Example                                                                                       |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `id`                                                                                          | *string*                                                                                      | :heavy_check_mark:                                                                            | Control plane generated ID or user provided ID for the destination.                           | des_12345                                                                                     |
+| `type`                                                                                        | [components.DestinationAWSSQSType](../../models/components/destinationawssqstype.md)          | :heavy_check_mark:                                                                            | Type of the destination.                                                                      | aws_sqs                                                                                       |
+| `topics`                                                                                      | *components.Topics*                                                                           | :heavy_check_mark:                                                                            | "*" or an array of enabled topics.                                                            | *                                                                                             |
+| `disabledAt`                                                                                  | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) | :heavy_check_mark:                                                                            | ISO Date when the destination was disabled, or null if enabled.                               | <nil>                                                                                         |
+| `createdAt`                                                                                   | [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) | :heavy_check_mark:                                                                            | ISO Date when the destination was created.                                                    | 2024-01-01T00:00:00Z                                                                          |
+| `config`                                                                                      | [components.AWSSQSConfig](../../models/components/awssqsconfig.md)                            | :heavy_check_mark:                                                                            | N/A                                                                                           |                                                                                               |
+| `credentials`                                                                                 | [components.AWSSQSCredentials](../../models/components/awssqscredentials.md)                  | :heavy_check_mark:                                                                            | N/A                                                                                           |                                                                                               |

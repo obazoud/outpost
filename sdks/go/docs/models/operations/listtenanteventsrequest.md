@@ -1,0 +1,10 @@
+# ListTenantEventsRequest
+
+
+## Fields
+
+| Field                                                                                   | Type                                                                                    | Required                                                                                | Description                                                                             |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `TenantID`                                                                              | **string*                                                                               | :heavy_minus_sign:                                                                      | The ID of the tenant. Required when using AdminApiKey authentication.                   |
+| `DestinationID`                                                                         | [*operations.DestinationID](../../models/operations/destinationid.md)                   | :heavy_minus_sign:                                                                      | Filter events by destination ID(s).                                                     |
+| `Status`                                                                                | [*operations.ListTenantEventsStatus](../../models/operations/listtenanteventsstatus.md) | :heavy_minus_sign:                                                                      | Filter events by delivery status.                                                       |

@@ -1,0 +1,17 @@
+# GetTenantRequest
+
+## Example Usage
+
+```typescript
+import { GetTenantRequest } from "openapi/models/operations";
+
+let value: GetTenantRequest = {
+  tenantId: "<id>",
+};
+```
+
+## Fields
+
+| Field                                                                 | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `tenantId`                                                            | *string*                                                              | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
