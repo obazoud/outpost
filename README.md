@@ -18,7 +18,9 @@
 
 </div>
 
-# Open Source Outbound Webhooks and Event Destinations Infrastructure
+<div align="center">
+  <h1>Open Source Outbound Webhooks and Event Destinations Infrastructure</h1>
+</div>
 
 <div align="center">
 
