@@ -1,0 +1,13 @@
+{
+  "name": "local",
+  "api": {
+    "baseUrl": "http://localhost:3333",
+    "timeout": "30s"
+  },
+  "mockWebhook": {
+    "url": "http://localhost:48080",
+    "destinationUrl": "http://host.docker.internal:48080",
+    "verificationPollTimeout": "5s"
+  },
+  "redis": "redis://localhost:46379"
+}
