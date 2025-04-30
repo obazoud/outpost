@@ -66,14 +66,6 @@ components:
         success:
           type: boolean
           example: true
-    DestinationOAuthRedirect:
-      type: object
-      properties:
-        redirect_url:
-          type: string
-          format: url
-          description: Redirect URL for OAuth flow if applicable during destination update.
-          example: "https://dashboard.hookdeck.com/authorize?token=12313123"
     Topics:
       oneOf:
         - type: string
@@ -169,6 +161,51 @@ components:
           type: string
           description: RabbitMQ password.
           example: "guest"
+    HookdeckCredentials: # Hookdeck has no config fields, only credentials
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          description: Hookdeck authentication token.
+          example: "hd_token_..."
+    AWSKinesisConfig:
+      type: object
+      required: [stream_name, region]
+      properties:
+        stream_name:
+          type: string
+          description: The name of the AWS Kinesis stream.
+          example: "my-data-stream"
+        region:
+          type: string
+          description: The AWS region where the Kinesis stream is located.
+          example: "us-east-1"
+        endpoint:
+          type: string
+          format: url
+          description: Optional. Custom AWS endpoint URL (e.g., for LocalStack or VPC endpoints).
+          example: "https://kinesis.us-east-1.amazonaws.com"
+        partition_key_template:
+          type: string
+          description: Optional. JMESPath template to extract the partition key from the event payload (e.g., `metadata."event-id"`). Defaults to event ID.
+          example: 'data."user_id"'
+    AWSKinesisCredentials:
+      type: object
+      required: [key, secret]
+      properties:
+        key:
+          type: string
+          description: AWS Access Key ID.
+          example: "AKIAIOSFODNN7EXAMPLE"
+        secret:
+          type: string
+          description: AWS Secret Access Key.
+          example: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        session:
+          type: string
+          description: Optional AWS Session Token (for temporary credentials).
+          example: "AQoDYXdzEPT//////////wEXAMPLE..."
 
     # Type-Specific Destination Schemas (for Responses)
     DestinationWebhook:
@@ -304,6 +341,90 @@ components:
         credentials:
           username: "app_user"
           password: "secure_password_123"
+    DestinationHookdeck:
+      type: object
+      # Properties duplicated from DestinationBase
+      required: [id, type, topics, credentials, created_at, disabled_at] # No config
+      properties:
+        id:
+          type: string
+          description: Control plane generated ID or user provided ID for the destination.
+          example: "des_12345"
+        type:
+          type: string
+          description: Type of the destination.
+          enum: [hookdeck] # Specific type
+          example: "hookdeck"
+        topics:
+          $ref: "#/components/schemas/Topics"
+        disabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO Date when the destination was disabled, or null if enabled.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: ISO Date when the destination was created.
+          example: "2024-01-01T00:00:00Z"
+        # Type-specific properties
+        config: {} # Empty config
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials"
+      example:
+        id: "des_hkd_abc"
+        type: "hookdeck"
+        topics: ["*"]
+        disabled_at: null
+        created_at: "2024-04-01T10:00:00Z"
+        config: {}
+        credentials:
+          token: "hd_token_..."
+    DestinationAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationBase
+      required: [id, type, topics, config, credentials, created_at, disabled_at]
+      properties:
+        id:
+          type: string
+          description: Control plane generated ID or user provided ID for the destination.
+          example: "des_12345"
+        type:
+          type: string
+          description: Type of the destination.
+          enum: [aws_kinesis] # Specific type
+          example: "aws_kinesis"
+        topics:
+          $ref: "#/components/schemas/Topics"
+        disabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO Date when the destination was disabled, or null if enabled.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: ISO Date when the destination was created.
+          example: "2024-01-01T00:00:00Z"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig"
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials"
+      example:
+        id: "des_kns_xyz"
+        type: "aws_kinesis"
+        topics: ["user.created", "user.updated"]
+        disabled_at: null
+        created_at: "2024-03-10T15:30:00Z"
+        config:
+          stream_name: "production-events"
+          region: "eu-west-1"
+        credentials:
+          key: "AKIAIOSFODNN7EXAMPLE"
+          secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 
     # Polymorphic Destination Schema (for Responses)
     Destination:
@@ -311,12 +432,16 @@ components:
         - $ref: "#/components/schemas/DestinationWebhook"
         - $ref: "#/components/schemas/DestinationAWSSQS"
         - $ref: "#/components/schemas/DestinationRabbitMQ"
+        - $ref: "#/components/schemas/DestinationHookdeck"
+        - $ref: "#/components/schemas/DestinationAWSKinesis"
       discriminator:
         propertyName: type
         mapping:
           webhook: "#/components/schemas/DestinationWebhook"
           aws_sqs: "#/components/schemas/DestinationAWSSQS"
           rabbitmq: "#/components/schemas/DestinationRabbitMQ"
+          hookdeck: "#/components/schemas/DestinationHookdeck"
+          aws_kinesis: "#/components/schemas/DestinationAWSKinesis"
 
     DestinationCreateWebhook:
       type: object
@@ -379,6 +504,45 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig"
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials"
+    DestinationCreateHookdeck:
+      type: object
+      # Properties duplicated from DestinationCreateBase + specific required
+      required: [type, topics, credentials] # No config
+      properties:
+        id:
+          type: string
+          description: Optional user-provided ID. A UUID will be generated if empty.
+          example: "user-provided-id"
+        type:
+          type: string
+          description: Type of the destination. Must be 'hookdeck'.
+          enum: [hookdeck] # Specific type
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config: {} # Empty config
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials"
+    DestinationCreateAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationCreateBase + specific required
+      required: [type, topics, config, credentials]
+      properties:
+        id:
+          type: string
+          description: Optional user-provided ID. A UUID will be generated if empty.
+          example: "user-provided-id"
+        type:
+          type: string
+          description: Type of the destination. Must be 'aws_kinesis'.
+          enum: [aws_kinesis] # Specific type
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig"
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials"
 
     # Polymorphic Destination Creation Schema (for Request Bodies)
     DestinationCreate:
@@ -386,12 +550,16 @@ components:
         - $ref: "#/components/schemas/DestinationCreateWebhook"
         - $ref: "#/components/schemas/DestinationCreateAWSSQS"
         - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
+        - $ref: "#/components/schemas/DestinationCreateHookdeck"
+        - $ref: "#/components/schemas/DestinationCreateAWSKinesis"
       discriminator:
         propertyName: type
-        # mapping:
-        #   webhook: "#/components/schemas/DestinationCreateWebhook"
-        #   aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
-        #   rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+        mapping:
+          webhook: "#/components/schemas/DestinationCreateWebhook"
+          aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
+          rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+          hookdeck: "#/components/schemas/DestinationCreateHookdeck"
+          aws_kinesis: "#/components/schemas/DestinationCreateAWSKinesis"
 
     # Type-Specific Destination Update Schemas (for Request Bodies)
     WebhookCredentialsUpdate:
@@ -443,6 +611,27 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig" # server_url/exchange required here, but PATCH means optional
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials" # username/password required here, but PATCH means optional
+    DestinationUpdateHookdeck:
+      type: object
+      # Properties duplicated from DestinationUpdateBase
+      properties:
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config: {} # Empty config, cannot be updated
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials" # token required here, but PATCH means optional
+    DestinationUpdateAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationUpdateBase
+      properties:
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig" # stream_name/region required here, but PATCH means optional
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials" # key/secret required here, but PATCH means optional
 
     # Polymorphic Destination Update Schema (for Request Bodies)
     DestinationUpdate:
@@ -450,6 +639,8 @@ components:
         - $ref: "#/components/schemas/DestinationUpdateWebhook"
         - $ref: "#/components/schemas/DestinationUpdateAWSSQS"
         - $ref: "#/components/schemas/DestinationUpdateRabbitMQ"
+        - $ref: "#/components/schemas/DestinationUpdateHookdeck"
+        - $ref: "#/components/schemas/DestinationUpdateAWSKinesis"
       # Discriminator not strictly needed for PATCH request body, but good practice
       discriminator:
         propertyName: type # Note: type itself cannot be sent in PATCH body
@@ -840,11 +1031,11 @@ paths:
           schema:
             oneOf:
               - type: string
-                enum: [webhook, aws_sqs, rabbitmq]
+                enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
               - type: array
                 items:
                   type: string
-                  enum: [webhook, aws_sqs, rabbitmq]
+                  enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
           description: Filter destinations by type(s).
         - name: topics
           in: query
@@ -998,16 +1189,14 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/Destination"
-                  - $ref: "#/components/schemas/DestinationOAuthRedirect"
+                $ref: "#/components/schemas/Destination"
               examples:
                 DestinationUpdatedExample:
                   summary: Example of successful update returning destination details
                   value:
                     id: "des_webhook_123"
                     type: "webhook"
-                    topics: ["user.*"] # Updated topics
+                    topics: ["user.created"]
                     disabled_at: null
                     created_at: "2024-02-15T10:00:00Z"
                     config:
@@ -1016,10 +1205,6 @@ paths:
                       secret: "whsec_abc123def456"
                       previous_secret: "whsec_prev789xyz012"
                       previous_secret_invalid_at: "2024-02-16T10:00:00Z"
-                OAuthRedirectExample:
-                  summary: Example of update requiring OAuth redirect
-                  value:
-                    redirect_url: "https://dashboard.hookdeck.com/authorize?token=12313123"
         "400":
           description: Invalid request body or configuration.
         "404":
@@ -1251,7 +1436,7 @@ paths:
         required: true
         schema:
           type: string
-          enum: [webhook, aws_sqs, rabbitmq]
+          enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
         description: The type of the destination.
     get:
       tags: [Schemas]
@@ -1768,7 +1953,7 @@ paths:
         required: true
         schema:
           type: string
-          enum: [webhook, aws_sqs, rabbitmq]
+          enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
         description: The type of the destination.
     get:
       tags: [Schemas]
