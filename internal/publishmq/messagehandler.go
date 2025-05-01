@@ -2,6 +2,7 @@ package publishmq
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,22 +24,52 @@ func NewMessageHandler(eventHandler EventHandler) consumer.MessageHandler {
 var _ consumer.MessageHandler = (*messageHandler)(nil)
 
 func (h *messageHandler) Handle(ctx context.Context, msg *mqs.Message) error {
-	event := models.Event{}
-	if err := event.FromMessage(msg); err != nil {
+	var publishedEvent PublishedEvent
+	if err := json.Unmarshal(msg.Body, &publishedEvent); err != nil {
 		msg.Nack()
 		return err
 	}
-	// TODO: share logic with /publish flow
-	if event.ID == "" {
-		event.ID = uuid.New().String()
-	}
-	if event.Time.IsZero() {
-		event.Time = time.Now()
-	}
+	event := publishedEvent.toEvent()
 	if err := h.eventHandler.Handle(ctx, &event); err != nil {
 		msg.Nack()
 		return err
 	}
 	msg.Ack()
 	return nil
+}
+
+type PublishedEvent struct {
+	ID               string                 `json:"id"`
+	TenantID         string                 `json:"tenant_id" binding:"required"`
+	DestinationID    string                 `json:"destination_id"`
+	Topic            string                 `json:"topic"`
+	EligibleForRetry *bool                  `json:"eligible_for_retry"`
+	Time             time.Time              `json:"time"`
+	Metadata         map[string]string      `json:"metadata"`
+	Data             map[string]interface{} `json:"data"`
+}
+
+func (p *PublishedEvent) toEvent() models.Event {
+	id := p.ID
+	if id == "" {
+		id = uuid.New().String()
+	}
+	eventTime := p.Time
+	if eventTime.IsZero() {
+		eventTime = time.Now()
+	}
+	eligibleForRetry := true
+	if p.EligibleForRetry != nil {
+		eligibleForRetry = *p.EligibleForRetry
+	}
+	return models.Event{
+		ID:               id,
+		TenantID:         p.TenantID,
+		DestinationID:    p.DestinationID,
+		Topic:            p.Topic,
+		EligibleForRetry: eligibleForRetry,
+		Time:             eventTime,
+		Metadata:         p.Metadata,
+		Data:             p.Data,
+	}
 }
