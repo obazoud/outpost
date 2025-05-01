@@ -69,7 +69,7 @@ type PublishedEvent struct {
 	TenantID         string                 `json:"tenant_id" binding:"required"`
 	DestinationID    string                 `json:"destination_id"`
 	Topic            string                 `json:"topic"`
-	EligibleForRetry bool                   `json:"eligible_for_retry"`
+	EligibleForRetry *bool                  `json:"eligible_for_retry"`
 	Time             time.Time              `json:"time"`
 	Metadata         map[string]string      `json:"metadata"`
 	Data             map[string]interface{} `json:"data"`
@@ -84,12 +84,16 @@ func (p *PublishedEvent) toEvent() models.Event {
 	if eventTime.IsZero() {
 		eventTime = time.Now()
 	}
+	eligibleForRetry := true
+	if p.EligibleForRetry != nil {
+		eligibleForRetry = *p.EligibleForRetry
+	}
 	return models.Event{
 		ID:               id,
 		TenantID:         p.TenantID,
 		DestinationID:    p.DestinationID,
 		Topic:            p.Topic,
-		EligibleForRetry: p.EligibleForRetry,
+		EligibleForRetry: eligibleForRetry,
 		Time:             eventTime,
 		Metadata:         p.Metadata,
 		Data:             p.Data,

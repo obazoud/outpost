@@ -19,7 +19,7 @@ The events need to follow the given structure:
   "tenant_id": "12345",
   "destination_id": "12345", // Optional. Used to force delivery to a specific destination
   "topic": "something.created", // Optional. Assumed to match ANY topic if left empty.
-  "eligible_for_retry": false, // Optional, default to "false". Control if an event should be retried.
+  "eligible_for_retry": true, // Optional, default to "true". Control if an event should be retried.
   "time": "2024-06-01 08:23:36.082374Z", // ISO Timestamp of the event
   "metadata": {
     // Arbitrary key-value mapping for event
