@@ -54,6 +54,8 @@ type Config struct {
 	// Application
 	AESEncryptionSecret string   `yaml:"aes_encryption_secret" env:"AES_ENCRYPTION_SECRET"`
 	Topics              []string `yaml:"topics" env:"TOPICS" envSeparator:","`
+	OrganizationName    string   `yaml:"organization_name" env:"ORGANIZATION_NAME"`
+	HTTPUserAgent       string   `yaml:"http_user_agent" env:"HTTP_USER_AGENT"`
 
 	// Infrastructure
 	Redis       RedisConfig      `yaml:"redis"`
@@ -148,8 +150,7 @@ func (c *Config) InitDefaults() {
 
 	// Set defaults for Destinations config
 	c.Destinations = DestinationsConfig{
-		MetadataPath:     "config/outpost/destinations",
-		UserAgentProduct: "Outpost",
+		MetadataPath: "config/outpost/destinations",
 		Webhook: DestinationWebhookConfig{
 			HeaderPrefix: "x-outpost-",
 		},
