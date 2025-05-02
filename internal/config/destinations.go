@@ -1,18 +1,23 @@
 package config
 
 import (
+	"fmt"
+
 	destregistrydefault "github.com/hookdeck/outpost/internal/destregistry/providers"
+	"github.com/hookdeck/outpost/internal/version"
 )
 
 // DestinationsConfig is the main configuration for all destination types
 type DestinationsConfig struct {
-	MetadataPath string                      `yaml:"metadata_path" env:"DESTINATIONS_METADATA_PATH"`
-	Webhook      DestinationWebhookConfig    `yaml:"webhook"`
-	AWSKinesis   DestinationAWSKinesisConfig `yaml:"aws_kinesis"`
+	MetadataPath     string                      `yaml:"metadata_path" env:"DESTINATIONS_METADATA_PATH"`
+	UserAgentProduct string                      `yaml:"user_agent_product" env:"DESTINATIONS_USER_AGENT_PRODUCT"`
+	Webhook          DestinationWebhookConfig    `yaml:"webhook"`
+	AWSKinesis       DestinationAWSKinesisConfig `yaml:"aws_kinesis"`
 }
 
 func (c *DestinationsConfig) ToConfig() destregistrydefault.RegisterDefaultDestinationOptions {
 	return destregistrydefault.RegisterDefaultDestinationOptions{
+		UserAgent:  fmt.Sprintf("%s/%s", c.UserAgentProduct, version.Version()),
 		Webhook:    c.Webhook.toConfig(),
 		AWSKinesis: c.AWSKinesis.toConfig(),
 	}

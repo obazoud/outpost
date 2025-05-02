@@ -104,7 +104,7 @@ func NewRegistry(cfg *Config, logger *logging.Logger) Registry {
 		}
 	}
 
-	cache := lru.New[string, Publisher](cfg.PublisherCacheSize, cfg.PublisherTTL, onEvict)
+	cache := lru.New(cfg.PublisherCacheSize, cfg.PublisherTTL, onEvict)
 
 	return &registry{
 		metadataLoader: metadata.NewMetadataLoader(cfg.DestinationMetadataPath),

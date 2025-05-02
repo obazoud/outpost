@@ -148,7 +148,8 @@ func (c *Config) InitDefaults() {
 
 	// Set defaults for Destinations config
 	c.Destinations = DestinationsConfig{
-		MetadataPath: "config/outpost/destinations",
+		MetadataPath:     "config/outpost/destinations",
+		UserAgentProduct: "Outpost",
 		Webhook: DestinationWebhookConfig{
 			HeaderPrefix: "x-outpost-",
 		},
