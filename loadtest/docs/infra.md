@@ -74,16 +74,17 @@ helm repo update
 helm install monitoring prometheus-community/kube-prometheus-stack
 ```
 
+Expose Grafana:
+
+```
+kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
+```
+
+
 Set up the custom dashboard with this curl command:
 
 ```
 curl -X POST http://localhost:3000/api/dashboards/db -H "Content-Type: application/json" -d @loadtest/grafana/outpost-dashboard.json
-```
-
-Expose Grafana:
-
-```
-kubectl port-forward svc/monitoring-grafana 3000:80
 ```
 
 Navigate to `http://localhost:3000` in your browser to access Grafana.
