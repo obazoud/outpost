@@ -8,14 +8,24 @@ Outpost supports event delivery to:
 
 - Webhook endpoints
 - Hookdeck Event Gateway
-- AWS SQS
 - RabbitMQ
+- GCP Pub/Sub
+- AWS SQS
+- AWS Kinesis
 
-Planned destination types include GCP Pub/Sub, AWS EventBridge, AWS Kinesis, and Kafka.
+Planned destination types include AWS EventBridge, AWS Kinesis, and Kafka.
 
 Outpost is built and maintained by [Hookdeck](https://hookdeck.com?ref=github-outpost). It's written in Go and distributed as a binary and Docker container under the Apache-2.0 license.
 
 Outpost has minimal dependencies (Redis, PostgreSQL and one of the supported message queues), is 100% backward compatible with your existing webhooks implementation and is highly optimized for high throughput low-cost operation.
+
+## Ethos
+
+Outpost is designed to be low maintenance, effective, scaleable and focus on developer experience. That's achieved by:
+
+- Supporting tablestakes features and keeping the scope to a minimum. We don't believe it's the responsability of the producer to implement throttling, transformations or other complex logic that's costly to operate.
+- Encouraging and natively supporting event delivery to native event destinations, reducing the latency and failure rate of event delivery. Webhooks are notoriously unreliable because of the various implementation quirks of end users endpoints.
+- Horizontal scaling with both single and multi-services deployments, so you can run Outpost as a single binary / process if you don't have serious event volume.
 
 ## Get Started
 
@@ -28,7 +38,7 @@ Try the Outpost quickstarts:
 
 ## Concepts
 
-Explore the Outpost core concepts, architecture, and see the benchmark results (coming soon).
+Explore the Outpost core concepts and architecture.
 
 [Learn more &rarr;](/docs/concepts)
 
@@ -64,3 +74,7 @@ Outpost supports features required to provide a best-in-class event destinations
 - [API Reference](/docs/referendes/api)
 - [Configuration Reference](/docs/references/configuration)
 - [Roadmap](/docs/references/roadmap)
+
+## Benchmarks
+
+([Planned](https://github.com/hookdeck/outpost/issues/204))
