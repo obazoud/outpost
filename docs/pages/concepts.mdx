@@ -7,12 +7,13 @@ title: "Outpost Concepts"
 - **Tenants**: A tenant represents a user/team/organization in your product.
 - **Destination Types**: The type of destination where events will be delivered. For example, webhook, Hookdeck, or AWS SQS.
 - **Destinations**: A destination is a specific instance of a destination type. For example, a webhook destination with a specific URL.
-- **Events**: An event is a piece of data that represents an action that occurred in your system. For example, a user signed up or a payment was processed.
 - **Topics**: A topic is a way to categorize events and is a common concept found in Pub/Sub messaging. For example, a `user.created` event might be categorized under the user topic.
+- **Events**: An event is a piece of data that represents an action that occurred in your system. For example, a user signed up or a payment was processed.
+- **Delivery Attempts**: A delivery attempt represents the result of an attempt to deliver an event to a destination.
 
 ## Architecture
 
-Outpost is deployed with three services:
+Outpost consists of 3 services which can either be run as single deployment or as separate deployments.
 
 - **API Service**: captures events and exposes the necessary APIs to configure tenants and destinations.
 - **Delivery Service**: is responsible for delivering events to tenants' destinations and contains adapters for each destination type. It must be configured to operate over one of the supported message queues, such as SQS and Pub/Sub.

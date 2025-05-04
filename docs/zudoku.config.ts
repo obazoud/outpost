@@ -110,9 +110,8 @@ const config: ZudokuConfig = {
           { type: "doc", id: "features/event-delivery" },
           { type: "doc", id: "features/delivery-failure-alerts" },
           { type: "doc", id: "features/tenant-user-portal" },
-          { type: "doc", id: "features/configurable-log-levels" },
           { type: "doc", id: "features/opentelemetry" },
-          { type: "doc", id: "features/hookdeck-telemetry" },
+          { type: "doc", id: "features/configurable-log-levels" },
         ],
       },
       {
@@ -146,11 +145,6 @@ const config: ZudokuConfig = {
             type: "doc",
             label: "Deployment",
             id: "guides/deployment",
-          },
-          {
-            type: "doc",
-            label: "Upgrading Version",
-            id: "guides/upgrading",
           },
           {
             type: "doc",

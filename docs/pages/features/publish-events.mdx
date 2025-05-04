@@ -36,6 +36,15 @@ Each event (without a `destination_id`) is evaluated against all the registered 
 
 The `metadata` is translated to the destination's native metadata, for instance, with Webhooks, to HTTP headers. If the destination does not support metadata, the metadata will be included in the event payload.
 
+## Publishing from a message bus
+
+Refer to the respective guide for the message bus you are using to publish events:
+
+- [Publish from RabbitMQ](/docs/guides/publish-from-rabbitmq)
+- [Publish from SQS](/docs/guides/publish-from-sqs)
+- [Publish from GCP Pub/Sub](/docs/guides/publish-from-gcp-pubsub)
+
+
 ## Event Fanout
 
 A message published to a topic is automatically replicated and sent to multiple endpoints. This allows for parallel processing and asynchronous event notifications.
