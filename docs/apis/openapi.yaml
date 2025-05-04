@@ -240,6 +240,16 @@ components:
           $ref: "#/components/schemas/WebhookConfig"
         credentials:
           $ref: "#/components/schemas/WebhookCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (e.g., URL host). Read-only.
+          example: "my-service.com"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Should always have a URL for webhook
+          description: A URL link to the destination target (the webhook URL). Read-only.
+          example: "https://my-service.com/webhook/handler"
       example:
         id: "des_webhook_123"
         type: "webhook"
@@ -284,6 +294,16 @@ components:
           $ref: "#/components/schemas/AWSSQSConfig"
         credentials:
           $ref: "#/components/schemas/AWSSQSCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (SQS queue name). Read-only.
+          example: "my-app-queue"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Can construct AWS console URL
+          description: A URL link to the destination target (AWS Console link to the queue). Read-only.
+          example: "https://us-west-2.console.aws.amazon.com/sqs/v2/home?region=us-west-2#/queues/https%3A%2F%2Fsqs.us-west-2.amazonaws.com%2F123456789012%2Fmy-app-queue"
       example:
         id: "des_sqs_456"
         type: "aws_sqs"
@@ -328,6 +348,16 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig"
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (RabbitMQ exchange). Read-only.
+          example: "events-exchange"
+        target_url:
+          type: string
+          format: url
+          nullable: true # No direct URL for an exchange
+          description: A URL link to the destination target (not applicable for RabbitMQ exchange). Read-only.
+          example: null
       example:
         id: "des_rmq_789"
         type: "rabbitmq"
@@ -372,6 +402,16 @@ components:
         config: {} # Empty config
         credentials:
           $ref: "#/components/schemas/HookdeckCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (Hookdeck). Read-only.
+          example: "Hookdeck"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Link to Hookdeck dashboard? TBD
+          description: A URL link to the destination target (e.g., Hookdeck dashboard). Read-only.
+          example: "https://dashboard.hookdeck.com/sources/src_xxxyyyzzz"
       example:
         id: "des_hkd_abc"
         type: "hookdeck"
@@ -413,6 +453,16 @@ components:
           $ref: "#/components/schemas/AWSKinesisConfig"
         credentials:
           $ref: "#/components/schemas/AWSKinesisCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (Kinesis stream name). Read-only.
+          example: "production-events"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Can construct AWS console URL
+          description: A URL link to the destination target (AWS Console link to the stream). Read-only.
+          example: "https://eu-west-1.console.aws.amazon.com/kinesis/home?region=eu-west-1#/streams/details/production-events/details"
       example:
         id: "des_kns_xyz"
         type: "aws_kinesis"
