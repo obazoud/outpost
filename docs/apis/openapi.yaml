@@ -66,14 +66,6 @@ components:
         success:
           type: boolean
           example: true
-    DestinationOAuthRedirect:
-      type: object
-      properties:
-        redirect_url:
-          type: string
-          format: url
-          description: Redirect URL for OAuth flow if applicable during destination update.
-          example: "https://dashboard.hookdeck.com/authorize?token=12313123"
     Topics:
       oneOf:
         - type: string
@@ -1017,7 +1009,6 @@ paths:
               schema:
                 oneOf:
                   - $ref: "#/components/schemas/Destination"
-                  - $ref: "#/components/schemas/DestinationOAuthRedirect"
               examples:
                 DestinationUpdatedExample:
                   summary: Example of successful update returning destination details
@@ -1033,10 +1024,6 @@ paths:
                       secret: "whsec_abc123def456"
                       previous_secret: "whsec_prev789xyz012"
                       previous_secret_invalid_at: "2024-02-16T10:00:00Z"
-                OAuthRedirectExample:
-                  summary: Example of update requiring OAuth redirect
-                  value:
-                    redirect_url: "https://dashboard.hookdeck.com/authorize?token=12313123"
         "400":
           description: Invalid request body or configuration.
         "404":
