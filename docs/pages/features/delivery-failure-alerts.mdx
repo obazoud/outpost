@@ -1,18 +1,18 @@
 ---
-title: Delivery Failure Alerts
+title: Alerts
 ---
 
-Alerts are triggered when an event fails to deliver to a destination. Alerts are scoped per destination.
+When a delivery attempt fails to deliver an event to a destination, an alert can be triggered. Alerts are scoped per destination.
 
-Destinations can be auto-disabled when the trigger is reached using the `ALERT_AUTO_DISABLE_DESTINATION` config.
+Alerts can serve to notify the owner of the destination of the failure and to optionally auto-disable the destination using the `ALERT_AUTO_DISABLE_DESTINATION` config.
 
-Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. The server does not respond with a `200` there will be an exponential backoff and log the failure. Authentication is handled using the Admin API Key via a bearer token.
+Instead of implementing user-facing alerting, alerts are produced on a callback URL configured through the `ALERT_CALLBACK_URL` variable. If the server does not respond with a `200`, there will be an exponential backoff, and the failure will be logged. Authentication is handled using the Admin API Key via a bearer token.
 
 It's your responsibility to format and deliver the alert to your tenant using your existing notification system.
 
 ## Consecutive failure alerts
 
-`ALERT_CONSECUTIVE_FAILURE_COUNT` variable will alert when the consecutive failure count reaches 50%, 70%, 90% and 100%. At 100% the destination will be disabled if the config is enabled.
+The `ALERT_CONSECUTIVE_FAILURE_COUNT` variable triggers an alert when the consecutive failure count reaches 50%, 70%, 90%, and 100%. At 100%, the destination will be disabled if the configuration is enabled.
 
 ```json
 {

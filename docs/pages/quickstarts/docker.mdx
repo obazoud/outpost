@@ -5,7 +5,7 @@ title: "Outpost Quickstart: Docker with RabbitMQ or AWS SQS via LocalStack"
 Local Docker setup for Outpost using Docker Compose. This setup includes:
 
 - Outpost services (API, delivery, and log processors). See the [architecture](/docs/concepts#architecture) for more details.
-- Redis as KV & entity storage
+- Redis as KV and entity storage
 - PostgreSQL as log storage
 - RabbitMQ or AWS SQS via LocalStack for message queuing
 
@@ -51,13 +51,13 @@ cp .env.example .env
 
 ## Verify Installation
 
-1. Check the services are running:
+1. Check that the services are running:
 
    ```sh
    curl localhost:3333/api/v1/healthz
    ```
 
-   Wait until you get a `OK%` response.
+   Wait until you get an `OK` response.
 
 2. Create a tenant with the following command, replacing `$TENANT_ID` with a unique identifier such as "your_org_name", and the `$API_KEY` with the value you set in your `.env`:
 
@@ -80,7 +80,7 @@ cp .env.example .env
 
 3. Run a local server exposed via a localtunnel or use a hosted service such as the [Hookdeck Console](https://console.hookdeck.com?ref=github-outpost) to capture webhook events.
 
-4. Create a webhook destination where events will be delivered to with the following command. Again, replace `$TENANT_ID` and `$API_KEY`. Also, replace `$URL` with the webhook destinations URL:
+4. Create a webhook destination where events will be delivered to using the following command. Again, replace `$TENANT_ID` and `$API_KEY`. Also, replace `$URL` with the webhook destination's URL:
 
    ```sh
    curl --location "localhost:3333/api/v1/$TENANT_ID/destinations" \
@@ -133,6 +133,6 @@ cp .env.example .env
 
    Open the `redirect_url` link to view the Outpost portal.
 
-   ![Outpost portal homepage](../../public/images/dashboard-homepage.png)
+   ![Outpost portal home page](../../public/images/dashboard-homepage.png)
 
 Continue to use the [Outpost API](https://outpost.hookdeck.com/docs/references/api) or the Outpost portal to add and test more destinations.

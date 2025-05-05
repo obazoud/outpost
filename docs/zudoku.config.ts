@@ -1,8 +1,9 @@
 import type { ZudokuConfig } from "zudoku";
-import { HeadNavigation } from "./src/components/HeadNavigation";
-import { htmlPlugin } from "./src/plugins/htmlPlugin";
-import process from "node:process";
-import { ApiAuthSideNav } from "./src/components/ApiAuthSideNav";
+import process from 'node:process';
+
+import { ApiAuthSideNav } from './src/components/ApiAuthSideNav';
+import { HeadNavigation } from './src/components/HeadNavigation';
+import { htmlPlugin } from './src/plugins/htmlPlugin';
 
 const ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT =
   process.env.ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT || "";
@@ -43,6 +44,7 @@ const config: ZudokuConfig = {
   page: {
     pageTitle: "",
     logoUrl: "/",
+    showPoweredBy: false,
     logo: {
       src: {
         // TODO: Update once basePath is used by Zudoku
@@ -72,6 +74,11 @@ const config: ZudokuConfig = {
         id: "overview",
       },
       {
+        type: "doc",
+        label: "Concepts",
+        id: "concepts",
+      },
+      {
         type: "category",
         label: "Quickstarts",
         collapsed: false,
@@ -90,24 +97,21 @@ const config: ZudokuConfig = {
         ],
       },
       {
-        type: "doc",
-        label: "Concepts",
-        id: "concepts",
-      },
-      {
         type: "category",
         label: "Features",
         link: "features",
+        collapsed: false,
+        collapsible: false,
         items: [
           { type: "doc", id: "features/multi-tenant-support" },
-          { type: "doc", id: "features/event-topics-and-subscriptions" },
+          { type: "doc", id: "features/destinations" },
+          { type: "doc", id: "features/topics" },
           { type: "doc", id: "features/publish-events" },
           { type: "doc", id: "features/event-delivery" },
           { type: "doc", id: "features/delivery-failure-alerts" },
           { type: "doc", id: "features/tenant-user-portal" },
-          { type: "doc", id: "features/configurable-log-levels" },
           { type: "doc", id: "features/opentelemetry" },
-          { type: "doc", id: "features/hookdeck-telemetry" },
+          { type: "doc", id: "features/configurable-log-levels" },
         ],
       },
       {
@@ -144,9 +148,9 @@ const config: ZudokuConfig = {
           },
           {
             type: "doc",
-            label: "Dashboard Design",
-            id: "guides/dashboard-design",
-          },
+            label: "Building Your Own UI",
+            id: "guides/building-your-own-ui",
+          }
         ],
       },
       {
@@ -172,9 +176,13 @@ const config: ZudokuConfig = {
           },
         ],
       },
+      {
+        type: "doc",
+        label: "Limitations",
+        id: "limitations",
+      },
     ],
   },
-
   apis: {
     type: "file",
     input: "./apis/openapi.yaml",
