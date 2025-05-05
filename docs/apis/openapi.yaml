@@ -839,7 +839,7 @@ components:
             $ref: "#/components/schemas/DestinationSchemaField"
     DestinationSchemaField:
       type: object
-      required: [type, required] # Added required fields based on TS type
+      required: [type, required]
       properties:
         type:
           type: string
@@ -1469,7 +1469,7 @@ paths:
                             label: "URL",
                             description: "The URL to send the webhook to.",
                             pattern: "^https?://.*", # Example pattern
-                            required: true, # Added required
+                            required: true,
                           },
                         ]
                       credential_fields: [
@@ -1477,7 +1477,7 @@ paths:
                             type: "text",
                             label: "Secret",
                             description: "Optional signing secret.",
-                            required: false, # Added required
+                            required: false,
                             sensitive: true, # Added sensitive
                           },
                         ]
@@ -1486,42 +1486,44 @@ paths:
                       description: "Send event to an AWS SQS queue"
                       icon: "<svg />"
                       instructions: "Enter Queue URL..."
-                      config_fields: [
+                      config_fields:
+                        [
                           {
                             type: "text",
                             label: "Queue URL",
                             description: "The URL of the SQS queue.",
                             required: true,
-                          }, # Added required
+                          },
                           {
                             type: "text",
                             label: "Endpoint",
                             description: "Optional custom AWS endpoint URL.",
                             required: false,
-                          }, # Added required
+                          },
                         ]
-                      credential_fields: [
+                      credential_fields:
+                        [
                           {
                             type: "text",
                             label: "Key",
                             description: "AWS Access Key ID.",
                             required: true,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                           {
                             type: "text",
                             label: "Secret",
                             description: "AWS Secret Access Key.",
                             required: true,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                           {
                             type: "text",
                             label: "Session",
                             description: "Optional AWS Session Token.",
                             required: false,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                         ]
         "404":
           description: Tenant not found.
@@ -1570,7 +1572,7 @@ paths:
                           label: "URL",
                           description: "The URL to send the webhook to.",
                           pattern: "^https?://.*", # Example pattern
-                          required: true, # Added required
+                          required: true,
                         },
                       ]
                     credential_fields: [
@@ -1578,7 +1580,7 @@ paths:
                           type: "text",
                           label: "Secret",
                           description: "Optional signing secret.",
-                          required: false, # Added required
+                          required: false,
                           sensitive: true, # Added sensitive
                         },
                       ]
@@ -2016,7 +2018,7 @@ paths:
                             label: "URL",
                             description: "The URL to send the webhook to.",
                             pattern: "^https?://.*", # Example pattern
-                            required: true, # Added required
+                            required: true,
                           },
                         ]
                       credential_fields: [
@@ -2024,7 +2026,7 @@ paths:
                             type: "text",
                             label: "Secret",
                             description: "Optional signing secret.",
-                            required: false, # Added required
+                            required: false,
                             sensitive: true, # Added sensitive
                           },
                         ]
@@ -2033,42 +2035,44 @@ paths:
                       description: "Send event to an AWS SQS queue"
                       icon: "<svg />"
                       instructions: "Enter Queue URL..."
-                      config_fields: [
+                      config_fields:
+                        [
                           {
                             type: "text",
                             label: "Queue URL",
                             description: "The URL of the SQS queue.",
                             required: true,
-                          }, # Added required
+                          },
                           {
                             type: "text",
                             label: "Endpoint",
                             description: "Optional custom AWS endpoint URL.",
                             required: false,
-                          }, # Added required
+                          },
                         ]
-                      credential_fields: [
+                      credential_fields:
+                        [
                           {
                             type: "text",
                             label: "Key",
                             description: "AWS Access Key ID.",
                             required: true,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                           {
                             type: "text",
                             label: "Secret",
                             description: "AWS Secret Access Key.",
                             required: true,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                           {
                             type: "text",
                             label: "Session",
                             description: "Optional AWS Session Token.",
                             required: false,
                             sensitive: true,
-                          }, # Added required & sensitive
+                          },
                         ]
         "401":
           description: Unauthorized (Tenant JWT missing or invalid).
@@ -2111,7 +2115,7 @@ paths:
                           label: "URL",
                           description: "The URL to send the webhook to.",
                           pattern: "^https?://.*", # Example pattern
-                          required: true, # Added required
+                          required: true,
                         },
                       ]
                     credential_fields: [
@@ -2119,7 +2123,7 @@ paths:
                           type: "text",
                           label: "Secret",
                           description: "Optional signing secret.",
-                          required: false, # Added required
+                          required: false,
                           sensitive: true, # Added sensitive
                         },
                       ]
