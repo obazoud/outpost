@@ -839,10 +839,11 @@ components:
             $ref: "#/components/schemas/DestinationSchemaField"
     DestinationSchemaField:
       type: object
+      required: [type, required]
       properties:
         type:
           type: string
-          enum: [text, number, boolean] # Extend as needed
+          enum: [text, checkbox]
           example: "text"
         label:
           type: string
@@ -850,13 +851,29 @@ components:
         description:
           type: string
           example: "The URL to send the event to"
-        validation:
-          type: string
-          description: Regex string for validation.
-          example: "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/"
         required:
           type: boolean
           example: true
+        sensitive:
+          type: boolean
+          description: Indicates if the field contains sensitive information.
+          example: false
+        default:
+          type: string
+          description: Default value for the field.
+          example: "default_value"
+        minlength:
+          type: integer
+          description: Minimum length for a text input.
+          example: 0
+        maxlength:
+          type: integer
+          description: Maximum length for a text input.
+          example: 255
+        pattern:
+          type: string
+          description: Regex pattern for validation (compatible with HTML5 pattern attribute).
+          example: "^[a-zA-Z0-9_]+$"
 
 # Security is applied per-operation based on AuthScope
 
@@ -1249,7 +1266,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Destination"
+                oneOf:
+                  - $ref: "#/components/schemas/Destination"
               examples:
                 DestinationUpdatedExample:
                   summary: Example of successful update returning destination details
@@ -1445,13 +1463,12 @@ paths:
                       description: "Send event via an HTTP POST request to a URL"
                       icon: "<svg />"
                       instructions: "Enter the URL..."
-                      config_fields:
-                        [
+                      config_fields: [
                           {
                             type: "text",
                             label: "URL",
-                            description: "...",
-                            validation: "...",
+                            description: "The URL to send the webhook to.",
+                            pattern: "^https?://.*", # Example pattern
                             required: true,
                           },
                         ]
@@ -1459,9 +1476,9 @@ paths:
                           {
                             type: "text",
                             label: "Secret",
-                            description: "...",
-                            # validation is optional, removed null value
+                            description: "Optional signing secret.",
                             required: false,
+                            sensitive: true, # Added sensitive
                           },
                         ]
                     - type: "aws_sqs"
@@ -1471,14 +1488,42 @@ paths:
                       instructions: "Enter Queue URL..."
                       config_fields:
                         [
-                          { type: "text", label: "Queue URL", ... },
-                          { type: "text", label: "Endpoint", ... },
+                          {
+                            type: "text",
+                            label: "Queue URL",
+                            description: "The URL of the SQS queue.",
+                            required: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Endpoint",
+                            description: "Optional custom AWS endpoint URL.",
+                            required: false,
+                          },
                         ]
                       credential_fields:
                         [
-                          { type: "text", label: "Key", ... },
-                          { type: "text", label: "Secret", ... },
-                          { type: "text", label: "Session", ... },
+                          {
+                            type: "text",
+                            label: "Key",
+                            description: "AWS Access Key ID.",
+                            required: true,
+                            sensitive: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Secret",
+                            description: "AWS Secret Access Key.",
+                            required: true,
+                            sensitive: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Session",
+                            description: "Optional AWS Session Token.",
+                            required: false,
+                            sensitive: true,
+                          },
                         ]
         "404":
           description: Tenant not found.
@@ -1521,13 +1566,12 @@ paths:
                     description: "Send event via an HTTP POST request to a URL"
                     icon: "<svg />"
                     instructions: "Enter the URL..."
-                    config_fields:
-                      [
+                    config_fields: [
                         {
                           type: "text",
                           label: "URL",
-                          description: "...",
-                          validation: "...",
+                          description: "The URL to send the webhook to.",
+                          pattern: "^https?://.*", # Example pattern
                           required: true,
                         },
                       ]
@@ -1535,9 +1579,9 @@ paths:
                         {
                           type: "text",
                           label: "Secret",
-                          description: "...",
-                          # validation is optional, removed null value
+                          description: "Optional signing secret.",
                           required: false,
+                          sensitive: true, # Added sensitive
                         },
                       ]
         "404":
@@ -1968,13 +2012,12 @@ paths:
                       description: "Send event via an HTTP POST request to a URL"
                       icon: "<svg />"
                       instructions: "Enter the URL..."
-                      config_fields:
-                        [
+                      config_fields: [
                           {
                             type: "text",
                             label: "URL",
-                            description: "...",
-                            validation: "...",
+                            description: "The URL to send the webhook to.",
+                            pattern: "^https?://.*", # Example pattern
                             required: true,
                           },
                         ]
@@ -1982,9 +2025,9 @@ paths:
                           {
                             type: "text",
                             label: "Secret",
-                            description: "...",
-                            # validation is optional, removed null value
+                            description: "Optional signing secret.",
                             required: false,
+                            sensitive: true, # Added sensitive
                           },
                         ]
                     - type: "aws_sqs"
@@ -1994,14 +2037,42 @@ paths:
                       instructions: "Enter Queue URL..."
                       config_fields:
                         [
-                          { type: "text", label: "Queue URL", ... },
-                          { type: "text", label: "Endpoint", ... },
+                          {
+                            type: "text",
+                            label: "Queue URL",
+                            description: "The URL of the SQS queue.",
+                            required: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Endpoint",
+                            description: "Optional custom AWS endpoint URL.",
+                            required: false,
+                          },
                         ]
                       credential_fields:
                         [
-                          { type: "text", label: "Key", ... },
-                          { type: "text", label: "Secret", ... },
-                          { type: "text", label: "Session", ... },
+                          {
+                            type: "text",
+                            label: "Key",
+                            description: "AWS Access Key ID.",
+                            required: true,
+                            sensitive: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Secret",
+                            description: "AWS Secret Access Key.",
+                            required: true,
+                            sensitive: true,
+                          },
+                          {
+                            type: "text",
+                            label: "Session",
+                            description: "Optional AWS Session Token.",
+                            required: false,
+                            sensitive: true,
+                          },
                         ]
         "401":
           description: Unauthorized (Tenant JWT missing or invalid).
@@ -2038,13 +2109,12 @@ paths:
                     icon: "<svg />"
                     instructions: "Enter the URL..."
                     # remote_setup_url is optional, omitted here
-                    config_fields:
-                      [
+                    config_fields: [
                         {
                           type: "text",
                           label: "URL",
-                          description: "...",
-                          validation: "...",
+                          description: "The URL to send the webhook to.",
+                          pattern: "^https?://.*", # Example pattern
                           required: true,
                         },
                       ]
@@ -2052,9 +2122,9 @@ paths:
                         {
                           type: "text",
                           label: "Secret",
-                          description: "...",
-                          # validation is optional, removed null value
+                          description: "Optional signing secret.",
                           required: false,
+                          sensitive: true, # Added sensitive
                         },
                       ]
         "401":
