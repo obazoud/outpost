@@ -25,6 +25,7 @@ const (
 type WebhookDestination struct {
 	*destregistry.BaseProvider
 	headerPrefix             string
+	userAgent                string
 	signatureContentTemplate string
 	signatureHeaderTemplate  string
 	disableEventIDHeader     bool
@@ -60,6 +61,13 @@ type Option func(*WebhookDestination)
 func WithHeaderPrefix(prefix string) Option {
 	return func(w *WebhookDestination) {
 		w.headerPrefix = prefix
+	}
+}
+
+// WithUserAgent sets the user agent for the webhook request
+func WithUserAgent(userAgent string) Option {
+	return func(w *WebhookDestination) {
+		w.userAgent = userAgent
 	}
 }
 
@@ -205,8 +213,13 @@ func (d *WebhookDestination) CreatePublisher(ctx context.Context, destination *m
 		WithAlgorithm(GetAlgorithm(d.algorithm)),
 	)
 
+	httpClient := d.BaseProvider.MakeHTTPClient(destregistry.HTTPClientConfig{
+		UserAgent: &d.userAgent,
+	})
+
 	return &WebhookPublisher{
 		BasePublisher:          &destregistry.BasePublisher{},
+		httpClient:             httpClient,
 		url:                    config.URL,
 		headerPrefix:           d.headerPrefix,
 		secrets:                secrets,
@@ -468,6 +481,7 @@ func (d *WebhookDestination) Preprocess(newDestination *models.Destination, orig
 
 type WebhookPublisher struct {
 	*destregistry.BasePublisher
+	httpClient             *http.Client
 	url                    string
 	headerPrefix           string
 	secrets                []WebhookSecret
@@ -494,7 +508,7 @@ func (p *WebhookPublisher) Publish(ctx context.Context, event *models.Event) (*d
 		return nil, err
 	}
 
-	resp, err := http.DefaultClient.Do(httpReq)
+	resp, err := p.httpClient.Do(httpReq)
 	if err != nil {
 		return nil, destregistry.NewErrDestinationPublishAttempt(err, "webhook", map[string]interface{}{
 			"error":   "request_failed",

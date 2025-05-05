@@ -34,11 +34,19 @@ func WithHTTPClient(client *http.Client) ProviderOption {
 // Provider implementation
 type HookdeckProvider struct {
 	*destregistry.BaseProvider
+	userAgent  string
 	httpClient *http.Client
 }
 
 // Ensure our provider implements the Provider interface
 var _ destregistry.Provider = (*HookdeckProvider)(nil)
+
+// WithUserAgent sets the user agent for the hookdeck request
+func WithUserAgent(userAgent string) ProviderOption {
+	return func(p *HookdeckProvider) {
+		p.userAgent = userAgent
+	}
+}
 
 // Constructor
 func New(loader metadata.MetadataLoader, opts ...ProviderOption) (*HookdeckProvider, error) {
@@ -49,7 +57,6 @@ func New(loader metadata.MetadataLoader, opts ...ProviderOption) (*HookdeckProvi
 
 	provider := &HookdeckProvider{
 		BaseProvider: base,
-		httpClient:   &http.Client{Timeout: 30 * time.Second}, // Default client
 	}
 
 	// Apply options
@@ -133,6 +140,11 @@ func (p *HookdeckProvider) CreatePublisher(ctx context.Context, destination *mod
 	// Use the provider's HTTP client if set
 	if p.httpClient != nil {
 		opts = append(opts, PublisherWithClient(p.httpClient))
+	} else {
+		httpClient := p.BaseProvider.MakeHTTPClient(destregistry.HTTPClientConfig{
+			UserAgent: &p.userAgent,
+		})
+		opts = append(opts, PublisherWithClient(httpClient))
 	}
 
 	// Use NewPublisher to create the publisher with options

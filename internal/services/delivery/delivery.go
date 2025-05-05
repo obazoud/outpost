@@ -64,7 +64,7 @@ func NewService(ctx context.Context,
 			DestinationMetadataPath: cfg.Destinations.MetadataPath,
 			DeliveryTimeout:         time.Duration(cfg.DeliveryTimeoutSeconds) * time.Second,
 		}, logger)
-		if err := destregistrydefault.RegisterDefault(registry, cfg.Destinations.ToConfig()); err != nil {
+		if err := destregistrydefault.RegisterDefault(registry, cfg.Destinations.ToConfig(cfg)); err != nil {
 			return nil, err
 		}
 		var eventTracer eventtracer.EventTracer
