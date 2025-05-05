@@ -20,13 +20,13 @@ The `outpost` executable has three entry points:
 - `api`
 - `log`
 
-Services are and other configuration are set via a YAML file. See the [example Outpost configuration file](https://github.com/hookdeck/outpost/tree/main/.outpost.yaml.example).
+Services and other configuration options are set via a YAML file. See the [example Outpost configuration file](https://github.com/hookdeck/outpost/tree/main/.outpost.yaml.example).
 
 You can omit the `service` entry point to start all 3 services within the same process. However, this is not recommended.
 
 ## Service Resource Allocation
 
-Since each service has different usage and performance profile, it's recommended that each service be operated and scaled independently.
+Since each service has different usage and performance profiles, it's recommended that each service be operated and scaled independently.
 
 ![Outpost Architecture](../../public/images/architecture.png)
 
@@ -42,7 +42,7 @@ Outpost requires the following dependencies:
 
 - Redis
 - PostgreSQL
-- Using RabbitMQ, AWS SQS, or GCP Pub/Sub for the following queues:
+- One of the following message queue systems (for the queues listed below): RabbitMQ, AWS SQS, or GCP Pub/Sub
   - Log queue
   - Delivery queue
   - Publish queue (optional)

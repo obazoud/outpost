@@ -2,15 +2,15 @@
 title: Tenant User Portal
 ---
 
-Your application can offer the user the option to configure their destination, view and retry their events using a the Outpost Tenant User Portal. The portal supports:
+Your application can offer the user the option to configure their destination, view and retry their events using the Outpost Tenant User Portal. The portal supports:
 
 - Creating and configuring a destination
 - Updating or deleting a destination
 - Disable or enable a destination
-- Display historical events, event data and responses by status and destinations
+- Display historical events, event data, and responses by status and destinations
 - Manually retry events
 
-The portal is accessed by generating a JWT from the `GET` `/:tenant_id/portal` endpoint, which returns a redirect URL with a JWT token in the URL. When the user is redirected, the JWT persists in their session storage and is used as the credential for the duration of the session.
+The portal is accessed by generating a JWT from the `GET` `/:tenant_id/portal` endpoint, which returns a redirect URL with a JWT token as a query parameter. When the user is redirected, the JWT persists in their session storage and is used as the credential for the duration of the session.
 
 When the portal is used, the Outpost API needs to be exposed to the public internet.
 
@@ -24,9 +24,9 @@ The portal is a React SPA that is distributed via the API.
 
 ## Theming
 
-The portal supports both light and dark mode which case be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` configuration option.
+The portal supports both light and dark mode, which can be set through the `?theme` query param when redirecting to the portal. The portal can also be "forced" into a specific theme using the `PORTAL_FORCE_THEME` configuration option.
 
-Additionally, the portal can be customized with an option logo either with a URL or base64 encoded 64 string using the `PORTAL_LOGO` and `PORTAL_LOGO_DARK` configuration options.
+Additionally, the portal can be customized with an optional logo, either with a URL or a base64-encoded string, using the `PORTAL_LOGO` and `PORTAL_LOGO_DARK` configuration options.
 
 The `PORTAL_ACCENT_COLOR` can also be used to change the primary color.
 
@@ -36,7 +36,7 @@ The Outpost branding can be disabled using the `PORTAL_DISABLE_OUTPOST_BRANDING`
 
 ### Home Page
 
-![Outpost Tenant User homepage example](../../public/images/dashboard-homepage.png)
+![Outpost Tenant User home page example](../../public/images/dashboard-homepage.png)
 
 ### Destination Overview Page
 

@@ -2,17 +2,17 @@
 title: Multi-tenancy
 ---
 
-Outpost supports running for a single or multiple tenants on the same deployment. All resources from Destinations to Events are scoped to a tenant.
+Outpost supports running with a single tenant or multiple tenants on the same deployment. All resources from Destinations to Events are scoped to a tenant.
 
-Each tenant is given an unique identifier by your application and Outpost does not generate any tenant IDs. This enables you to use your existing application tenant IDs or generate them as you see fit.
+Each tenant is given a unique identifier by your application, and Outpost does not generate any tenant IDs. This enables you to use your existing application tenant IDs or generate them as you see fit.
 
-> If you application is single-tenant, use a hardcoded value as the tenant ID, such as "default" or "production", "staging", for supporting multiple environments on the same Outpost deployment.
+> If your application is single-tenant, use a hardcoded value as the tenant ID, such as "default", "production", or "staging", for supporting multiple environments on the same Outpost deployment.
 
 View the Tenant API docs [here](/docs/api/tenants).
 
 ## Creating a tenant
 
-Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your Outpost installation `API_KEY` environmental variable:
+Create a tenant with the following command, replacing `<TENANT_ID>` with a unique identifier such as "your_org_name", and the `<API_KEY>` with the value you set in your Outpost installation `API_KEY` environment variable:
 
 ```sh
 curl --location --request PUT 'localhost:3333/api/v1/<TENANT_ID>' \

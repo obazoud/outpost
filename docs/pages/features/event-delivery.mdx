@@ -2,11 +2,11 @@
 title: Delivery & Retries
 ---
 
-Outpost keep tracks of each event, it's status and the delivery attempts. Outpost operates on a at least-once-delivery guarantee and messages may be re-delivered. While that should be rare, the Event unique ID can be used by the consumer to deduplicate the message. 
+Outpost keeps track of each event, its status, and the delivery attempts. Outpost operates on an at-least-once delivery guarantee, meaning messages may be re-delivered. While this should be rare, consumers can use the unique Event ID to deduplicate messages.
 
 ## Automatic Retries
 
-By default, Outpost will automatically retry events if the destination is unavailable, has incorrect configuration or if the destination returns a non-2xx HTTP response code. Automatic retries are enabled by default and the retry strategy using the environment variable `MAX_RETRY_LIMIT` and `RETRY_INTERVAL_SECONDS`.
+By default, Outpost will automatically retry events if the destination is unavailable, has incorrect configuration, or if the destination returns a non-2xx HTTP response code. Automatic retries are enabled by default, and the retry strategy can be configured using the environment variables `MAX_RETRY_LIMIT` and `RETRY_INTERVAL_SECONDS`.
 
 The retry interval uses an exponential backoff algorithm with a base of `2`.
 
@@ -14,9 +14,9 @@ The retry interval uses an exponential backoff algorithm with a base of `2`.
 
 Manual retries can be triggered for any given event via the [Event API](/docs/api/events#retry-event-delivery) or user portal.
 
-## Disabled destination
+## Disabled destinations
 
-If the destination for an event is disabled, through the API, user portal or automatically because an [failure threshold](/docs/features/delivery-failure-alerts) is reached, the event will be discarded and won't be retriable.
+If the destination for an event is disabled—through the API, user portal, or automatically because a [failure threshold](/docs/features/delivery-failure-alerts) has been reached—the event will be discarded and cannot be retried.
 
 ## Webhook signature & headers
 
@@ -27,20 +27,18 @@ For the `webhook` destination type, Outpost will automatically add the following
 - `X-Event-Topic`: The topic of the event.
 - `X-Event-Signature`: A HMAC-SHA256 signature of the event.
 
-
-To be backward compatible with your existing webhook implementation, you can change the header prefix, disable headers or customize the signature algorithm and logic. You can refer to the [migration guide](/docs/guides/migrate-to-outpost#webhook-customization) to learn more
+For backward compatibility with your existing webhook implementation, you can change the header prefix, disable headers, or customize the signature algorithm and logic. You can refer to the [migration guide](/docs/guides/migrate-to-outpost#webhook-customization) to learn more.
 
 The following environment variables can be used to customize the webhook behavior:
 
-| Environment Variable | Default Value | Required |
-|---------------------|---------------|----------|
-| `DESTINATIONS_WEBHOOK_HEADER_PREFIX` | `x-` | No |
-| `DESTINATIONS_WEBHOOK_DISABLE_EVENT_ID_HEADER` | `false` | No |
-| `DESTINATIONS_WEBHOOK_DISABLE_SIGNATURE_HEADER` | `false` | No |
-| `DESTINATIONS_WEBHOOK_DISABLE_TIMESTAMP_HEADER` | `false` | No |
-| `DESTINATIONS_WEBHOOK_DISABLE_TOPIC_HEADER` | `false` | No |
-| `DESTINATIONS_WEBHOOK_SIGNATURE_VALUE_TEMPLATE` | `{{.Timestamp.Unix}}.{{.Body}}` | No |
-| `DESTINATIONS_WEBHOOK_SIGNATURE_HEADER_TEMPLATE` | `t={{.Timestamp.Unix}},v0={{.Signatures \| join ","}}` | No |
-| `DESTINATIONS_WEBHOOK_SIGNATURE_ENCODING` | `hex` | No |
-| `DESTINATIONS_WEBHOOK_SIGNATURE_ALGORITHM` | `hmac-sha256` | No |
-
+| Environment Variable                             | Default Value                                          | Required |
+| ------------------------------------------------ | ------------------------------------------------------ | -------- |
+| `DESTINATIONS_WEBHOOK_HEADER_PREFIX`             | `x-`                                                   | No       |
+| `DESTINATIONS_WEBHOOK_DISABLE_EVENT_ID_HEADER`   | `false`                                                | No       |
+| `DESTINATIONS_WEBHOOK_DISABLE_SIGNATURE_HEADER`  | `false`                                                | No       |
+| `DESTINATIONS_WEBHOOK_DISABLE_TIMESTAMP_HEADER`  | `false`                                                | No       |
+| `DESTINATIONS_WEBHOOK_DISABLE_TOPIC_HEADER`      | `false`                                                | No       |
+| `DESTINATIONS_WEBHOOK_SIGNATURE_VALUE_TEMPLATE`  | `{{.Timestamp.Unix}}.{{.Body}}`                        | No       |
+| `DESTINATIONS_WEBHOOK_SIGNATURE_HEADER_TEMPLATE` | `t={{.Timestamp.Unix}},v0={{.Signatures \| join ","}}` | No       |
+| `DESTINATIONS_WEBHOOK_SIGNATURE_ENCODING`        | `hex`                                                  | No       |
+| `DESTINATIONS_WEBHOOK_SIGNATURE_ALGORITHM`       | `hmac-sha256`                                          | No       |
