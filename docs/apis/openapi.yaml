@@ -161,6 +161,51 @@ components:
           type: string
           description: RabbitMQ password.
           example: "guest"
+    HookdeckCredentials: # Hookdeck has no config fields, only credentials
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          description: Hookdeck authentication token.
+          example: "hd_token_..."
+    AWSKinesisConfig:
+      type: object
+      required: [stream_name, region]
+      properties:
+        stream_name:
+          type: string
+          description: The name of the AWS Kinesis stream.
+          example: "my-data-stream"
+        region:
+          type: string
+          description: The AWS region where the Kinesis stream is located.
+          example: "us-east-1"
+        endpoint:
+          type: string
+          format: url
+          description: Optional. Custom AWS endpoint URL (e.g., for LocalStack or VPC endpoints).
+          example: "https://kinesis.us-east-1.amazonaws.com"
+        partition_key_template:
+          type: string
+          description: Optional. JMESPath template to extract the partition key from the event payload (e.g., `metadata."event-id"`). Defaults to event ID.
+          example: 'data."user_id"'
+    AWSKinesisCredentials:
+      type: object
+      required: [key, secret]
+      properties:
+        key:
+          type: string
+          description: AWS Access Key ID.
+          example: "AKIAIOSFODNN7EXAMPLE"
+        secret:
+          type: string
+          description: AWS Secret Access Key.
+          example: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+        session:
+          type: string
+          description: Optional AWS Session Token (for temporary credentials).
+          example: "AQoDYXdzEPT//////////wEXAMPLE..."
 
     # Type-Specific Destination Schemas (for Responses)
     DestinationWebhook:
@@ -195,6 +240,18 @@ components:
           $ref: "#/components/schemas/WebhookConfig"
         credentials:
           $ref: "#/components/schemas/WebhookCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (e.g., URL host). Read-only.
+          readOnly: true
+          example: "my-service.com"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Should always have a URL for webhook
+          description: A URL link to the destination target (the webhook URL). Read-only.
+          readOnly: true
+          example: "https://my-service.com/webhook/handler"
       example:
         id: "des_webhook_123"
         type: "webhook"
@@ -239,6 +296,18 @@ components:
           $ref: "#/components/schemas/AWSSQSConfig"
         credentials:
           $ref: "#/components/schemas/AWSSQSCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (SQS queue name). Read-only.
+          readOnly: true
+          example: "my-app-queue"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Can construct AWS console URL
+          description: A URL link to the destination target (AWS Console link to the queue). Read-only.
+          readOnly: true
+          example: "https://us-west-2.console.aws.amazon.com/sqs/v2/home?region=us-west-2#/queues/https%3A%2F%2Fsqs.us-west-2.amazonaws.com%2F123456789012%2Fmy-app-queue"
       example:
         id: "des_sqs_456"
         type: "aws_sqs"
@@ -283,6 +352,18 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig"
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (RabbitMQ exchange). Read-only.
+          readOnly: true
+          example: "events-exchange"
+        target_url:
+          type: string
+          format: url
+          nullable: true # No direct URL for an exchange
+          description: A URL link to the destination target (not applicable for RabbitMQ exchange). Read-only.
+          readOnly: true
+          example: null
       example:
         id: "des_rmq_789"
         type: "rabbitmq"
@@ -296,6 +377,114 @@ components:
         credentials:
           username: "app_user"
           password: "secure_password_123"
+    DestinationHookdeck:
+      type: object
+      # Properties duplicated from DestinationBase
+      required: [id, type, topics, credentials, created_at, disabled_at] # No config
+      properties:
+        id:
+          type: string
+          description: Control plane generated ID or user provided ID for the destination.
+          example: "des_12345"
+        type:
+          type: string
+          description: Type of the destination.
+          enum: [hookdeck] # Specific type
+          example: "hookdeck"
+        topics:
+          $ref: "#/components/schemas/Topics"
+        disabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO Date when the destination was disabled, or null if enabled.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: ISO Date when the destination was created.
+          example: "2024-01-01T00:00:00Z"
+        # Type-specific properties
+        config: {} # Empty config
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (Hookdeck). Read-only.
+          readOnly: true
+          example: "Hookdeck"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Link to Hookdeck dashboard? TBD
+          description: A URL link to the destination target (e.g., Hookdeck dashboard). Read-only.
+          readOnly: true
+          example: "https://dashboard.hookdeck.com/sources/src_xxxyyyzzz"
+      example:
+        id: "des_hkd_abc"
+        type: "hookdeck"
+        topics: ["*"]
+        disabled_at: null
+        created_at: "2024-04-01T10:00:00Z"
+        config: {}
+        credentials:
+          token: "hd_token_..."
+    DestinationAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationBase
+      required: [id, type, topics, config, credentials, created_at, disabled_at]
+      properties:
+        id:
+          type: string
+          description: Control plane generated ID or user provided ID for the destination.
+          example: "des_12345"
+        type:
+          type: string
+          description: Type of the destination.
+          enum: [aws_kinesis] # Specific type
+          example: "aws_kinesis"
+        topics:
+          $ref: "#/components/schemas/Topics"
+        disabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO Date when the destination was disabled, or null if enabled.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: ISO Date when the destination was created.
+          example: "2024-01-01T00:00:00Z"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig"
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (Kinesis stream name). Read-only.
+          readOnly: true
+          example: "production-events"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Can construct AWS console URL
+          description: A URL link to the destination target (AWS Console link to the stream). Read-only.
+          readOnly: true
+          example: "https://eu-west-1.console.aws.amazon.com/kinesis/home?region=eu-west-1#/streams/details/production-events/details"
+      example:
+        id: "des_kns_xyz"
+        type: "aws_kinesis"
+        topics: ["user.created", "user.updated"]
+        disabled_at: null
+        created_at: "2024-03-10T15:30:00Z"
+        config:
+          stream_name: "production-events"
+          region: "eu-west-1"
+        credentials:
+          key: "AKIAIOSFODNN7EXAMPLE"
+          secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 
     # Polymorphic Destination Schema (for Responses)
     Destination:
@@ -303,12 +492,16 @@ components:
         - $ref: "#/components/schemas/DestinationWebhook"
         - $ref: "#/components/schemas/DestinationAWSSQS"
         - $ref: "#/components/schemas/DestinationRabbitMQ"
+        - $ref: "#/components/schemas/DestinationHookdeck"
+        - $ref: "#/components/schemas/DestinationAWSKinesis"
       discriminator:
         propertyName: type
         mapping:
           webhook: "#/components/schemas/DestinationWebhook"
           aws_sqs: "#/components/schemas/DestinationAWSSQS"
           rabbitmq: "#/components/schemas/DestinationRabbitMQ"
+          hookdeck: "#/components/schemas/DestinationHookdeck"
+          aws_kinesis: "#/components/schemas/DestinationAWSKinesis"
 
     DestinationCreateWebhook:
       type: object
@@ -371,6 +564,45 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig"
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials"
+    DestinationCreateHookdeck:
+      type: object
+      # Properties duplicated from DestinationCreateBase + specific required
+      required: [type, topics, credentials] # No config
+      properties:
+        id:
+          type: string
+          description: Optional user-provided ID. A UUID will be generated if empty.
+          example: "user-provided-id"
+        type:
+          type: string
+          description: Type of the destination. Must be 'hookdeck'.
+          enum: [hookdeck] # Specific type
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config: {} # Empty config
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials"
+    DestinationCreateAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationCreateBase + specific required
+      required: [type, topics, config, credentials]
+      properties:
+        id:
+          type: string
+          description: Optional user-provided ID. A UUID will be generated if empty.
+          example: "user-provided-id"
+        type:
+          type: string
+          description: Type of the destination. Must be 'aws_kinesis'.
+          enum: [aws_kinesis] # Specific type
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig"
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials"
 
     # Polymorphic Destination Creation Schema (for Request Bodies)
     DestinationCreate:
@@ -378,12 +610,16 @@ components:
         - $ref: "#/components/schemas/DestinationCreateWebhook"
         - $ref: "#/components/schemas/DestinationCreateAWSSQS"
         - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
+        - $ref: "#/components/schemas/DestinationCreateHookdeck"
+        - $ref: "#/components/schemas/DestinationCreateAWSKinesis"
       discriminator:
         propertyName: type
-        # mapping:
-        #   webhook: "#/components/schemas/DestinationCreateWebhook"
-        #   aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
-        #   rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+        mapping:
+          webhook: "#/components/schemas/DestinationCreateWebhook"
+          aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
+          rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+          hookdeck: "#/components/schemas/DestinationCreateHookdeck"
+          aws_kinesis: "#/components/schemas/DestinationCreateAWSKinesis"
 
     # Type-Specific Destination Update Schemas (for Request Bodies)
     WebhookCredentialsUpdate:
@@ -435,6 +671,27 @@ components:
           $ref: "#/components/schemas/RabbitMQConfig" # server_url/exchange required here, but PATCH means optional
         credentials:
           $ref: "#/components/schemas/RabbitMQCredentials" # username/password required here, but PATCH means optional
+    DestinationUpdateHookdeck:
+      type: object
+      # Properties duplicated from DestinationUpdateBase
+      properties:
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config: {} # Empty config, cannot be updated
+        credentials:
+          $ref: "#/components/schemas/HookdeckCredentials" # token required here, but PATCH means optional
+    DestinationUpdateAWSKinesis:
+      type: object
+      # Properties duplicated from DestinationUpdateBase
+      properties:
+        topics:
+          $ref: "#/components/schemas/Topics"
+        # Type-specific properties
+        config:
+          $ref: "#/components/schemas/AWSKinesisConfig" # stream_name/region required here, but PATCH means optional
+        credentials:
+          $ref: "#/components/schemas/AWSKinesisCredentials" # key/secret required here, but PATCH means optional
 
     # Polymorphic Destination Update Schema (for Request Bodies)
     DestinationUpdate:
@@ -442,6 +699,8 @@ components:
         - $ref: "#/components/schemas/DestinationUpdateWebhook"
         - $ref: "#/components/schemas/DestinationUpdateAWSSQS"
         - $ref: "#/components/schemas/DestinationUpdateRabbitMQ"
+        - $ref: "#/components/schemas/DestinationUpdateHookdeck"
+        - $ref: "#/components/schemas/DestinationUpdateAWSKinesis"
       # Discriminator not strictly needed for PATCH request body, but good practice
       discriminator:
         propertyName: type # Note: type itself cannot be sent in PATCH body
@@ -849,11 +1108,11 @@ paths:
           schema:
             oneOf:
               - type: string
-                enum: [webhook, aws_sqs, rabbitmq]
+                enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
               - type: array
                 items:
                   type: string
-                  enum: [webhook, aws_sqs, rabbitmq]
+                  enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
           description: Filter destinations by type(s).
         - name: topics
           in: query
@@ -1015,7 +1274,7 @@ paths:
                   value:
                     id: "des_webhook_123"
                     type: "webhook"
-                    topics: ["user.*"] # Updated topics
+                    topics: ["user.created"]
                     disabled_at: null
                     created_at: "2024-02-15T10:00:00Z"
                     config:
@@ -1280,7 +1539,7 @@ paths:
         required: true
         schema:
           type: string
-          enum: [webhook, aws_sqs, rabbitmq]
+          enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
         description: The type of the destination.
     get:
       tags: [Schemas]
@@ -1821,7 +2080,7 @@ paths:
         required: true
         schema:
           type: string
-          enum: [webhook, aws_sqs, rabbitmq]
+          enum: [webhook, aws_sqs, rabbitmq, hookdeck, aws_kinesis]
         description: The type of the destination.
     get:
       tags: [Schemas]

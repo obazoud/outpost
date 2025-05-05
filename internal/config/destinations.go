@@ -1,7 +1,10 @@
 package config
 
 import (
+	"fmt"
+
 	destregistrydefault "github.com/hookdeck/outpost/internal/destregistry/providers"
+	"github.com/hookdeck/outpost/internal/version"
 )
 
 // DestinationsConfig is the main configuration for all destination types
@@ -11,8 +14,18 @@ type DestinationsConfig struct {
 	AWSKinesis   DestinationAWSKinesisConfig `yaml:"aws_kinesis"`
 }
 
-func (c *DestinationsConfig) ToConfig() destregistrydefault.RegisterDefaultDestinationOptions {
+func (c *DestinationsConfig) ToConfig(cfg *Config) destregistrydefault.RegisterDefaultDestinationOptions {
+	userAgent := cfg.HTTPUserAgent
+	if userAgent == "" {
+		if cfg.OrganizationName == "" {
+			userAgent = fmt.Sprintf("Outpost/%s", version.Version())
+		} else {
+			userAgent = fmt.Sprintf("%s/%s", cfg.OrganizationName, version.Version())
+		}
+	}
+
 	return destregistrydefault.RegisterDefaultDestinationOptions{
+		UserAgent:  userAgent,
 		Webhook:    c.Webhook.toConfig(),
 		AWSKinesis: c.AWSKinesis.toConfig(),
 	}
