@@ -1,24 +1,24 @@
 ---
-title: "Building your own UI"
+title: "Building Your Own UI"
 ---
 
-While Outpost offer a Tenant User Portal, you may want to build your own UI for users to manage their destinations and view their events.
+While Outpost offers a Tenant User Portal, you may want to build your own UI for users to manage their destinations and view their events.
 
-The portal is built using the Outpost API using JTW authentication. You can leverage the same API to build your own UI.
+The portal is built using the Outpost API with JWT authentication. You can leverage the same API to build your own UI.
 
-Within this guide we will use the User Portal as a referencPe implementation to a simple UI. You can find the full source code for the User Portal [here](https://github.com/hookdeck/outpost/tree/main/internal/portal).
+Within this guide, we will use the User Portal as a reference implementation for a simple UI. You can find the full source code for the User Portal [here](https://github.com/hookdeck/outpost/tree/main/internal/portal).
 
-In this guide we will assume you are using React (Client-side) to build your own UI but the same principles can be applied to any other framework.
+In this guide, we will assume you are using React (client-side) to build your own UI, but the same principles can be applied to any other framework.
 
 ## Authentication
 
-To perform API calls on behalf of your tenants, you can either generate a JWT token which can be used client-side to make Outpost API calls, or you can proxy any API requets to the Outpost API through your own API. When proxying through your own API, you can ensure the API call is made for the currently authenticated tenant using the API `tenant_id` parameter.
+To perform API calls on behalf of your tenants, you can either generate a JWT token, which can be used client-side to make Outpost API calls, or you can proxy any API requests to the Outpost API through your own API. When proxying through your own API, you can ensure the API call is made for the currently authenticated tenant using the API `tenant_id` parameter.
 
 Proxying through your own API can be useful if you want to limit access to some configuration or functionality of Outpost.
 
-### Generating a JWT token (Optional)
+### Generating a JWT Token (Optional)
 
-You can generate a JWT token by using the [Tenant JTW Token API](/docs/api/tenants#get-tenant-jwt-token).
+You can generate a JWT token by using the [Tenant JWT Token API](/docs/api/tenants#get-tenant-jwt-token).
 
 ```bash
 curl --location 'localhost:3333/api/v1/<TENANT_ID>/token' \
@@ -26,13 +26,13 @@ curl --location 'localhost:3333/api/v1/<TENANT_ID>/token' \
   --header 'Authorization: Bearer <API_KEY>' \
 ```
 
-## Fetching destination type schema
+## Fetching Destination Type Schema
 
-The destination type schema can be fetched using the [Destination Types Schema API](/docs/api/schemas). Can be used to render destination information such as the destination type icon and label. Additionally, the schema includes the destination type configuration fields which can be used to render the destination configuration UI.
+The destination type schema can be fetched using the [Destination Types Schema API](/docs/api/schemas). It can be used to render destination information such as the destination type icon and label. Additionally, the schema includes the destination type configuration fields, which can be used to render the destination configuration UI.
 
-## Listing configured destinations
+## Listing Configured Destinations
 
-Destinations are listed using the [List Destinations API](/docs/api/destinations#list-destinations). Destinations can be listed by type and topic. Since each destination type has different configuration, the `target` field can be used to display a reconizable label for the destination such as the Webhook URL, the SQS queue URL or Hookdeck Source Name associated with the destination. Each destination type will return a sensible `target` value to display.
+Destinations are listed using the [List Destinations API](/docs/api/destinations#list-destinations). Destinations can be listed by type and topic. Since each destination type has different configuration, the `target` field can be used to display a recognizable label for the destination, such as the Webhook URL, the SQS queue URL, or Hookdeck Source Name associated with the destination. Each destination type will return a sensible `target` value to display.
 
 ```tsx
 // React example to fetch and render a list of destinations
@@ -106,13 +106,13 @@ return (
 );
 ```
 
-You can find the source code of the DestinationList.tsx component of the User Portal here: [DestinationList.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/DestinationsList/DestinationList.tsx)
+You can find the source code of the `DestinationList.tsx` component of the User Portal here: [DestinationList.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/DestinationsList/DestinationList.tsx)
 
-## Creating a destination
+## Creating a Destination
 
-To create a destination, the form will require 3 steps, one to choose the destination type, one to select the topics (optional) and one to configure the destination.
+To create a destination, the form will require three steps: one to choose the destination type, one to select the topics (optional), and one to configure the destination.
 
-### Choosing the destination type
+### Choosing the Destination Type
 
 The list of available destination types is rendered from the list of destination types fetched from the API.
 
@@ -173,9 +173,9 @@ return (
 );
 ```
 
-You can find the source code of the CreateDestination.tsx component of the User Portal here: [CreateDestination.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/CreateDestination/CreateDestination.tsx)
+You can find the source code of the `CreateDestination.tsx` component of the User Portal here: [CreateDestination.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/CreateDestination/CreateDestination.tsx)
 
-### Selecting topics
+### Selecting Topics
 
 Available topics are returned from the [List Topics API](/docs/api/topics#list-topics). You can display the list of topics as a list of checkboxes to capture the user input.
 
@@ -215,13 +215,13 @@ return (
 );
 ```
 
-You can find the source code of the TopicPicker.tsx component of the User Portal here: [TopicPicker.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/common/TopicPicker/TopicPicker.tsx)
+You can find the source code of the `TopicPicker.tsx` component of the User Portal here: [TopicPicker.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/common/TopicPicker/TopicPicker.tsx)
 
-### Configuring the destination
+### Configuring the Destination
 
 Using the destination type schema for the selected destination type, you can render a form to create and manage destinations configuration. The configuration fields are found in the `configuration_fields` and `credentials_fields` arrays of the destination type schema.
 
-To render your form you should render all fields from both arrays. Note that the some of the `credentials_fields` will be obfuscated once the destination is created and in order to edit the input, the value must be cleared first.
+To render your form, you should render all fields from both arrays. Note that some of the `credentials_fields` will be obfuscated once the destination is created, and in order to edit the input, the value must be cleared first.
 
 The input field schema is as follows:
 
@@ -238,15 +238,15 @@ type InputField = {
 };
 ```
 
-#### Remote setup URL
+#### Remote Setup URL
 
-Some destination type schema have a `remote_setup_url` property which contains a URL to a page where the destination can be configured. Destination that support remote URL have simplified setup flow that doesn't require instructions. For example, with the Hookdeck destination is user is taken through a setup flow managed by Hookdeck to configure the destination.
+Some destination type schemas have a `remote_setup_url` property that contains a URL to a page where the destination can be configured. Destinations that support remote URLs have a simplified setup flow that doesn't require instructions. For example, with the Hookdeck destination, the user is taken through a setup flow managed by Hookdeck to configure the destination.
 
-The URL is optional but provides better user experience then following sometimes lengthy instructions to configure the destination.
+The URL is optional but provides a better user experience than following sometimes lengthy instructions to configure the destination.
 
 #### Instructions
 
-Each destination type schema has an `instructions` property which contains instructions to configure the destination as a markdown string. Those instructions should be displayed to the user to help them configure the destination as for some destination types such as AWS, the necessary configuration can be complex and require multiple steps by the user within AWS.
+Each destination type schema has an `instructions` property that contains instructions to configure the destination as a markdown string. These instructions should be displayed to the user to help them configure the destination, as for some destination types, such as AWS, the necessary configuration can be complex and require multiple steps by the user within AWS.
 
 Example of a destination configuration form:
 
@@ -331,9 +331,9 @@ const DestinationConfigForm = ({
 };
 ```
 
-You can find the source code of the DestinationConfigForm.tsx component of the User Portal here: [DestinationConfigForm.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/common/DestinationConfigFields/DestinationConfigFields.tsx#L14)
+You can find the source code of the `DestinationConfigForm.tsx` component of the User Portal here: [DestinationConfigForm.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/common/DestinationConfigFields/DestinationConfigFields.tsx#L14)
 
-## Listing events
+## Listing Events
 
 Events are listed using the [List Events API](/docs/api/events#list-events). You can use the `topic` parameter to filter the events by topic or the `destination_id` parameter to filter the events by destination.
 
@@ -372,6 +372,6 @@ return (
 );
 ```
 
-For each event, you can retrieves all it's associated delivery attempts using the [List Event Deliveries Attempts API](/docs/api/event-deliveries-attempts#list-event-deliveries-attempts).
+For each event, you can retrieve all its associated delivery attempts using the [List Event Deliveries Attempts API](/docs/api/event-deliveries-attempts#list-event-deliveries-attempts).
 
-You can find the source code of the Events.tsx component of the User Portal here: [Events.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/Destination/Events/Events.tsx)
+You can find the source code of the `Events.tsx` component of the User Portal here: [Events.tsx](https://github.com/hookdeck/outpost/blob/main/internal/portal/src/scenes/Destination/Events/Events.tsx)
