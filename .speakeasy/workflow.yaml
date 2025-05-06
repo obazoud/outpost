@@ -3,7 +3,7 @@ speakeasyVersion: latest
 sources:
     Outpost API:
         inputs:
-            - location: ./sdks/schemas/hookdeck-schema.yaml
+            - location: ./docs/apis/openapi.yaml
         overlays:
             - location: ./sdks/schemas/speakeasy-modifications-overlay.yaml
             - location: ./sdks/schemas/error-types.yaml
