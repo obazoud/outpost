@@ -1,9 +1,9 @@
 import type { ZudokuConfig } from "zudoku";
-import process from 'node:process';
+import process from "node:process";
 
-import { ApiAuthSideNav } from './src/components/ApiAuthSideNav';
-import { HeadNavigation } from './src/components/HeadNavigation';
-import { htmlPlugin } from './src/plugins/htmlPlugin';
+import { ApiAuthSideNav } from "./src/components/ApiAuthSideNav";
+import { HeadNavigation } from "./src/components/HeadNavigation";
+import { htmlPlugin } from "./src/plugins/htmlPlugin";
 
 const ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT =
   process.env.ZUDOKU_PUBLIC_CUSTOM_HEAD_SCRIPT || "";
@@ -108,10 +108,10 @@ const config: ZudokuConfig = {
           { type: "doc", id: "features/topics" },
           { type: "doc", id: "features/publish-events" },
           { type: "doc", id: "features/event-delivery" },
-          { type: "doc", id: "features/delivery-failure-alerts" },
+          { type: "doc", id: "features/alerts" },
           { type: "doc", id: "features/tenant-user-portal" },
           { type: "doc", id: "features/opentelemetry" },
-          { type: "doc", id: "features/configurable-log-levels" },
+          { type: "doc", id: "features/logging" },
         ],
       },
       {
@@ -150,7 +150,7 @@ const config: ZudokuConfig = {
             type: "doc",
             label: "Building Your Own UI",
             id: "guides/building-your-own-ui",
-          }
+          },
         ],
       },
       {
@@ -175,11 +175,6 @@ const config: ZudokuConfig = {
             href: "api/authentication",
           },
         ],
-      },
-      {
-        type: "doc",
-        label: "Limitations",
-        id: "limitations",
       },
     ],
   },

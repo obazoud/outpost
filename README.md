@@ -29,20 +29,21 @@
 [Report a bug](issues/new?assignees=&labels=bug&projects=&template=bug_report.md&title=%F0%9F%90%9B+Bug+Report%3A+)
 ·
 [Request a feature](issues/new?assignees=&labels=enhancement&projects=&template=feature_request.md&title=%F0%9F%9A%80+Feature%3A+)
+
 <!-- ·
 [Join our Slack](https://hookdeck.com/slack?ref=github-outpost) -->
 
 </div>
 
-Outpost is a self-hosted and open-source infrastructure that enables event producers to add outbound webhooks and Event Destinations to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
+Outpost is a self-hosted and open-source infrastructure that enables event producers to add outbound webhooks and [Event Destinations](https://eventdestinations.org?ref=github-outpost) to their platform with support for destination types such as Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS, GCP Pub/Sub, RabbitMQ, and Kafka.
 
-Learn more about Event Destinations in the [Event Destinations Manifesto](https://eventdestinations.org).
+The Outpost runtime has minimal dependencies (Redis, PostgreSQL or Clickhouse, and one of the supported message queues), is 100% backward compatible with your existing webhooks implementation and is optimized for high-throughput, low-cost operation.
 
-## Architecture
+Outpost is built and maintained by [Hookdeck](https://hookdeck.com?ref=github-outpost). It's written in Go and distributed as a binary and Docker container under the Apache-2.0 license.
 
 ![Outpost architecture](docs/public/images/architecture.png)
 
-See the [Outpost Concepts](https://outpost.hookdeck.com/docs/concepts) for more information.
+Read [Outpost Concepts](https://outpost.hookdeck.com/docs/concepts) to learn more about the Outpost architecture and design.
 
 ## Features
 
@@ -50,15 +51,25 @@ See the [Outpost Concepts](https://outpost.hookdeck.com/docs/concepts) for more 
 - **Publish events via the API or a queue**: Publish events using the Outpost API or configure Outpost to read events from a publish queue.
 - **At least once delivery guarantee**: Messages are guaranteed to be delivered at least once and never lost.
 - **Event fanout**: A message is sent to a topic is replicated and sent to multiple endpoints. This allows for parallel processing and asynchronous event notifications.
-- **User portal**: Allow customers to view metrics, manage, debug, and observe their event destinations.
 - **Automatic and manual retries**: Configure retry strategies for event destinations and manually trigger event delivery retries via the API or user portal.
 - **Multi-tenant support**: Create multiple tenants on a single Outpost deployment.
+- **User portal**: Allow customers to view metrics, manage, debug, and observe their event destinations.
 - **Delivery failure alerts**: Manage event delivery failure alerts.
 - **OpenTelemetry**: OTel standardized traces, metrics, and logs.
 - **Event destination types**: Out of the box support for Webhooks, Hookdeck Event Gateway, Amazon EventBridge, AWS SQS, AWS SNS. GCP Pub/Sub, RabbitMQ, and Kafka.
 - **Webhook best practices**: Opt-out webhook best practices, such as headers for idempotency, timestamp and signature, and signature rotation.
 
 See the [Outpost Features](https://outpost.hookdeck.com/docs/features) for more information.
+
+## Documentation
+
+- [Overview](https://outpost.hookdeck.com/docs/overview)
+- [Concepts](https://outpost.hookdeck.com/docs/concepts)
+- [Quickstarts](https://outpost.hookdeck.com/docs/quickstarts)
+- [Features](https://outpost.hookdeck.com/docs/features)
+- [Guides](https://outpost.hookdeck.com/docs/guides)
+- [API Reference](https://outpost.hookdeck.com/docs/references/api)
+- [Configuration Reference](https://outpost.hookdeck.com/docs/references/configuration)
 
 ## Quickstart
 
@@ -102,7 +113,7 @@ Create a tenant with the following command, replacing `$TENANT_ID` with a unique
 
 > [!TIP]  
 > You can use shell variables to store the tenant ID and API key for easier use in the following commands:
-> 
+>
 > ```sh
 > TENANT_ID=your_org_name
 > API_KEY=your_api_key
@@ -172,16 +183,6 @@ Open the `redirect_url` link to view the Outpost portal.
 ![Dashboard homepage](docs/public/images/dashboard-homepage.png)
 
 Continue to use the [Outpost API](https://outpost.hookdeck.com/docs/references/api) or the Outpost portal to add and test more destinations.
-
-## Documentation
-
-- [Get Started](https://outpost.hookdeck.com/docs/quickstarts)
-- [Overview](https://outpost.hookdeck.com/docs/overview)
-- [Features](https://outpost.hookdeck.com/docs/features)
-- [Guides](https://outpost.hookdeck.com/docs/guides)
-- References
-    - [API Reference](https://outpost.hookdeck.com/docs/references/api)
-    - [Configuration Reference](https://outpost.hookdeck.com/docs/references/configuration)
 
 ## Contributing
 
