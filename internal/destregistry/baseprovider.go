@@ -3,9 +3,11 @@ package destregistry
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
 	"github.com/hookdeck/outpost/internal/models"
@@ -186,4 +188,33 @@ func validateField(field metadata.FieldSchema, value string, path string) *Valid
 // Preprocess is a noop by default
 func (p *BaseProvider) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *PreprocessDestinationOpts) error {
 	return nil
+}
+
+type HTTPClientConfig struct {
+	Timeout   *time.Duration
+	UserAgent *string
+}
+
+func (p *BaseProvider) MakeHTTPClient(config HTTPClientConfig) *http.Client {
+	client := &http.Client{}
+
+	if config.Timeout != nil {
+		client.Timeout = *config.Timeout
+	}
+
+	if config.UserAgent != nil {
+		client.Transport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("User-Agent", *config.UserAgent)
+			return http.DefaultTransport.RoundTrip(req)
+		})
+	}
+
+	return client
+}
+
+// Helper type for custom RoundTripper
+type roundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }

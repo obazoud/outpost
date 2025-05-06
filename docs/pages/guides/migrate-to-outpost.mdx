@@ -2,7 +2,7 @@
 title: "Migrate Existing Webhooks to Outpost"
 ---
 
-This guide will help you migrate your existing webhook infrastructure to Outpost. It assumes that you are migrating from notification infrastructure that only supports webhook event destination types.
+This guide will help you migrate your existing webhook infrastructure to Outpost. It assumes you are migrating from a notification infrastructure that only supports webhook event destination types.
 
 ## Why Migrate to Outpost?
 
@@ -14,25 +14,25 @@ The benefits of migrating to Outpost include:
 
 - **Efficiency gains**
 
-  Reduced failure rates and retried deliveries compared to public HTTP endpoints. Unlock improved performance for high-throughput scenarios.
+  Reduced failure rates and retried delivery compared to public HTTP endpoints. Unlock improved performance for high-throughput scenarios.
 
 - **Protocol flexibility**
 
   Leverage more performant protocols and encodings.
 
-- **Cost & resource efficient**
+- **Cost & resource efficiency**
 
-  Smart retry logic, improved deliverability and scalable infrastructure minimize resource consumption, reducing operational costs while ensuring seamless event delivery at any scale.
+  Smart retry logic, improved deliverability, and scalable infrastructure minimize resource consumption, reducing operational costs while ensuring seamless event delivery at any scale.
 
 ### For Event Consumers:
 
-- **Streamlined infrastructure & operations**
+- **Streamlined infrastructure and operations**
 
   Eliminate the need for API gateways, load balancers, HTTP consumers, and other infrastructure components, reducing maintenance overhead.
 
 - **Reduced developer burden**
 
-  Receive events directly to existing or preferred infrastructure and make use of existing and familiar ecosystem tooling.
+  Receive events directly to existing or preferred infrastructure and use existing and familiar ecosystem tooling.
 
 - **Predictable behavior**
 
@@ -59,8 +59,8 @@ Webhooks are delivered via HTTP `POST` requests.
 ### Webhook Event HTTP Headers
 
 - `x-outpost-event-id`: A unique identifier for the event within the Outpost installation
-- `x-outpost-signature`: The signature generated using the webhook "t=1741787378,v0=86245a49c99fac7f30c616a29530c49cee6291293b38453488b3feb99618ee22",
-- `x-outpost-timestamp`: A Unix timestep representing the time the event was generated
+- `x-outpost-signature`: The signature generated using the webhook secret (e.g., `t=<timestamp>,v0=<signature>`).
+- `x-outpost-timestamp`: A Unix timestamp representing the time the event was generated
 - `x-outpost-topic`: The topic of the event. For example, `user.created`.
 
 The `x-outpost` prefix can be customized. See [Webhook Customization](#webhook-customization).
@@ -99,7 +99,7 @@ Templates use the [Go template syntax](https://pkg.go.dev/text/template).
 
 ### Migration Process
 
-It's recommended to have a test organization within Outpost to test the migration process. This will allow you to test the migration process without delivering events to a customer.
+It's recommended to have a test organization within Outpost, to test the migration process. This will allow you to test the migration process without delivering events to a customer.
 
 First, perform a test migration:
 
@@ -107,20 +107,20 @@ First, perform a test migration:
 
 2. For each organization within your webhook infrastructure, create a tenant in Outpost.
 
-3. Each webhook subscription should map to a destination in Outpost. If webhook subscriptions include topic or event type information then that should be included within the destination resource that is created. Also migrate the webhook secret.
+3. Each webhook subscription should map to a destination in Outpost. If webhook subscriptions include topic or event type information, then that should be included within the destination resource that is created. Also migrate the webhook secret.
 
 4. Migrate your historical event data to Outpost.
 
-5. Test the migration with your test organization. Ensure the events are being delivered to the correct destinations, check the payload and header contents, and ensure the webhook signature format and that they can be verified.
+5. Test the migration with your test organization. Ensure the events are being delivered to the correct destinations, check the payload, header contents, and ensure the webhook signature format and can be verified.
 
 For the full migration, you may need to:
 
-1. Notify your customers of scheduled maintainance ahead of time and again notify them when the maintenance begins and ends.
-2. Stop webhook subscriptions being created.
-3. Ensure any in-flight events complete (either as delivered or a failed delivery) before the migration begins.
-4. Queue the publishing of any events. This works well if you are using a publish message queue with Outpost. If you are using the Outpost API to publish events, you will need to store the events to be triggered once the migration has completed.
+1. Notify your customers of scheduled maintenance ahead of time, and again notify them when the maintenance begins and ends.
+2. Prevent new webhook subscriptions from being created.
+3. Ensure all in-flight events are completed (either delivered or failed) before the migration begins.
+4. Queue any new events for publishing. This works well if you are using a publish message queue with Outpost. If you are using the Outpost API to publish events, you will need to store the events to be published once the migration has completed.
 5. Follow the steps 1 - 4 in the test migration process.
-6. Begin delivering the paused events via Outpost.
+6. Resume delivering the queued events via Outpost.
 
 #### Migrating Historic Event Database
 

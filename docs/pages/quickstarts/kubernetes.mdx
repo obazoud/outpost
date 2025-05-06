@@ -5,7 +5,7 @@ title: "Outpost Quickstart: Kubernetes with RabbitMQ"
 Local Kubernetes setup for Outpost using Minikube. This setup includes:
 
 - Outpost services (API, delivery, and log processors). See the [architecture](/docs/concepts#architecture) for more details.
-- Redis as KV & entity storage
+- Redis as KV and entity storage
 - PostgreSQL as log storage
 - RabbitMQ for message queuing
 
@@ -18,13 +18,13 @@ Local Kubernetes setup for Outpost using Minikube. This setup includes:
 
 ## Setup
 
-1. Clone Outpost:
+1. Clone the Outpost repository:
 
    ```sh
    git clone https://github.com/hookdeck/outpost.git
    ```
 
-2. Start Minikube and create namespace:
+2. Start Minikube and create a namespace:
 
    ```sh
    minikube start
@@ -53,7 +53,7 @@ Local Kubernetes setup for Outpost using Minikube. This setup includes:
 
 ## Verify Installation
 
-1. Setup ingress and tunnel (keep this terminal open):
+1. Set up ingress and tunnel (keep this terminal open):
 
    ```sh
    minikube addons enable ingress
@@ -102,7 +102,7 @@ sudo sed -i '' '/outpost.acme.local/d' /etc/hosts
 
 ## Explore Further
 
-- Publish events to test delivery/log services
+- Publish events to test the delivery and log services
 - Access infrastructure:
 
   ```sh
