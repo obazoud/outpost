@@ -1,0 +1,27 @@
+architecture: standalone
+
+master:
+  persistence:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+replica:
+  replicaCount: 0
+  persistence:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+metrics:
+  enabled: false
