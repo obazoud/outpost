@@ -1,0 +1,575 @@
+lockVersion: 2.0.0
+id: 682bb334-1b61-4b95-9c36-375154179bd0
+management:
+  docChecksum: 35452b03a7656852880f92c8b3a255e9
+  docVersion: 0.0.1
+  speakeasyVersion: 1.541.2
+  generationVersion: 2.595.4
+  releaseVersion: 0.0.1
+  configChecksum: 68675d367a321799c6827f4532ba5e74
+features:
+  python:
+    additionalDependencies: 1.0.0
+    additionalProperties: 1.0.1
+    core: 5.16.0
+    defaultEnabledRetries: 0.2.0
+    enumUnions: 0.1.0
+    envVarSecurityUsage: 0.3.2
+    flatRequests: 1.0.1
+    flattening: 3.1.1
+    globalSecurity: 3.0.3
+    globalSecurityCallbacks: 1.0.0
+    globalSecurityFlattening: 1.0.0
+    globalServerURLs: 3.1.0
+    globals: 3.0.0
+    methodArguments: 1.0.2
+    methodSecurity: 3.0.1
+    nameOverrides: 3.0.1
+    nullables: 1.0.1
+    responseFormat: 1.0.1
+    retries: 3.0.2
+    sdkHooks: 1.0.1
+    unions: 3.0.4
+generatedFiles:
+  - .gitattributes
+  - .python-version
+  - .vscode/settings.json
+  - USAGE.md
+  - docs/errors/badrequesterror.md
+  - docs/errors/internalservererror.md
+  - docs/errors/notfounderror.md
+  - docs/errors/ratelimitederror.md
+  - docs/errors/timeouterrort.md
+  - docs/errors/unauthorizederror.md
+  - docs/models/awssqsconfig.md
+  - docs/models/awssqscredentials.md
+  - docs/models/createtenantdestinationglobals.md
+  - docs/models/createtenantdestinationrequest.md
+  - docs/models/createtenantdestinationsecurity.md
+  - docs/models/deletetenantdestinationglobals.md
+  - docs/models/deletetenantdestinationrequest.md
+  - docs/models/deletetenantdestinationsecurity.md
+  - docs/models/deletetenantglobals.md
+  - docs/models/deletetenantrequest.md
+  - docs/models/deletetenantsecurity.md
+  - docs/models/deliveryattempt.md
+  - docs/models/destination.md
+  - docs/models/destinationawssqs.md
+  - docs/models/destinationawssqstype.md
+  - docs/models/destinationcreate.md
+  - docs/models/destinationcreateawssqs.md
+  - docs/models/destinationcreateawssqstype.md
+  - docs/models/destinationcreaterabbitmq.md
+  - docs/models/destinationcreaterabbitmqtype.md
+  - docs/models/destinationcreatewebhook.md
+  - docs/models/destinationcreatewebhooktype.md
+  - docs/models/destinationid.md
+  - docs/models/destinationoauthredirect.md
+  - docs/models/destinationrabbitmq.md
+  - docs/models/destinationrabbitmqtype.md
+  - docs/models/destinationschemafield.md
+  - docs/models/destinationschemafieldtype.md
+  - docs/models/destinationtypeschema.md
+  - docs/models/destinationupdate.md
+  - docs/models/destinationupdateawssqs.md
+  - docs/models/destinationupdaterabbitmq.md
+  - docs/models/destinationupdatewebhook.md
+  - docs/models/destinationwebhook.md
+  - docs/models/destinationwebhooktype.md
+  - docs/models/disabletenantdestinationglobals.md
+  - docs/models/disabletenantdestinationrequest.md
+  - docs/models/disabletenantdestinationsecurity.md
+  - docs/models/enabletenantdestinationglobals.md
+  - docs/models/enabletenantdestinationrequest.md
+  - docs/models/enabletenantdestinationsecurity.md
+  - docs/models/event.md
+  - docs/models/getdestinationtypeschemajwtrequest.md
+  - docs/models/getdestinationtypeschemajwtsecurity.md
+  - docs/models/getdestinationtypeschemajwttype.md
+  - docs/models/getportalurljwtcontextrequest.md
+  - docs/models/getportalurljwtcontexttheme.md
+  - docs/models/gettenantdestinationglobals.md
+  - docs/models/gettenantdestinationrequest.md
+  - docs/models/gettenantdestinationsecurity.md
+  - docs/models/gettenantdestinationtypeschemaglobals.md
+  - docs/models/gettenantdestinationtypeschemarequest.md
+  - docs/models/gettenantdestinationtypeschemasecurity.md
+  - docs/models/gettenantdestinationtypeschematype.md
+  - docs/models/gettenanteventbydestinationglobals.md
+  - docs/models/gettenanteventbydestinationrequest.md
+  - docs/models/gettenanteventbydestinationsecurity.md
+  - docs/models/gettenanteventglobals.md
+  - docs/models/gettenanteventrequest.md
+  - docs/models/gettenanteventsecurity.md
+  - docs/models/gettenantglobals.md
+  - docs/models/gettenantportalurlglobals.md
+  - docs/models/gettenantportalurlrequest.md
+  - docs/models/gettenantportalurltheme.md
+  - docs/models/gettenantrequest.md
+  - docs/models/gettenantsecurity.md
+  - docs/models/gettenanttokenglobals.md
+  - docs/models/gettenanttokenrequest.md
+  - docs/models/internal/globals.md
+  - docs/models/listdestinationtypeschemasjwtsecurity.md
+  - docs/models/listtenantdestinationsglobals.md
+  - docs/models/listtenantdestinationsrequest.md
+  - docs/models/listtenantdestinationssecurity.md
+  - docs/models/listtenantdestinationstopics.md
+  - docs/models/listtenantdestinationstypeenum1.md
+  - docs/models/listtenantdestinationstypeenum2.md
+  - docs/models/listtenantdestinationtypeschemasglobals.md
+  - docs/models/listtenantdestinationtypeschemasrequest.md
+  - docs/models/listtenantdestinationtypeschemassecurity.md
+  - docs/models/listtenanteventdeliveriesglobals.md
+  - docs/models/listtenanteventdeliveriesrequest.md
+  - docs/models/listtenanteventdeliveriessecurity.md
+  - docs/models/listtenanteventsbydestinationglobals.md
+  - docs/models/listtenanteventsbydestinationrequest.md
+  - docs/models/listtenanteventsbydestinationsecurity.md
+  - docs/models/listtenanteventsbydestinationstatus.md
+  - docs/models/listtenanteventsglobals.md
+  - docs/models/listtenanteventsrequest.md
+  - docs/models/listtenanteventssecurity.md
+  - docs/models/listtenanteventsstatus.md
+  - docs/models/listtenanttopicsglobals.md
+  - docs/models/listtenanttopicsrequest.md
+  - docs/models/listtenanttopicssecurity.md
+  - docs/models/listtopicsjwtsecurity.md
+  - docs/models/portalredirect.md
+  - docs/models/publishrequest.md
+  - docs/models/rabbitmqconfig.md
+  - docs/models/rabbitmqcredentials.md
+  - docs/models/retrytenanteventglobals.md
+  - docs/models/retrytenanteventrequest.md
+  - docs/models/retrytenanteventsecurity.md
+  - docs/models/security.md
+  - docs/models/status.md
+  - docs/models/successresponse.md
+  - docs/models/tenant.md
+  - docs/models/tenanttoken.md
+  - docs/models/tls.md
+  - docs/models/topicsenum.md
+  - docs/models/topicsunion.md
+  - docs/models/type.md
+  - docs/models/updatetenantdestinationglobals.md
+  - docs/models/updatetenantdestinationrequest.md
+  - docs/models/updatetenantdestinationresponse.md
+  - docs/models/updatetenantdestinationsecurity.md
+  - docs/models/upserttenantglobals.md
+  - docs/models/upserttenantrequest.md
+  - docs/models/utils/retryconfig.md
+  - docs/models/webhookconfig.md
+  - docs/models/webhookcredentials.md
+  - docs/models/webhookcredentialsupdate.md
+  - docs/sdks/destinations/README.md
+  - docs/sdks/events/README.md
+  - docs/sdks/health/README.md
+  - docs/sdks/publish/README.md
+  - docs/sdks/schemas/README.md
+  - docs/sdks/sdk/README.md
+  - docs/sdks/tenants/README.md
+  - docs/sdks/topicssdk/README.md
+  - poetry.toml
+  - py.typed
+  - pylintrc
+  - pyproject.toml
+  - scripts/prepare_readme.py
+  - scripts/publish.sh
+  - src/openapi/__init__.py
+  - src/openapi/_hooks/__init__.py
+  - src/openapi/_hooks/sdkhooks.py
+  - src/openapi/_hooks/types.py
+  - src/openapi/_version.py
+  - src/openapi/basesdk.py
+  - src/openapi/destinations.py
+  - src/openapi/errors/__init__.py
+  - src/openapi/errors/apierror.py
+  - src/openapi/errors/badrequest_error.py
+  - src/openapi/errors/internalservererror.py
+  - src/openapi/errors/notfound_error.py
+  - src/openapi/errors/ratelimited_error.py
+  - src/openapi/errors/timeout_error.py
+  - src/openapi/errors/unauthorized_error.py
+  - src/openapi/events.py
+  - src/openapi/health.py
+  - src/openapi/httpclient.py
+  - src/openapi/models/__init__.py
+  - src/openapi/models/awssqsconfig.py
+  - src/openapi/models/awssqscredentials.py
+  - src/openapi/models/createtenantdestinationop.py
+  - src/openapi/models/deletetenantdestinationop.py
+  - src/openapi/models/deletetenantop.py
+  - src/openapi/models/deliveryattempt.py
+  - src/openapi/models/destination.py
+  - src/openapi/models/destinationawssqs.py
+  - src/openapi/models/destinationcreate.py
+  - src/openapi/models/destinationcreateawssqs.py
+  - src/openapi/models/destinationcreaterabbitmq.py
+  - src/openapi/models/destinationcreatewebhook.py
+  - src/openapi/models/destinationoauthredirect.py
+  - src/openapi/models/destinationrabbitmq.py
+  - src/openapi/models/destinationschemafield.py
+  - src/openapi/models/destinationtypeschema.py
+  - src/openapi/models/destinationupdate.py
+  - src/openapi/models/destinationupdateawssqs.py
+  - src/openapi/models/destinationupdaterabbitmq.py
+  - src/openapi/models/destinationupdatewebhook.py
+  - src/openapi/models/destinationwebhook.py
+  - src/openapi/models/disabletenantdestinationop.py
+  - src/openapi/models/enabletenantdestinationop.py
+  - src/openapi/models/event.py
+  - src/openapi/models/getdestinationtypeschemajwtop.py
+  - src/openapi/models/getportalurljwtcontextop.py
+  - src/openapi/models/gettenantdestinationop.py
+  - src/openapi/models/gettenantdestinationtypeschemaop.py
+  - src/openapi/models/gettenanteventbydestinationop.py
+  - src/openapi/models/gettenanteventop.py
+  - src/openapi/models/gettenantop.py
+  - src/openapi/models/gettenantportalurlop.py
+  - src/openapi/models/gettenanttokenop.py
+  - src/openapi/models/internal/__init__.py
+  - src/openapi/models/internal/globals.py
+  - src/openapi/models/listdestinationtypeschemasjwtop.py
+  - src/openapi/models/listtenantdestinationsop.py
+  - src/openapi/models/listtenantdestinationtypeschemasop.py
+  - src/openapi/models/listtenanteventdeliveriesop.py
+  - src/openapi/models/listtenanteventsbydestinationop.py
+  - src/openapi/models/listtenanteventsop.py
+  - src/openapi/models/listtenanttopicsop.py
+  - src/openapi/models/listtopicsjwtop.py
+  - src/openapi/models/portalredirect.py
+  - src/openapi/models/publishrequest.py
+  - src/openapi/models/rabbitmqconfig.py
+  - src/openapi/models/rabbitmqcredentials.py
+  - src/openapi/models/retrytenanteventop.py
+  - src/openapi/models/security.py
+  - src/openapi/models/successresponse.py
+  - src/openapi/models/tenant.py
+  - src/openapi/models/tenanttoken.py
+  - src/openapi/models/topics_union.py
+  - src/openapi/models/updatetenantdestinationop.py
+  - src/openapi/models/upserttenantop.py
+  - src/openapi/models/webhookconfig.py
+  - src/openapi/models/webhookcredentials.py
+  - src/openapi/models/webhookcredentialsupdate.py
+  - src/openapi/publish.py
+  - src/openapi/py.typed
+  - src/openapi/schemas.py
+  - src/openapi/sdk.py
+  - src/openapi/sdkconfiguration.py
+  - src/openapi/tenants.py
+  - src/openapi/topics_sdk.py
+  - src/openapi/types/__init__.py
+  - src/openapi/types/basemodel.py
+  - src/openapi/utils/__init__.py
+  - src/openapi/utils/annotations.py
+  - src/openapi/utils/datetimes.py
+  - src/openapi/utils/enums.py
+  - src/openapi/utils/eventstreaming.py
+  - src/openapi/utils/forms.py
+  - src/openapi/utils/headers.py
+  - src/openapi/utils/logger.py
+  - src/openapi/utils/metadata.py
+  - src/openapi/utils/queryparams.py
+  - src/openapi/utils/requestbodies.py
+  - src/openapi/utils/retries.py
+  - src/openapi/utils/security.py
+  - src/openapi/utils/serializers.py
+  - src/openapi/utils/url.py
+  - src/openapi/utils/values.py
+examples:
+  healthCheck:
+    speakeasy-default-health-check:
+      responses:
+        "200":
+          text/plain: "<value>"
+        "404":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "401":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "408":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "400":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "510":
+          application/json: {"key": "<value>"}
+        "511":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+  upsertTenant:
+    TenantExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "tenant_123", "destinations_count": 5, "topics": ["user.created", "user.deleted"], "created_at": "2024-01-01T00:00:00Z"}
+  getTenant:
+    TenantExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "tenant_123", "destinations_count": 5, "topics": ["user.created", "user.deleted"], "created_at": "2024-01-01T00:00:00Z"}
+  deleteTenant:
+    SuccessExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"success": true}
+  getTenantPortalUrl:
+    PortalRedirectExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: {"redirect_url": "https://webhooks.acme.com/?token=JWT_TOKEN"}
+  getTenantToken:
+    TenantTokenExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"token": "SOME_JWT_TOKEN"}
+  getPortalUrlJwtContext:
+    PortalRedirectExample:
+      responses:
+        "200":
+          application/json: {"redirect_url": "https://webhooks.acme.com/?token=JWT_TOKEN"}
+  getTenantTokenJwtContext:
+    TenantTokenExample:
+      responses:
+        "200":
+          application/json: {"token": "SOME_JWT_TOKEN"}
+  listTenantDestinations:
+    DestinationsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}, {"id": "des_sqs_456", "type": "aws_sqs", "topics": ["*"], "disabled_at": "2024-03-01T12:00:00Z", "created_at": "2024-02-20T11:30:00Z", "config": {"endpoint": "https://sqs.us-west-2.amazonaws.com", "queue_url": "https://sqs.us-west-2.amazonaws.com/123456789012/my-app-queue"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}]
+  createTenantDestination:
+    WebhookCreatedExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      requestBody:
+        application/json: {"id": "user-provided-id", "type": "aws_sqs", "topics": "*", "config": {"endpoint": "https://sqs.us-east-1.amazonaws.com", "queue_url": "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", "session": "AQoDYXdzEPT//////////wEXAMPLE..."}}
+      responses:
+        "201":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456"}}
+  getTenantDestination:
+    WebhookGetExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  updateTenantDestination:
+    DestinationUpdatedExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      requestBody:
+        application/json: {"topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
+      responses:
+        "200":
+          application/json: {"redirect_url": "https://dashboard.hookdeck.com/authorize?token=12313123"}
+    OAuthRedirectExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      requestBody:
+        application/json: {"topics": "*", "config": {"endpoint": "https://sqs.us-east-1.amazonaws.com", "queue_url": "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", "session": "AQoDYXdzEPT//////////wEXAMPLE..."}}
+      responses:
+        "200":
+          application/json: {"redirect_url": "https://dashboard.hookdeck.com/authorize?token=12313123"}
+  deleteTenantDestination:
+    SuccessExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"success": true}
+  enableTenantDestination:
+    WebhookEnabledExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  disableTenantDestination:
+    WebhookDisabledExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": "2024-04-11T21:00:00Z", "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  publishEvent:
+    speakeasy-default-publish-event:
+      requestBody:
+        application/json: {"tenant_id": "<TENANT_ID>", "destination_id": "<DESTINATION_ID>", "topic": "topic.name", "eligible_for_retry": false, "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+      responses:
+        "404":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "403":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "408":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "413":
+          application/json: {"key": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "510":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "511":
+          application/json: {"key": "<value>", "key1": "<value>"}
+  listTenantDestinationTypeSchemas:
+    DestinationTypesExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: [{"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the event to", "validation": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/", "required": true}], "credential_fields": [{"type": "text", "label": "Secret", "description": "The URL to send the event to", "required": false}]}, {"type": "aws_sqs", "label": "AWS SQS", "description": "Send event to an AWS SQS queue", "icon": "<svg />", "instructions": "Enter Queue URL...", "config_fields": [{"type": "text", "label": "Queue URL"}, {"type": "text", "label": "Endpoint"}], "credential_fields": [{"type": "text", "label": "Key"}, {"type": "text", "label": "Secret"}, {"type": "text", "label": "Session"}]}]
+  getTenantDestinationTypeSchema:
+    WebhookSchemaExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          type: "rabbitmq"
+      responses:
+        "200":
+          application/json: {"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the event to", "validation": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/", "required": true}], "credential_fields": [{"type": "text", "label": "Secret", "description": "The URL to send the event to", "required": false}]}
+  listDestinationTypeSchemasJwt:
+    DestinationTypesExample:
+      responses:
+        "200":
+          application/json: [{"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the event to", "validation": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/", "required": true}], "credential_fields": [{"type": "text", "label": "Secret", "description": "The URL to send the event to", "required": false}]}, {"type": "aws_sqs", "label": "AWS SQS", "description": "Send event to an AWS SQS queue", "icon": "<svg />", "instructions": "Enter Queue URL...", "config_fields": [{"type": "text", "label": "Queue URL"}, {"type": "text", "label": "Endpoint"}], "credential_fields": [{"type": "text", "label": "Key"}, {"type": "text", "label": "Secret"}, {"type": "text", "label": "Session"}]}]
+  getDestinationTypeSchemaJwt:
+    WebhookSchemaExample:
+      parameters:
+        path:
+          type: "rabbitmq"
+      responses:
+        "200":
+          application/json: {"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the event to", "validation": "/((([A-Za-z]{3,9}:(?://)?)(?:[-;:&=+$,w]+@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=+$,w]+@)[A-Za-z0-9.-]+)((?:/[+~%/.w-_]*)???(?:[-+=&;%@.w_]*)#?(?:[w]*))?)/", "required": true}], "credential_fields": [{"type": "text", "label": "Secret", "description": "The URL to send the event to", "required": false}]}
+  listTenantTopics:
+    TopicsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+  listTopicsJwt:
+    TopicsListExample:
+      responses:
+        "200":
+          application/json: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+  listTenantEvents:
+    EventsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}, {"id": "evt_789", "destination_id": "des_456", "topic": "order.shipped", "time": "2024-01-02T10:00:00Z", "successful_at": null, "metadata": {"source": "oms"}, "data": {"order_id": "orderid", "tracking": "1Z..."}}]
+  getTenantEvent:
+    EventExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+  listTenantEventDeliveries:
+    DeliveriesListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: [{"delivered_at": "2024-01-01T00:00:05Z", "status": "success", "response_status_code": 200, "response_body": "{\"status\":\"ok\"}", "response_headers": {"content-type": "application/json"}}, {"delivered_at": "2024-01-01T00:00:01Z", "status": "failed", "response_status_code": 503, "response_body": "Service Unavailable", "response_headers": {"content-type": "text/plain"}}]
+  listTenantEventsByDestination:
+    EventsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}, {"id": "evt_789", "destination_id": "des_456", "topic": "order.shipped", "time": "2024-01-02T10:00:00Z", "successful_at": null, "metadata": {"source": "oms"}, "data": {"order_id": "orderid", "tracking": "1Z..."}}]
+  getTenantEventByDestination:
+    EventExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+  retryTenantEvent:
+    speakeasy-default-retry-tenant-event:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "401":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "408":
+          application/json: {"key": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "400":
+          application/json: {"key": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "510":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "511":
+          application/json: {"key": "<value>"}
+examplesVersion: 1.0.1
+generatedTests: {}

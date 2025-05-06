@@ -1,0 +1,10 @@
+# DestinationUpdateRabbitMQ
+
+
+## Fields
+
+| Field                                                                    | Type                                                                     | Required                                                                 | Description                                                              | Example                                                                  |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `topics`                                                                 | [Optional[models.TopicsUnion]](../models/topicsunion.md)                 | :heavy_minus_sign:                                                       | "*" or an array of enabled topics.                                       | *                                                                        |
+| `config`                                                                 | [Optional[models.RabbitMQConfig]](../models/rabbitmqconfig.md)           | :heavy_minus_sign:                                                       | N/A                                                                      |                                                                          |
+| `credentials`                                                            | [Optional[models.RabbitMQCredentials]](../models/rabbitmqcredentials.md) | :heavy_minus_sign:                                                       | N/A                                                                      |                                                                          |

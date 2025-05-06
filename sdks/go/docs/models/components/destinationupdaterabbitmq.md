@@ -1,0 +1,10 @@
+# DestinationUpdateRabbitMQ
+
+
+## Fields
+
+| Field                                                                             | Type                                                                              | Required                                                                          | Description                                                                       | Example                                                                           |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `Topics`                                                                          | [*components.Topics](../../models/components/topics.md)                           | :heavy_minus_sign:                                                                | "*" or an array of enabled topics.                                                | *                                                                                 |
+| `Config`                                                                          | [*components.RabbitMQConfig](../../models/components/rabbitmqconfig.md)           | :heavy_minus_sign:                                                                | N/A                                                                               |                                                                                   |
+| `Credentials`                                                                     | [*components.RabbitMQCredentials](../../models/components/rabbitmqcredentials.md) | :heavy_minus_sign:                                                                | N/A                                                                               |                                                                                   |
