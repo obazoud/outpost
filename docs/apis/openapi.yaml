@@ -703,9 +703,6 @@ components:
         - $ref: "#/components/schemas/DestinationUpdateRabbitMQ"
         - $ref: "#/components/schemas/DestinationUpdateHookdeck"
         - $ref: "#/components/schemas/DestinationUpdateAWSKinesis"
-      # Discriminator not strictly needed for PATCH request body, but good practice
-      discriminator:
-        propertyName: type # Note: type itself cannot be sent in PATCH body
 
     # Event Schemas
     PublishRequest:
