@@ -7,6 +7,8 @@ info:
     name: Outpost Support
     email: support@hookdeck.com
     url: https://outpost.hookdeck.com/docs
+security:
+  - AdminApiKey: []
 servers:
   - url: http://localhost:3333/api/v1
     description: Local development server base path
@@ -926,6 +928,7 @@ paths:
       summary: Health Check
       description: Simple health check endpoint.
       operationId: healthCheck
+      security: []
       responses:
         "200":
           description: Service is healthy.
