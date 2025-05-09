@@ -196,9 +196,9 @@ func New(opts ...SDKOption) *Outpost {
 		sdkConfiguration: sdkConfiguration{
 			Language:          "go",
 			OpenAPIDocVersion: "0.0.1",
-			SDKVersion:        "0.1.0",
+			SDKVersion:        "0.1.1",
 			GenVersion:        "2.598.22",
-			UserAgent:         "speakeasy-sdk/go 0.1.0 2.598.22 0.0.1 client",
+			UserAgent:         "speakeasy-sdk/go 0.1.1 2.598.22 0.0.1 client",
 			Globals:           globals.Globals{},
 			Hooks:             hooks.New(),
 		},
