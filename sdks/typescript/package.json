@@ -1,5 +1,5 @@
 {
-  "name": "openapi",
+  "name": "@hookdeck/outpost-sdk",
   "version": "0.0.1",
   "author": "Speakeasy",
   "type": "module",
@@ -8,7 +8,7 @@
   },
   "tshy": {
     "sourceDialects": [
-      "openapi/source"
+      "outpost-sdk/source"
     ],
     "exports": {
       ".": "./src/index.ts",
@@ -56,7 +56,7 @@
   "exports": {
     ".": {
       "import": {
-        "openapi/source": "./src/index.ts",
+        "outpost-sdk/source": "./src/index.ts",
         "types": "./dist/esm/index.d.ts",
         "default": "./dist/esm/index.js"
       },
@@ -68,7 +68,7 @@
     "./package.json": "./package.json",
     "./types": {
       "import": {
-        "openapi/source": "./src/types/index.ts",
+        "outpost-sdk/source": "./src/types/index.ts",
         "types": "./dist/esm/types/index.d.ts",
         "default": "./dist/esm/types/index.js"
       },
@@ -79,7 +79,7 @@
     },
     "./models/errors": {
       "import": {
-        "openapi/source": "./src/models/errors/index.ts",
+        "outpost-sdk/source": "./src/models/errors/index.ts",
         "types": "./dist/esm/models/errors/index.d.ts",
         "default": "./dist/esm/models/errors/index.js"
       },
@@ -90,7 +90,7 @@
     },
     "./models/components": {
       "import": {
-        "openapi/source": "./src/models/components/index.ts",
+        "outpost-sdk/source": "./src/models/components/index.ts",
         "types": "./dist/esm/models/components/index.d.ts",
         "default": "./dist/esm/models/components/index.js"
       },
@@ -101,7 +101,7 @@
     },
     "./models/operations": {
       "import": {
-        "openapi/source": "./src/models/operations/index.ts",
+        "outpost-sdk/source": "./src/models/operations/index.ts",
         "types": "./dist/esm/models/operations/index.d.ts",
         "default": "./dist/esm/models/operations/index.js"
       },
@@ -112,7 +112,7 @@
     },
     "./*.js": {
       "import": {
-        "openapi/source": "./src/*.ts",
+        "outpost-sdk/source": "./src/*.ts",
         "types": "./dist/esm/*.d.ts",
         "default": "./dist/esm/*.js"
       },
@@ -123,7 +123,7 @@
     },
     "./*": {
       "import": {
-        "openapi/source": "./src/*.ts",
+        "outpost-sdk/source": "./src/*.ts",
         "types": "./dist/esm/*.d.ts",
         "default": "./dist/esm/*.js"
       },
