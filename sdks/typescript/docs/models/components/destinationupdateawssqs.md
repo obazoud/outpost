@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DestinationUpdateAWSSQS } from "openapi/models/components";
+import { DestinationUpdateAWSSQS } from "@hookdeck/outpost-sdk/models/components";
 
 let value: DestinationUpdateAWSSQS = {
   topics: "*",

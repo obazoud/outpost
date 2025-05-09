@@ -19,12 +19,12 @@ Returns a list of JSON-based input schemas for each available destination type. 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.schemas.listTenantDestinationTypes({
+  const result = await outpost.schemas.listTenantDestinationTypes({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -42,15 +42,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasListTenantDestinationTypes } from "openapi/funcs/schemasListTenantDestinationTypes.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasListTenantDestinationTypes } from "@hookdeck/outpost-sdk/funcs/schemasListTenantDestinationTypes.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await schemasListTenantDestinationTypes(sdk, {
+  const res = await schemasListTenantDestinationTypes(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -105,12 +105,12 @@ Returns the input schema for a specific destination type. Requires Admin API Key
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.schemas.get({
+  const result = await outpost.schemas.get({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -129,15 +129,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasGet } from "openapi/funcs/schemasGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasGet } from "@hookdeck/outpost-sdk/funcs/schemasGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await schemasGet(sdk, {
+  const res = await schemasGet(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -193,12 +193,12 @@ Returns a list of JSON-based input schemas for each available destination type (
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.schemas.listDestinationTypesJwt({
+  const result = await outpost.schemas.listDestinationTypesJwt({
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   });
 
@@ -214,15 +214,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasListDestinationTypesJwt } from "openapi/funcs/schemasListDestinationTypesJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasListDestinationTypesJwt } from "@hookdeck/outpost-sdk/funcs/schemasListDestinationTypesJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await schemasListDestinationTypesJwt(sdk, {
+  const res = await schemasListDestinationTypesJwt(outpost, {
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   });
 
@@ -275,12 +275,12 @@ Returns the input schema for a specific destination type (infers tenant from JWT
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.schemas.getDestinationTypeJwt({
+  const result = await outpost.schemas.getDestinationTypeJwt({
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     type: "rabbitmq",
@@ -298,15 +298,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasGetDestinationTypeJwt } from "openapi/funcs/schemasGetDestinationTypeJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasGetDestinationTypeJwt } from "@hookdeck/outpost-sdk/funcs/schemasGetDestinationTypeJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await schemasGetDestinationTypeJwt(sdk, {
+  const res = await schemasGetDestinationTypeJwt(outpost, {
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     type: "rabbitmq",

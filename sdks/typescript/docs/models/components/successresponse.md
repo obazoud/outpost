@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { SuccessResponse } from "openapi/models/components";
+import { SuccessResponse } from "@hookdeck/outpost-sdk/models/components";
 
 let value: SuccessResponse = {
   success: true,

@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { TenantToken } from "openapi/models/components";
+import { TenantToken } from "@hookdeck/outpost-sdk/models/components";
 
 let value: TenantToken = {
   token: "SOME_JWT_TOKEN",

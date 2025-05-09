@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -32,7 +32,7 @@ import { Result } from "../types/fp.js";
  * Triggers a retry for a failed event delivery.
  */
 export function eventsRetry(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.RetryTenantEventSecurity,
   request: operations.RetryTenantEventRequest,
   options?: RequestOptions,
@@ -66,7 +66,7 @@ export function eventsRetry(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.RetryTenantEventSecurity,
   request: operations.RetryTenantEventRequest,
   options?: RequestOptions,

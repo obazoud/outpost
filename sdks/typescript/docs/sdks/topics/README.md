@@ -17,12 +17,12 @@ Returns a list of available event topics configured in the Outpost instance. Req
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.topics.list({
+  const result = await outpost.topics.list({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -40,15 +40,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { topicsList } from "openapi/funcs/topicsList.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { topicsList } from "@hookdeck/outpost-sdk/funcs/topicsList.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await topicsList(sdk, {
+  const res = await topicsList(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -103,12 +103,12 @@ Returns a list of available event topics configured in the Outpost instance (inf
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.topics.listJwt({
+  const result = await outpost.topics.listJwt({
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   });
 
@@ -124,15 +124,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { topicsListJwt } from "openapi/funcs/topicsListJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { topicsListJwt } from "@hookdeck/outpost-sdk/funcs/topicsListJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await topicsListJwt(sdk, {
+  const res = await topicsListJwt(outpost, {
     tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
   });
 

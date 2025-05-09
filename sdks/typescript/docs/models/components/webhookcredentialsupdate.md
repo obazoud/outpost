@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { WebhookCredentialsUpdate } from "openapi/models/components";
+import { WebhookCredentialsUpdate } from "@hookdeck/outpost-sdk/models/components";
 
 let value: WebhookCredentialsUpdate = {};
 ```

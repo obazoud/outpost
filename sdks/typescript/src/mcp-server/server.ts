@@ -3,7 +3,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { SDKOptions } from "../lib/config.js";
 import type { ConsoleLogger } from "./console-logger.js";
 import { createRegisterPrompt } from "./prompts.js";
@@ -31,11 +31,11 @@ export function createMCPServer(deps: {
   serverIdx?: SDKOptions["serverIdx"] | undefined;
 }) {
   const server = new McpServer({
-    name: "SDK",
-    version: "0.0.1",
+    name: "Outpost",
+    version: "0.0.2",
   });
 
-  const client = new SDKCore({
+  const client = new OutpostCore({
     adminApiKey: deps.adminApiKey,
     tenantId: deps.tenantId,
     serverURL: deps.serverURL,

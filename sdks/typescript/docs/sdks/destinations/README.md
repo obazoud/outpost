@@ -45,12 +45,12 @@ Return a list of the destinations for the tenant. The endpoint is not paged.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.list({
+  const result = await outpost.destinations.list({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -68,15 +68,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsList } from "openapi/funcs/destinationsList.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsList } from "@hookdeck/outpost-sdk/funcs/destinationsList.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsList(sdk, {
+  const res = await destinationsList(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -131,12 +131,12 @@ Creates a new destination for the tenant. The request body structure depends on 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.create({
+  const result = await outpost.destinations.create({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -168,15 +168,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsCreate } from "openapi/funcs/destinationsCreate.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsCreate } from "@hookdeck/outpost-sdk/funcs/destinationsCreate.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsCreate(sdk, {
+  const res = await destinationsCreate(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -245,12 +245,12 @@ Retrieves details for a specific destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.get({
+  const result = await outpost.destinations.get({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -269,15 +269,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsGet } from "openapi/funcs/destinationsGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsGet } from "@hookdeck/outpost-sdk/funcs/destinationsGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsGet(sdk, {
+  const res = await destinationsGet(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -333,12 +333,12 @@ Updates the configuration of an existing destination. The request body structure
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.update({
+  const result = await outpost.destinations.update({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -369,15 +369,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsUpdate } from "openapi/funcs/destinationsUpdate.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsUpdate } from "@hookdeck/outpost-sdk/funcs/destinationsUpdate.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsUpdate(sdk, {
+  const res = await destinationsUpdate(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -445,12 +445,12 @@ Deletes a specific destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.delete({
+  const result = await outpost.destinations.delete({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -469,15 +469,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsDelete } from "openapi/funcs/destinationsDelete.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsDelete } from "@hookdeck/outpost-sdk/funcs/destinationsDelete.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsDelete(sdk, {
+  const res = await destinationsDelete(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -533,12 +533,12 @@ Enables a previously disabled destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.enable({
+  const result = await outpost.destinations.enable({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -557,15 +557,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsEnable } from "openapi/funcs/destinationsEnable.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsEnable } from "@hookdeck/outpost-sdk/funcs/destinationsEnable.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsEnable(sdk, {
+  const res = await destinationsEnable(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -621,12 +621,12 @@ Disables a previously enabled destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.destinations.disable({
+  const result = await outpost.destinations.disable({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -645,15 +645,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsDisable } from "openapi/funcs/destinationsDisable.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsDisable } from "@hookdeck/outpost-sdk/funcs/destinationsDisable.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await destinationsDisable(sdk, {
+  const res = await destinationsDisable(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",

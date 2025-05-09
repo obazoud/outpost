@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { RequestOptions } from "../lib/sdks.js";
@@ -30,7 +30,7 @@ import { Result } from "../types/fp.js";
  * Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
  */
 export function topicsListJwt(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTopicsJwtSecurity,
   options?: RequestOptions,
 ): APIPromise<
@@ -63,7 +63,7 @@ export function topicsListJwt(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTopicsJwtSecurity,
   options?: RequestOptions,
 ): Promise<

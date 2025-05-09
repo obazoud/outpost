@@ -23,7 +23,7 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [openapi](#openapi)
+* [Outpost TypeScript SDK](#outpost-typescript-sdk)
   * [SDK Installation](#sdk-installation)
   * [Requirements](#requirements)
   * [SDK Example Usage](#sdk-example-usage)
@@ -45,34 +45,30 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start SDK Installation [installation] -->
 ## SDK Installation
 
-> [!TIP]
-> To finish publishing your SDK to npm and others you must [run your first generation action](https://www.speakeasy.com/docs/github-setup#step-by-step-guide).
-
-
 The SDK can be installed with either [npm](https://www.npmjs.com/), [pnpm](https://pnpm.io/), [bun](https://bun.sh/) or [yarn](https://classic.yarnpkg.com/en/) package managers.
 
 ### NPM
 
 ```bash
-npm add <UNSET>
+npm add @hookdeck/outpost-sdk
 ```
 
 ### PNPM
 
 ```bash
-pnpm add <UNSET>
+pnpm add @hookdeck/outpost-sdk
 ```
 
 ### Bun
 
 ```bash
-bun add <UNSET>
+bun add @hookdeck/outpost-sdk
 ```
 
 ### Yarn
 
 ```bash
-yarn add <UNSET> zod
+yarn add @hookdeck/outpost-sdk zod
 
 # Note that Yarn does not install peer dependencies automatically. You will need
 # to install zod as shown above.
@@ -97,10 +93,10 @@ Add the following server definition to your `claude_desktop_config.json` file:
 ```json
 {
   "mcpServers": {
-    "SDK": {
+    "Outpost": {
       "command": "npx",
       "args": [
-        "-y", "--package", "openapi",
+        "-y", "--package", "@hookdeck/outpost-sdk",
         "--",
         "mcp", "start",
         "--admin-api-key", "...",
@@ -121,10 +117,10 @@ Create a `.cursor/mcp.json` file in your project root with the following content
 ```json
 {
   "mcpServers": {
-    "SDK": {
+    "Outpost": {
       "command": "npx",
       "args": [
-        "-y", "--package", "openapi",
+        "-y", "--package", "@hookdeck/outpost-sdk",
         "--",
         "mcp", "start",
         "--admin-api-key", "...",
@@ -164,7 +160,7 @@ If the repo is a private repo you must add your Github PAT to download a release
 For a full list of server arguments, run:
 
 ```sh
-npx -y --package openapi -- mcp start --help
+npx -y --package @hookdeck/outpost-sdk -- mcp start --help
 ```
 <!-- End SDK Installation [installation] -->
 
@@ -180,14 +176,12 @@ For supported JavaScript runtimes, please consult [RUNTIMES.md](RUNTIMES.md).
 ### Example
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -211,14 +205,14 @@ This SDK supports the following security scheme globally:
 
 To authenticate with the API the `adminApiKey` parameter must be set when initializing the SDK client instance. For example:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -232,12 +226,12 @@ run();
 
 Some operations in this SDK require the security scheme to be specified at the request level. For example:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.tenants.get({}, {
+  const result = await outpost.tenants.get({}, {
     tenantId: "<id>",
   });
 
@@ -279,6 +273,7 @@ run();
 
 * [check](docs/sdks/health/README.md#check) - Health Check
 
+
 ### [publish](docs/sdks/publish/README.md)
 
 * [event](docs/sdks/publish/README.md#event) - Publish Event
@@ -289,7 +284,6 @@ run();
 * [get](docs/sdks/schemas/README.md#get) - Get Destination Type Schema (for Tenant)
 * [listDestinationTypesJwt](docs/sdks/schemas/README.md#listdestinationtypesjwt) - List Destination Type Schemas (JWT Auth)
 * [getDestinationTypeJwt](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema (JWT Auth)
-
 
 ### [tenants](docs/sdks/tenants/README.md)
 
@@ -375,14 +369,14 @@ The following global parameter is available.
 ### Example
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.upsert({
+  const result = await outpost.tenants.upsert({
     tenantId: "<id>",
   });
 
@@ -402,14 +396,12 @@ Some of the endpoints in this SDK support retries.  If you use the SDK without a
 
 To change the default retry strategy for a single API call, simply provide a retryConfig object to the call:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check({
+  const result = await outpost.health.check({
     retries: {
       strategy: "backoff",
       backoff: {
@@ -432,9 +424,9 @@ run();
 
 If you'd like to override the default retry strategy for all operations that support retries, you can provide a retryConfig at SDK initialization:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   retryConfig: {
     strategy: "backoff",
     backoff: {
@@ -445,11 +437,10 @@ const sdk = new SDK({
     },
     retryConnectionErrors: false,
   },
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -482,7 +473,7 @@ Some methods specify known errors which can be thrown. All the known errors are 
 If the method throws an error and it is not captured by the known errors, it will default to throwing a `APIError`.
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 import {
   BadRequestError,
   InternalServerError,
@@ -491,16 +482,14 @@ import {
   SDKValidationError,
   TimeoutError,
   UnauthorizedError,
-} from "openapi/models/errors";
+} from "@hookdeck/outpost-sdk/models/errors";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
   let result;
   try {
-    result = await sdk.health.check();
+    result = await outpost.health.check();
 
     // Handle the result
     console.log(result);
@@ -596,15 +585,14 @@ In some rare cases, the SDK can fail to get a response from the server or even m
 
 The default server can be overridden globally by passing a URL to the `serverURL: string` optional parameter when initializing the SDK client instance. For example:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   serverURL: "http://localhost:3333/api/v1",
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -633,8 +621,8 @@ custom header and a timeout to requests and how to use the `"requestError"` hook
 to log errors:
 
 ```typescript
-import { SDK } from "openapi";
-import { HTTPClient } from "openapi/lib/http";
+import { Outpost } from "@hookdeck/outpost-sdk";
+import { HTTPClient } from "@hookdeck/outpost-sdk/lib/http";
 
 const httpClient = new HTTPClient({
   // fetcher takes a function that has the same signature as native `fetch`.
@@ -660,7 +648,7 @@ httpClient.addHook("requestError", (error, request) => {
   console.groupEnd();
 });
 
-const sdk = new SDK({ httpClient });
+const sdk = new Outpost({ httpClient });
 ```
 <!-- End Custom HTTP Client [http-client] -->
 
@@ -675,9 +663,9 @@ You can pass a logger that matches `console`'s interface as an SDK option.
 > Beware that debug logging will reveal secrets, like API tokens in headers, in log messages printed to a console or files. It's recommended to use this feature only during local development and not in production.
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({ debugLogger: console });
+const sdk = new Outpost({ debugLogger: console });
 ```
 <!-- End Debugging [debug] -->
 

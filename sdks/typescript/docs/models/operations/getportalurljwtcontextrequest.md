@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { GetPortalUrlJwtContextRequest } from "openapi/models/operations";
+import { GetPortalUrlJwtContextRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetPortalUrlJwtContextRequest = {};
 ```

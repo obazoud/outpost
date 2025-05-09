@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -33,7 +33,7 @@ import { Result } from "../types/fp.js";
  * Retrieves a list of delivery attempts for a specific event, including response details.
  */
 export function eventsListDeliveries(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantEventDeliveriesSecurity,
   request: operations.ListTenantEventDeliveriesRequest,
   options?: RequestOptions,
@@ -67,7 +67,7 @@ export function eventsListDeliveries(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantEventDeliveriesSecurity,
   request: operations.ListTenantEventDeliveriesRequest,
   options?: RequestOptions,

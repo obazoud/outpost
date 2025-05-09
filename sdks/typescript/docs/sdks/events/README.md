@@ -21,12 +21,12 @@ Retrieves a list of events for the tenant, supporting cursor navigation (details
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.events.list({
+  const result = await outpost.events.list({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -44,15 +44,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsList } from "openapi/funcs/eventsList.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsList } from "@hookdeck/outpost-sdk/funcs/eventsList.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsList(sdk, {
+  const res = await eventsList(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -107,12 +107,12 @@ Retrieves details for a specific event.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.events.get({
+  const result = await outpost.events.get({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -131,15 +131,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsGet } from "openapi/funcs/eventsGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsGet } from "@hookdeck/outpost-sdk/funcs/eventsGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsGet(sdk, {
+  const res = await eventsGet(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -195,12 +195,12 @@ Retrieves a list of delivery attempts for a specific event, including response d
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.events.listDeliveries({
+  const result = await outpost.events.listDeliveries({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -219,15 +219,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsListDeliveries } from "openapi/funcs/eventsListDeliveries.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsListDeliveries } from "@hookdeck/outpost-sdk/funcs/eventsListDeliveries.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsListDeliveries(sdk, {
+  const res = await eventsListDeliveries(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -283,12 +283,12 @@ Retrieves events associated with a specific destination for the tenant.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.events.listByDestination({
+  const result = await outpost.events.listByDestination({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -307,15 +307,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsListByDestination } from "openapi/funcs/eventsListByDestination.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsListByDestination } from "@hookdeck/outpost-sdk/funcs/eventsListByDestination.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsListByDestination(sdk, {
+  const res = await eventsListByDestination(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -371,12 +371,12 @@ Retrieves a specific event associated with a specific destination for the tenant
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.events.getByDestination({
+  const result = await outpost.events.getByDestination({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -396,15 +396,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsGetByDestination } from "openapi/funcs/eventsGetByDestination.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsGetByDestination } from "@hookdeck/outpost-sdk/funcs/eventsGetByDestination.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsGetByDestination(sdk, {
+  const res = await eventsGetByDestination(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -461,12 +461,12 @@ Triggers a retry for a failed event delivery.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  await sdk.events.retry({
+  await outpost.events.retry({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -485,15 +485,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { eventsRetry } from "openapi/funcs/eventsRetry.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { eventsRetry } from "@hookdeck/outpost-sdk/funcs/eventsRetry.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await eventsRetry(sdk, {
+  const res = await eventsRetry(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",

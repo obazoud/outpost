@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -32,7 +32,7 @@ import { Result } from "../types/fp.js";
  * Returns a list of available event topics configured in the Outpost instance. Requires Admin API Key or Tenant JWT.
  */
 export function topicsList(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantTopicsSecurity,
   request: operations.ListTenantTopicsRequest,
   options?: RequestOptions,
@@ -66,7 +66,7 @@ export function topicsList(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantTopicsSecurity,
   request: operations.ListTenantTopicsRequest,
   options?: RequestOptions,

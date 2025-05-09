@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeFormQuery, encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -33,7 +33,7 @@ import { Result } from "../types/fp.js";
  * Retrieves events associated with a specific destination for the tenant.
  */
 export function eventsListByDestination(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantEventsByDestinationSecurity,
   request: operations.ListTenantEventsByDestinationRequest,
   options?: RequestOptions,
@@ -67,7 +67,7 @@ export function eventsListByDestination(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListTenantEventsByDestinationSecurity,
   request: operations.ListTenantEventsByDestinationRequest,
   options?: RequestOptions,

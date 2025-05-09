@@ -3,13 +3,13 @@
 ## Example Usage
 
 ```typescript
-import { ListTenantDestinationsTypeEnum1 } from "openapi/models/operations";
+import { ListTenantDestinationsTypeEnum1 } from "@hookdeck/outpost-sdk/models/operations";
 
-let value: ListTenantDestinationsTypeEnum1 = "aws_sqs";
+let value: ListTenantDestinationsTypeEnum1 = "rabbitmq";
 ```
 
 ## Values
 
 ```typescript
-"webhook" | "aws_sqs" | "rabbitmq"
+"webhook" | "aws_sqs" | "rabbitmq" | "hookdeck" | "aws_kinesis"
 ```

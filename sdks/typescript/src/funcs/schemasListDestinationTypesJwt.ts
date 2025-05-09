@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { RequestOptions } from "../lib/sdks.js";
@@ -31,7 +31,7 @@ import { Result } from "../types/fp.js";
  * Returns a list of JSON-based input schemas for each available destination type (infers tenant from JWT).
  */
 export function schemasListDestinationTypesJwt(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListDestinationTypeSchemasJwtSecurity,
   options?: RequestOptions,
 ): APIPromise<
@@ -64,7 +64,7 @@ export function schemasListDestinationTypesJwt(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   security: operations.ListDestinationTypeSchemasJwtSecurity,
   options?: RequestOptions,
 ): Promise<

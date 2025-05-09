@@ -25,14 +25,14 @@ Idempotently creates or updates a tenant. Required before associating destinatio
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.upsert({
+  const result = await outpost.tenants.upsert({
     tenantId: "<id>",
   });
 
@@ -48,17 +48,17 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsUpsert } from "openapi/funcs/tenantsUpsert.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsUpsert } from "@hookdeck/outpost-sdk/funcs/tenantsUpsert.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
+const outpost = new OutpostCore({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const res = await tenantsUpsert(sdk, {
+  const res = await tenantsUpsert(outpost, {
     tenantId: "<id>",
   });
 
@@ -111,12 +111,12 @@ Retrieves details for a specific tenant.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.tenants.get({
+  const result = await outpost.tenants.get({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -134,15 +134,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsGet } from "openapi/funcs/tenantsGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsGet } from "@hookdeck/outpost-sdk/funcs/tenantsGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await tenantsGet(sdk, {
+  const res = await tenantsGet(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -197,12 +197,12 @@ Deletes the tenant and all associated destinations.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.tenants.delete({
+  const result = await outpost.tenants.delete({
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -220,15 +220,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsDelete } from "openapi/funcs/tenantsDelete.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsDelete } from "@hookdeck/outpost-sdk/funcs/tenantsDelete.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await tenantsDelete(sdk, {
+  const res = await tenantsDelete(outpost, {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   }, {
     tenantId: "<id>",
@@ -283,14 +283,14 @@ Returns a redirect URL containing a JWT to authenticate the user with the portal
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.getPortalUrl({
+  const result = await outpost.tenants.getPortalUrl({
     tenantId: "<id>",
   });
 
@@ -306,17 +306,17 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsGetPortalUrl } from "openapi/funcs/tenantsGetPortalUrl.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsGetPortalUrl } from "@hookdeck/outpost-sdk/funcs/tenantsGetPortalUrl.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
+const outpost = new OutpostCore({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const res = await tenantsGetPortalUrl(sdk, {
+  const res = await tenantsGetPortalUrl(outpost, {
     tenantId: "<id>",
   });
 
@@ -368,14 +368,14 @@ Returns a JWT token scoped to the tenant for safe browser API calls.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.getToken({
+  const result = await outpost.tenants.getToken({
     tenantId: "<id>",
   });
 
@@ -391,17 +391,17 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsGetToken } from "openapi/funcs/tenantsGetToken.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsGetToken } from "@hookdeck/outpost-sdk/funcs/tenantsGetToken.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
+const outpost = new OutpostCore({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const res = await tenantsGetToken(sdk, {
+  const res = await tenantsGetToken(outpost, {
     tenantId: "<id>",
   });
 
@@ -453,14 +453,14 @@ Returns a redirect URL containing a JWT to authenticate the user with the portal
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.getPortalUrlJwtContext({});
+  const result = await outpost.tenants.getPortalUrlJwtContext({});
 
   // Handle the result
   console.log(result);
@@ -474,17 +474,17 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsGetPortalUrlJwtContext } from "openapi/funcs/tenantsGetPortalUrlJwtContext.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsGetPortalUrlJwtContext } from "@hookdeck/outpost-sdk/funcs/tenantsGetPortalUrlJwtContext.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
+const outpost = new OutpostCore({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const res = await tenantsGetPortalUrlJwtContext(sdk, {});
+  const res = await tenantsGetPortalUrlJwtContext(outpost, {});
 
   if (!res.ok) {
     throw res.error;
@@ -534,14 +534,14 @@ Returns a JWT token scoped to the tenant (infers tenant from JWT). Requires Admi
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.tenants.getTokenJwtContext();
+  const result = await outpost.tenants.getTokenJwtContext();
 
   // Handle the result
   console.log(result);
@@ -555,17 +555,17 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { tenantsGetTokenJwtContext } from "openapi/funcs/tenantsGetTokenJwtContext.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { tenantsGetTokenJwtContext } from "@hookdeck/outpost-sdk/funcs/tenantsGetTokenJwtContext.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
+const outpost = new OutpostCore({
   adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const res = await tenantsGetTokenJwtContext(sdk);
+  const res = await tenantsGetTokenJwtContext(outpost);
 
   if (!res.ok) {
     throw res.error;

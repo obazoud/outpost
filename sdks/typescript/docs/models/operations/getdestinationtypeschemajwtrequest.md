@@ -3,10 +3,10 @@
 ## Example Usage
 
 ```typescript
-import { GetDestinationTypeSchemaJwtRequest } from "openapi/models/operations";
+import { GetDestinationTypeSchemaJwtRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetDestinationTypeSchemaJwtRequest = {
-  type: "rabbitmq",
+  type: "hookdeck",
 };
 ```
 

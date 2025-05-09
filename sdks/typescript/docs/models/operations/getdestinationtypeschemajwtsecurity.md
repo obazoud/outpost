@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { GetDestinationTypeSchemaJwtSecurity } from "openapi/models/operations";
+import { GetDestinationTypeSchemaJwtSecurity } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetDestinationTypeSchemaJwtSecurity = {
   tenantJwt: "<value>",

@@ -19,18 +19,16 @@ specific category of applications.
 ## Example
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { healthCheck } from "openapi/funcs/healthCheck.js";
-import { SDKValidationError } from "openapi/models/errors/sdkvalidationerror.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { healthCheck } from "@hookdeck/outpost-sdk/funcs/healthCheck.js";
+import { SDKValidationError } from "@hookdeck/outpost-sdk/models/errors/sdkvalidationerror.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await healthCheck(sdk);
+  const res = await healthCheck(outpost);
 
   switch (true) {
     case res.ok:
