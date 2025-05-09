@@ -8,6 +8,9 @@ on:
 jobs:
   update-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     # Prevent running on forks for release trigger to avoid duplicate runs
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && !github.event.release.prerelease)
 
@@ -22,6 +25,8 @@ jobs:
 
       - name: Determine Version
         id: get_version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
             VERSION="${{ github.event.release.tag_name }}"
@@ -85,4 +90,4 @@ jobs:
             echo "Pull request created."
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
