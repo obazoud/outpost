@@ -3,13 +3,13 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeFormQuery, encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
-import { resolveSecurity } from "../lib/security.js";
+import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
 import * as components from "../models/components/index.js";
 import { APIError } from "../models/errors/apierror.js";
@@ -33,8 +33,7 @@ import { Result } from "../types/fp.js";
  * Retrieves a list of events for the tenant, supporting cursor navigation (details TBD) and filtering.
  */
 export function eventsList(
-  client: SDKCore,
-  security: operations.ListTenantEventsSecurity,
+  client: OutpostCore,
   request: operations.ListTenantEventsRequest,
   options?: RequestOptions,
 ): APIPromise<
@@ -60,15 +59,13 @@ export function eventsList(
 > {
   return new APIPromise($do(
     client,
-    security,
     request,
     options,
   ));
 }
 
 async function $do(
-  client: SDKCore,
-  security: operations.ListTenantEventsSecurity,
+  client: OutpostCore,
   request: operations.ListTenantEventsRequest,
   options?: RequestOptions,
 ): Promise<
@@ -125,31 +122,17 @@ async function $do(
     Accept: "application/json",
   }));
 
-  const requestSecurity = resolveSecurity(
-    [
-      {
-        fieldName: "Authorization",
-        type: "http:bearer",
-        value: security?.adminApiKey,
-      },
-    ],
-    [
-      {
-        fieldName: "Authorization",
-        type: "http:bearer",
-        value: security?.tenantJwt,
-      },
-    ],
-  );
+  const securityInput = await extractSecurity(client._options.security);
+  const requestSecurity = resolveGlobalSecurity(securityInput);
 
   const context = {
     baseURL: options?.serverURL ?? client._baseURL ?? "",
     operationID: "listTenantEvents",
-    oAuth2Scopes: null,
+    oAuth2Scopes: [],
 
     resolvedSecurity: requestSecurity,
 
-    securitySource: security,
+    securitySource: client._options.security,
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },

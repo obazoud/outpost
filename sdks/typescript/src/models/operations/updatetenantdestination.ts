@@ -13,11 +13,6 @@ export type UpdateTenantDestinationGlobals = {
   tenantId?: string | undefined;
 };
 
-export type UpdateTenantDestinationSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 export type UpdateTenantDestinationRequest = {
   /**
    * The ID of the tenant. Required when using AdminApiKey authentication.
@@ -33,9 +28,7 @@ export type UpdateTenantDestinationRequest = {
 /**
  * Destination updated successfully or OAuth redirect needed.
  */
-export type UpdateTenantDestinationResponse =
-  | components.DestinationOAuthRedirect
-  | components.Destination;
+export type UpdateTenantDestinationResponse = components.Destination;
 
 /** @internal */
 export const UpdateTenantDestinationGlobals$inboundSchema: z.ZodType<
@@ -98,75 +91,6 @@ export function updateTenantDestinationGlobalsFromJSON(
     jsonString,
     (x) => UpdateTenantDestinationGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'UpdateTenantDestinationGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const UpdateTenantDestinationSecurity$inboundSchema: z.ZodType<
-  UpdateTenantDestinationSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type UpdateTenantDestinationSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const UpdateTenantDestinationSecurity$outboundSchema: z.ZodType<
-  UpdateTenantDestinationSecurity$Outbound,
-  z.ZodTypeDef,
-  UpdateTenantDestinationSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace UpdateTenantDestinationSecurity$ {
-  /** @deprecated use `UpdateTenantDestinationSecurity$inboundSchema` instead. */
-  export const inboundSchema = UpdateTenantDestinationSecurity$inboundSchema;
-  /** @deprecated use `UpdateTenantDestinationSecurity$outboundSchema` instead. */
-  export const outboundSchema = UpdateTenantDestinationSecurity$outboundSchema;
-  /** @deprecated use `UpdateTenantDestinationSecurity$Outbound` instead. */
-  export type Outbound = UpdateTenantDestinationSecurity$Outbound;
-}
-
-export function updateTenantDestinationSecurityToJSON(
-  updateTenantDestinationSecurity: UpdateTenantDestinationSecurity,
-): string {
-  return JSON.stringify(
-    UpdateTenantDestinationSecurity$outboundSchema.parse(
-      updateTenantDestinationSecurity,
-    ),
-  );
-}
-
-export function updateTenantDestinationSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<UpdateTenantDestinationSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => UpdateTenantDestinationSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'UpdateTenantDestinationSecurity' from JSON`,
   );
 }
 
@@ -249,25 +173,18 @@ export const UpdateTenantDestinationResponse$inboundSchema: z.ZodType<
   UpdateTenantDestinationResponse,
   z.ZodTypeDef,
   unknown
-> = z.union([
-  components.DestinationOAuthRedirect$inboundSchema,
-  components.Destination$inboundSchema,
-]);
+> = components.Destination$inboundSchema;
 
 /** @internal */
 export type UpdateTenantDestinationResponse$Outbound =
-  | components.DestinationOAuthRedirect$Outbound
-  | components.Destination$Outbound;
+  components.Destination$Outbound;
 
 /** @internal */
 export const UpdateTenantDestinationResponse$outboundSchema: z.ZodType<
   UpdateTenantDestinationResponse$Outbound,
   z.ZodTypeDef,
   UpdateTenantDestinationResponse
-> = z.union([
-  components.DestinationOAuthRedirect$outboundSchema,
-  components.Destination$outboundSchema,
-]);
+> = components.Destination$outboundSchema;
 
 /**
  * @internal

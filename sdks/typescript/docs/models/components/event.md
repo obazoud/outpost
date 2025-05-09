@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { Event } from "openapi/models/components";
+import { Event } from "@hookdeck/outpost-sdk/models/components";
 
 let value: Event = {
   id: "evt_123",

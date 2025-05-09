@@ -3,11 +3,11 @@
 ## Example Usage
 
 ```typescript
-import { GetTenantDestinationTypeSchemaRequest } from "openapi/models/operations";
+import { GetTenantDestinationTypeSchemaRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetTenantDestinationTypeSchemaRequest = {
   tenantId: "<id>",
-  type: "rabbitmq",
+  type: "hookdeck",
 };
 ```
 

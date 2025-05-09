@@ -13,11 +13,6 @@ export type GetTenantDestinationTypeSchemaGlobals = {
   tenantId?: string | undefined;
 };
 
-export type GetTenantDestinationTypeSchemaSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 /**
  * The type of the destination.
  */
@@ -25,6 +20,8 @@ export const GetTenantDestinationTypeSchemaType = {
   Webhook: "webhook",
   AwsSqs: "aws_sqs",
   Rabbitmq: "rabbitmq",
+  Hookdeck: "hookdeck",
+  AwsKinesis: "aws_kinesis",
 } as const;
 /**
  * The type of the destination.
@@ -108,79 +105,6 @@ export function getTenantDestinationTypeSchemaGlobalsFromJSON(
     (x) =>
       GetTenantDestinationTypeSchemaGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'GetTenantDestinationTypeSchemaGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const GetTenantDestinationTypeSchemaSecurity$inboundSchema: z.ZodType<
-  GetTenantDestinationTypeSchemaSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type GetTenantDestinationTypeSchemaSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const GetTenantDestinationTypeSchemaSecurity$outboundSchema: z.ZodType<
-  GetTenantDestinationTypeSchemaSecurity$Outbound,
-  z.ZodTypeDef,
-  GetTenantDestinationTypeSchemaSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace GetTenantDestinationTypeSchemaSecurity$ {
-  /** @deprecated use `GetTenantDestinationTypeSchemaSecurity$inboundSchema` instead. */
-  export const inboundSchema =
-    GetTenantDestinationTypeSchemaSecurity$inboundSchema;
-  /** @deprecated use `GetTenantDestinationTypeSchemaSecurity$outboundSchema` instead. */
-  export const outboundSchema =
-    GetTenantDestinationTypeSchemaSecurity$outboundSchema;
-  /** @deprecated use `GetTenantDestinationTypeSchemaSecurity$Outbound` instead. */
-  export type Outbound = GetTenantDestinationTypeSchemaSecurity$Outbound;
-}
-
-export function getTenantDestinationTypeSchemaSecurityToJSON(
-  getTenantDestinationTypeSchemaSecurity:
-    GetTenantDestinationTypeSchemaSecurity,
-): string {
-  return JSON.stringify(
-    GetTenantDestinationTypeSchemaSecurity$outboundSchema.parse(
-      getTenantDestinationTypeSchemaSecurity,
-    ),
-  );
-}
-
-export function getTenantDestinationTypeSchemaSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<GetTenantDestinationTypeSchemaSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      GetTenantDestinationTypeSchemaSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'GetTenantDestinationTypeSchemaSecurity' from JSON`,
   );
 }
 

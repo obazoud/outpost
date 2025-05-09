@@ -19,13 +19,11 @@ export class Schemas extends ClientSDK {
    * Returns a list of JSON-based input schemas for each available destination type. Requires Admin API Key or Tenant JWT.
    */
   async listTenantDestinationTypes(
-    security: operations.ListTenantDestinationTypeSchemasSecurity,
     request: operations.ListTenantDestinationTypeSchemasRequest,
     options?: RequestOptions,
   ): Promise<Array<components.DestinationTypeSchema>> {
     return unwrapAsync(schemasListTenantDestinationTypes(
       this,
-      security,
       request,
       options,
     ));
@@ -38,13 +36,11 @@ export class Schemas extends ClientSDK {
    * Returns the input schema for a specific destination type. Requires Admin API Key or Tenant JWT.
    */
   async get(
-    security: operations.GetTenantDestinationTypeSchemaSecurity,
     request: operations.GetTenantDestinationTypeSchemaRequest,
     options?: RequestOptions,
   ): Promise<components.DestinationTypeSchema> {
     return unwrapAsync(schemasGet(
       this,
-      security,
       request,
       options,
     ));
@@ -57,30 +53,26 @@ export class Schemas extends ClientSDK {
    * Returns a list of JSON-based input schemas for each available destination type (infers tenant from JWT).
    */
   async listDestinationTypesJwt(
-    security: operations.ListDestinationTypeSchemasJwtSecurity,
     options?: RequestOptions,
   ): Promise<Array<components.DestinationTypeSchema>> {
     return unwrapAsync(schemasListDestinationTypesJwt(
       this,
-      security,
       options,
     ));
   }
 
   /**
-   * Get Destination Type Schema (JWT Auth)
+   * Get Destination Type Schema
    *
    * @remarks
-   * Returns the input schema for a specific destination type (infers tenant from JWT).
+   * Returns the input schema for a specific destination type.
    */
   async getDestinationTypeJwt(
-    security: operations.GetDestinationTypeSchemaJwtSecurity,
-    request: operations.GetDestinationTypeSchemaJwtRequest,
+    request: operations.GetDestinationTypeSchemaRequest,
     options?: RequestOptions,
   ): Promise<components.DestinationTypeSchema> {
     return unwrapAsync(schemasGetDestinationTypeJwt(
       this,
-      security,
       request,
       options,
     ));

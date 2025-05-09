@@ -12,11 +12,6 @@ export type DeleteTenantGlobals = {
   tenantId?: string | undefined;
 };
 
-export type DeleteTenantSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 export type DeleteTenantRequest = {
   /**
    * The ID of the tenant. Required when using AdminApiKey authentication.
@@ -83,73 +78,6 @@ export function deleteTenantGlobalsFromJSON(
     jsonString,
     (x) => DeleteTenantGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'DeleteTenantGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const DeleteTenantSecurity$inboundSchema: z.ZodType<
-  DeleteTenantSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type DeleteTenantSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const DeleteTenantSecurity$outboundSchema: z.ZodType<
-  DeleteTenantSecurity$Outbound,
-  z.ZodTypeDef,
-  DeleteTenantSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace DeleteTenantSecurity$ {
-  /** @deprecated use `DeleteTenantSecurity$inboundSchema` instead. */
-  export const inboundSchema = DeleteTenantSecurity$inboundSchema;
-  /** @deprecated use `DeleteTenantSecurity$outboundSchema` instead. */
-  export const outboundSchema = DeleteTenantSecurity$outboundSchema;
-  /** @deprecated use `DeleteTenantSecurity$Outbound` instead. */
-  export type Outbound = DeleteTenantSecurity$Outbound;
-}
-
-export function deleteTenantSecurityToJSON(
-  deleteTenantSecurity: DeleteTenantSecurity,
-): string {
-  return JSON.stringify(
-    DeleteTenantSecurity$outboundSchema.parse(deleteTenantSecurity),
-  );
-}
-
-export function deleteTenantSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<DeleteTenantSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => DeleteTenantSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'DeleteTenantSecurity' from JSON`,
   );
 }
 

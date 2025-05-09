@@ -5,7 +5,7 @@ Timeouts occurred with the request
 ## Example Usage
 
 ```typescript
-import { TimeoutError } from "openapi/models/errors";
+import { TimeoutError } from "@hookdeck/outpost-sdk/models/errors";
 
 // No examples available for this model
 ```

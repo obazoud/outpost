@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { WebhookCredentials } from "openapi/models/components";
+import { WebhookCredentials } from "@hookdeck/outpost-sdk/models/components";
 
 let value: WebhookCredentials = {
   secret: "whsec_abc123",

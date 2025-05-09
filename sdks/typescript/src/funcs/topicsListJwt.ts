@@ -3,11 +3,11 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { RequestOptions } from "../lib/sdks.js";
-import { resolveSecurity } from "../lib/security.js";
+import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
 import { APIError } from "../models/errors/apierror.js";
 import {
@@ -19,19 +19,17 @@ import {
 } from "../models/errors/httpclienterrors.js";
 import * as errors from "../models/errors/index.js";
 import { SDKValidationError } from "../models/errors/sdkvalidationerror.js";
-import * as operations from "../models/operations/index.js";
 import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * List Available Topics (JWT Auth)
+ * List Available Topics)
  *
  * @remarks
- * Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
+ * Returns a list of available event topics configured in the Outpost instance.
  */
 export function topicsListJwt(
-  client: SDKCore,
-  security: operations.ListTopicsJwtSecurity,
+  client: OutpostCore,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -57,14 +55,12 @@ export function topicsListJwt(
 > {
   return new APIPromise($do(
     client,
-    security,
     options,
   ));
 }
 
 async function $do(
-  client: SDKCore,
-  security: operations.ListTopicsJwtSecurity,
+  client: OutpostCore,
   options?: RequestOptions,
 ): Promise<
   [
@@ -97,24 +93,17 @@ async function $do(
     Accept: "application/json",
   }));
 
-  const requestSecurity = resolveSecurity(
-    [
-      {
-        fieldName: "Authorization",
-        type: "http:bearer",
-        value: security?.tenantJwt,
-      },
-    ],
-  );
+  const securityInput = await extractSecurity(client._options.security);
+  const requestSecurity = resolveGlobalSecurity(securityInput);
 
   const context = {
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "listTopicsJwt",
-    oAuth2Scopes: null,
+    operationID: "listTopics",
+    oAuth2Scopes: [],
 
     resolvedSecurity: requestSecurity,
 
-    securitySource: security,
+    securitySource: client._options.security,
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },

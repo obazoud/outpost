@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { RabbitMQCredentials } from "openapi/models/components";
+import { RabbitMQCredentials } from "@hookdeck/outpost-sdk/models/components";
 
 let value: RabbitMQCredentials = {
   username: "guest",

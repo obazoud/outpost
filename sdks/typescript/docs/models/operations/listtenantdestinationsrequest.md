@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { ListTenantDestinationsRequest } from "openapi/models/operations";
+import { ListTenantDestinationsRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: ListTenantDestinationsRequest = {
   tenantId: "<id>",

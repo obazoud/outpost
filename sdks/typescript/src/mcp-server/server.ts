@@ -3,7 +3,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { SDKOptions } from "../lib/config.js";
 import type { ConsoleLogger } from "./console-logger.js";
 import { createRegisterPrompt } from "./prompts.js";
@@ -13,30 +13,49 @@ import {
 } from "./resources.js";
 import { MCPScope } from "./scopes.js";
 import { createRegisterTool } from "./tools.js";
+import { tool$destinationsCreate } from "./tools/destinationsCreate.js";
+import { tool$destinationsDelete } from "./tools/destinationsDelete.js";
+import { tool$destinationsDisable } from "./tools/destinationsDisable.js";
+import { tool$destinationsEnable } from "./tools/destinationsEnable.js";
+import { tool$destinationsGet } from "./tools/destinationsGet.js";
+import { tool$destinationsList } from "./tools/destinationsList.js";
+import { tool$destinationsUpdate } from "./tools/destinationsUpdate.js";
+import { tool$eventsGet } from "./tools/eventsGet.js";
+import { tool$eventsGetByDestination } from "./tools/eventsGetByDestination.js";
+import { tool$eventsList } from "./tools/eventsList.js";
+import { tool$eventsListByDestination } from "./tools/eventsListByDestination.js";
+import { tool$eventsListDeliveries } from "./tools/eventsListDeliveries.js";
+import { tool$eventsRetry } from "./tools/eventsRetry.js";
 import { tool$healthCheck } from "./tools/healthCheck.js";
 import { tool$publishEvent } from "./tools/publishEvent.js";
+import { tool$schemasGet } from "./tools/schemasGet.js";
+import { tool$schemasGetDestinationTypeJwt } from "./tools/schemasGetDestinationTypeJwt.js";
+import { tool$schemasListDestinationTypesJwt } from "./tools/schemasListDestinationTypesJwt.js";
+import { tool$schemasListTenantDestinationTypes } from "./tools/schemasListTenantDestinationTypes.js";
+import { tool$tenantsDelete } from "./tools/tenantsDelete.js";
+import { tool$tenantsGet } from "./tools/tenantsGet.js";
 import { tool$tenantsGetPortalUrl } from "./tools/tenantsGetPortalUrl.js";
-import { tool$tenantsGetPortalUrlJwtContext } from "./tools/tenantsGetPortalUrlJwtContext.js";
 import { tool$tenantsGetToken } from "./tools/tenantsGetToken.js";
-import { tool$tenantsGetTokenJwtContext } from "./tools/tenantsGetTokenJwtContext.js";
 import { tool$tenantsUpsert } from "./tools/tenantsUpsert.js";
+import { tool$topicsList } from "./tools/topicsList.js";
+import { tool$topicsListJwt } from "./tools/topicsListJwt.js";
 
 export function createMCPServer(deps: {
   logger: ConsoleLogger;
   allowedTools?: string[] | undefined;
   scopes?: MCPScope[] | undefined;
   serverURL?: string | undefined;
-  adminApiKey?: SDKOptions["adminApiKey"] | undefined;
+  security?: SDKOptions["security"] | undefined;
   tenantId?: SDKOptions["tenantId"] | undefined;
   serverIdx?: SDKOptions["serverIdx"] | undefined;
 }) {
   const server = new McpServer({
-    name: "SDK",
-    version: "0.0.1",
+    name: "Outpost",
+    version: "0.1.0",
   });
 
-  const client = new SDKCore({
-    adminApiKey: deps.adminApiKey,
+  const client = new OutpostCore({
+    security: deps.security,
     tenantId: deps.tenantId,
     serverURL: deps.serverURL,
     serverIdx: deps.serverIdx,
@@ -65,11 +84,30 @@ export function createMCPServer(deps: {
 
   tool(tool$healthCheck);
   tool(tool$tenantsUpsert);
+  tool(tool$tenantsGet);
+  tool(tool$tenantsDelete);
   tool(tool$tenantsGetPortalUrl);
   tool(tool$tenantsGetToken);
-  tool(tool$tenantsGetPortalUrlJwtContext);
-  tool(tool$tenantsGetTokenJwtContext);
+  tool(tool$destinationsList);
+  tool(tool$destinationsCreate);
+  tool(tool$destinationsGet);
+  tool(tool$destinationsUpdate);
+  tool(tool$destinationsDelete);
+  tool(tool$destinationsEnable);
+  tool(tool$destinationsDisable);
   tool(tool$publishEvent);
+  tool(tool$schemasListTenantDestinationTypes);
+  tool(tool$schemasGet);
+  tool(tool$schemasListDestinationTypesJwt);
+  tool(tool$schemasGetDestinationTypeJwt);
+  tool(tool$topicsList);
+  tool(tool$topicsListJwt);
+  tool(tool$eventsList);
+  tool(tool$eventsGet);
+  tool(tool$eventsListDeliveries);
+  tool(tool$eventsListByDestination);
+  tool(tool$eventsGetByDestination);
+  tool(tool$eventsRetry);
 
   return server;
 }

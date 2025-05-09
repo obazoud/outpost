@@ -12,11 +12,6 @@ export type RetryTenantEventGlobals = {
   tenantId?: string | undefined;
 };
 
-export type RetryTenantEventSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 export type RetryTenantEventRequest = {
   /**
    * The ID of the tenant. Required when using AdminApiKey authentication.
@@ -91,73 +86,6 @@ export function retryTenantEventGlobalsFromJSON(
     jsonString,
     (x) => RetryTenantEventGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'RetryTenantEventGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const RetryTenantEventSecurity$inboundSchema: z.ZodType<
-  RetryTenantEventSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type RetryTenantEventSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const RetryTenantEventSecurity$outboundSchema: z.ZodType<
-  RetryTenantEventSecurity$Outbound,
-  z.ZodTypeDef,
-  RetryTenantEventSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace RetryTenantEventSecurity$ {
-  /** @deprecated use `RetryTenantEventSecurity$inboundSchema` instead. */
-  export const inboundSchema = RetryTenantEventSecurity$inboundSchema;
-  /** @deprecated use `RetryTenantEventSecurity$outboundSchema` instead. */
-  export const outboundSchema = RetryTenantEventSecurity$outboundSchema;
-  /** @deprecated use `RetryTenantEventSecurity$Outbound` instead. */
-  export type Outbound = RetryTenantEventSecurity$Outbound;
-}
-
-export function retryTenantEventSecurityToJSON(
-  retryTenantEventSecurity: RetryTenantEventSecurity,
-): string {
-  return JSON.stringify(
-    RetryTenantEventSecurity$outboundSchema.parse(retryTenantEventSecurity),
-  );
-}
-
-export function retryTenantEventSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<RetryTenantEventSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => RetryTenantEventSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'RetryTenantEventSecurity' from JSON`,
   );
 }
 

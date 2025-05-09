@@ -1,13 +1,11 @@
 <!-- Start SDK Example Usage [usage] -->
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);

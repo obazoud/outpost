@@ -10,7 +10,7 @@ Operations for retrieving destination type schemas.
 * [listTenantDestinationTypes](#listtenantdestinationtypes) - List Destination Type Schemas (for Tenant)
 * [get](#get) - Get Destination Type Schema (for Tenant)
 * [listDestinationTypesJwt](#listdestinationtypesjwt) - List Destination Type Schemas (JWT Auth)
-* [getDestinationTypeJwt](#getdestinationtypejwt) - Get Destination Type Schema (JWT Auth)
+* [getDestinationTypeJwt](#getdestinationtypejwt) - Get Destination Type Schema
 
 ## listTenantDestinationTypes
 
@@ -19,14 +19,16 @@ Returns a list of JSON-based input schemas for each available destination type. 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.schemas.listTenantDestinationTypes({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.schemas.listTenantDestinationTypes({
     tenantId: "<id>",
   });
 
@@ -42,17 +44,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasListTenantDestinationTypes } from "openapi/funcs/schemasListTenantDestinationTypes.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasListTenantDestinationTypes } from "@hookdeck/outpost-sdk/funcs/schemasListTenantDestinationTypes.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await schemasListTenantDestinationTypes(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await schemasListTenantDestinationTypes(outpost, {
     tenantId: "<id>",
   });
 
@@ -74,7 +78,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.ListTenantDestinationTypeSchemasRequest](../../models/operations/listtenantdestinationtypeschemasrequest.md)                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.ListTenantDestinationTypeSchemasSecurity](../../models/operations/listtenantdestinationtypeschemassecurity.md)                                                     | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -105,14 +108,16 @@ Returns the input schema for a specific destination type. Requires Admin API Key
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.schemas.get({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.schemas.get({
     tenantId: "<id>",
     type: "rabbitmq",
   });
@@ -129,17 +134,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasGet } from "openapi/funcs/schemasGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasGet } from "@hookdeck/outpost-sdk/funcs/schemasGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await schemasGet(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await schemasGet(outpost, {
     tenantId: "<id>",
     type: "rabbitmq",
   });
@@ -162,7 +169,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.GetTenantDestinationTypeSchemaRequest](../../models/operations/gettenantdestinationtypeschemarequest.md)                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.GetTenantDestinationTypeSchemaSecurity](../../models/operations/gettenantdestinationtypeschemasecurity.md)                                                         | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -193,14 +199,16 @@ Returns a list of JSON-based input schemas for each available destination type (
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.schemas.listDestinationTypesJwt({
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  });
+  const result = await outpost.schemas.listDestinationTypesJwt();
 
   // Handle the result
   console.log(result);
@@ -214,17 +222,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasListDestinationTypesJwt } from "openapi/funcs/schemasListDestinationTypesJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasListDestinationTypesJwt } from "@hookdeck/outpost-sdk/funcs/schemasListDestinationTypesJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await schemasListDestinationTypesJwt(sdk, {
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  });
+  const res = await schemasListDestinationTypesJwt(outpost);
 
   if (!res.ok) {
     throw res.error;
@@ -243,7 +253,6 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `security`                                                                                                                                                                     | [operations.ListDestinationTypeSchemasJwtSecurity](../../models/operations/listdestinationtypeschemasjwtsecurity.md)                                                           | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -270,20 +279,22 @@ run();
 
 ## getDestinationTypeJwt
 
-Returns the input schema for a specific destination type (infers tenant from JWT).
+Returns the input schema for a specific destination type.
 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.schemas.getDestinationTypeJwt({
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
-    type: "rabbitmq",
+  const result = await outpost.schemas.getDestinationTypeJwt({
+    type: "aws_kinesis",
   });
 
   // Handle the result
@@ -298,18 +309,20 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { schemasGetDestinationTypeJwt } from "openapi/funcs/schemasGetDestinationTypeJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { schemasGetDestinationTypeJwt } from "@hookdeck/outpost-sdk/funcs/schemasGetDestinationTypeJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await schemasGetDestinationTypeJwt(sdk, {
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
-    type: "rabbitmq",
+  const res = await schemasGetDestinationTypeJwt(outpost, {
+    type: "aws_kinesis",
   });
 
   if (!res.ok) {
@@ -329,8 +342,7 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request`                                                                                                                                                                      | [operations.GetDestinationTypeSchemaJwtRequest](../../models/operations/getdestinationtypeschemajwtrequest.md)                                                                 | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.GetDestinationTypeSchemaJwtSecurity](../../models/operations/getdestinationtypeschemajwtsecurity.md)                                                               | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
+| `request`                                                                                                                                                                      | [operations.GetDestinationTypeSchemaRequest](../../models/operations/getdestinationtypeschemarequest.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |

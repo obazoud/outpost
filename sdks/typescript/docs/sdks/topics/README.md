@@ -8,7 +8,7 @@ Operations for retrieving available event topics.
 ### Available Operations
 
 * [list](#list) - List Available Topics (for Tenant)
-* [listJwt](#listjwt) - List Available Topics (JWT Auth)
+* [listJwt](#listjwt) - List Available Topics)
 
 ## list
 
@@ -17,14 +17,16 @@ Returns a list of available event topics configured in the Outpost instance. Req
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.topics.list({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.topics.list({
     tenantId: "<id>",
   });
 
@@ -40,17 +42,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { topicsList } from "openapi/funcs/topicsList.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { topicsList } from "@hookdeck/outpost-sdk/funcs/topicsList.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await topicsList(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await topicsList(outpost, {
     tenantId: "<id>",
   });
 
@@ -72,7 +76,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.ListTenantTopicsRequest](../../models/operations/listtenanttopicsrequest.md)                                                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.ListTenantTopicsSecurity](../../models/operations/listtenanttopicssecurity.md)                                                                                     | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -98,19 +101,21 @@ run();
 
 ## listJwt
 
-Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
+Returns a list of available event topics configured in the Outpost instance.
 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.topics.listJwt({
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  });
+  const result = await outpost.topics.listJwt();
 
   // Handle the result
   console.log(result);
@@ -124,17 +129,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { topicsListJwt } from "openapi/funcs/topicsListJwt.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { topicsListJwt } from "@hookdeck/outpost-sdk/funcs/topicsListJwt.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await topicsListJwt(sdk, {
-    tenantJwt: "<YOUR_BEARER_TOKEN_HERE>",
-  });
+  const res = await topicsListJwt(outpost);
 
   if (!res.ok) {
     throw res.error;
@@ -153,7 +160,6 @@ run();
 
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `security`                                                                                                                                                                     | [operations.ListTopicsJwtSecurity](../../models/operations/listtopicsjwtsecurity.md)                                                                                           | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |

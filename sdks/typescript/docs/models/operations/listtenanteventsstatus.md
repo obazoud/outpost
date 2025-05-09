@@ -5,7 +5,7 @@ Filter events by delivery status.
 ## Example Usage
 
 ```typescript
-import { ListTenantEventsStatus } from "openapi/models/operations";
+import { ListTenantEventsStatus } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: ListTenantEventsStatus = "failed";
 ```

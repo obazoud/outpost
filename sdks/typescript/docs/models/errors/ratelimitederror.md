@@ -5,7 +5,7 @@ Status codes relating to the client being rate limited by the server
 ## Example Usage
 
 ```typescript
-import { RateLimitedError } from "openapi/models/errors";
+import { RateLimitedError } from "@hookdeck/outpost-sdk/models/errors";
 
 // No examples available for this model
 ```

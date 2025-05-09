@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { ListTenantEventsByDestinationGlobals } from "openapi/models/operations";
+import { ListTenantEventsByDestinationGlobals } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: ListTenantEventsByDestinationGlobals = {
   tenantId: "<id>",
