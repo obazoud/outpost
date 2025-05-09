@@ -16,7 +16,7 @@ generation:
     oAuth2ClientCredentialsEnabled: true
     oAuth2PasswordEnabled: true
 go:
-  version: 0.0.1
+  version: 0.1.0
   additionalDependencies: {}
   allowUnknownFieldsInWeakUnions: false
   clientServerStatusCodesAsErrors: true
@@ -34,5 +34,5 @@ go:
   maxMethodParams: 4
   methodArguments: require-security-and-request
   outputModelSuffix: output
-  packageName: github.com/hookdeck/outpost/sdks/go
+  packageName: client
   responseFormat: envelope-http

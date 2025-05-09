@@ -18,7 +18,7 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [openapi](#openapi)
+* [Outpost Go Client](#outpost-go-client)
   * [SDK Installation](#sdk-installation)
   * [SDK Example Usage](#sdk-example-usage)
   * [Authentication](#authentication)
@@ -34,14 +34,13 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 
 <!-- End Table of Contents [toc] -->
 
-<!-- Start SDK Installation [installation] -->
 ## SDK Installation
 
 To add the SDK as a dependency to your project:
 ```bash
-go get openapi
+go get github.com/hookdeck/outpost/sdks/go
 ```
-<!-- End SDK Installation [installation] -->
+<!-- No SDK Installation [installation] -->
 
 <!-- Start SDK Example Usage [usage] -->
 ## SDK Example Usage
@@ -52,17 +51,15 @@ go get openapi
 package main
 
 import (
+	"client"
 	"context"
 	"log"
-	"openapi"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
-	)
+	s := client.New()
 
 	res, err := s.Health.Check(ctx)
 	if err != nil {
@@ -81,27 +78,31 @@ func main() {
 
 ### Per-Client Security Schemes
 
-This SDK supports the following security scheme globally:
+This SDK supports the following security schemes globally:
 
 | Name          | Type | Scheme      |
 | ------------- | ---- | ----------- |
 | `AdminAPIKey` | http | HTTP Bearer |
+| `TenantJwt`   | http | HTTP Bearer |
 
-You can configure it using the `WithSecurity` option when initializing the SDK client instance. For example:
+You can set the security parameters through the `WithSecurity` option when initializing the SDK client instance. The selected scheme will be used by default to authenticate with the API for all operations that support it. For example:
 ```go
 package main
 
 import (
+	"client"
+	"client/models/components"
 	"context"
 	"log"
-	"openapi"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
+	s := client.New(
+		client.WithSecurity(components.Security{
+			AdminAPIKey: client.String("<YOUR_BEARER_TOKEN_HERE>"),
+		}),
 	)
 
 	res, err := s.Health.Check(ctx)
@@ -109,35 +110,6 @@ func main() {
 		log.Fatal(err)
 	}
 	if res.Res != nil {
-		// handle response
-	}
-}
-
-```
-
-### Per-Operation Security Schemes
-
-Some operations in this SDK require the security scheme to be specified at the request level. For example:
-```go
-package main
-
-import (
-	"context"
-	"log"
-	"openapi"
-	"openapi/models/operations"
-)
-
-func main() {
-	ctx := context.Background()
-
-	s := openapi.New()
-
-	res, err := s.Tenants.Get(ctx, operations.GetTenantSecurity{}, openapi.String("<id>"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	if res.Tenant != nil {
 		// handle response
 	}
 }
@@ -174,6 +146,7 @@ func main() {
 
 * [Check](docs/sdks/health/README.md#check) - Health Check
 
+
 ### [Publish](docs/sdks/publish/README.md)
 
 * [Event](docs/sdks/publish/README.md#event) - Publish Event
@@ -183,8 +156,7 @@ func main() {
 * [ListTenantDestinationTypes](docs/sdks/schemas/README.md#listtenantdestinationtypes) - List Destination Type Schemas (for Tenant)
 * [Get](docs/sdks/schemas/README.md#get) - Get Destination Type Schema (for Tenant)
 * [ListDestinationTypesJwt](docs/sdks/schemas/README.md#listdestinationtypesjwt) - List Destination Type Schemas (JWT Auth)
-* [GetDestinationTypeJwt](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema (JWT Auth)
-
+* [GetDestinationTypeJwt](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema
 
 ### [Tenants](docs/sdks/tenants/README.md)
 
@@ -193,13 +165,11 @@ func main() {
 * [Delete](docs/sdks/tenants/README.md#delete) - Delete Tenant
 * [GetPortalURL](docs/sdks/tenants/README.md#getportalurl) - Get Portal Redirect URL
 * [GetToken](docs/sdks/tenants/README.md#gettoken) - Get Tenant JWT Token
-* [GetPortalURLJwtContext](docs/sdks/tenants/README.md#getportalurljwtcontext) - Get Portal Redirect URL (JWT Auth Context)
-* [GetTokenJwtContext](docs/sdks/tenants/README.md#gettokenjwtcontext) - Get Tenant JWT Token (JWT Auth Context)
 
 ### [Topics](docs/sdks/topics/README.md)
 
 * [List](docs/sdks/topics/README.md#list) - List Available Topics (for Tenant)
-* [ListJwt](docs/sdks/topics/README.md#listjwt) - List Available Topics (JWT Auth)
+* [ListJwt](docs/sdks/topics/README.md#listjwt) - List Available Topics)
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -226,19 +196,22 @@ The following global parameter is available.
 package main
 
 import (
+	"client"
+	"client/models/components"
 	"context"
 	"log"
-	"openapi"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
+	s := client.New(
+		client.WithSecurity(components.Security{
+			AdminAPIKey: client.String("<YOUR_BEARER_TOKEN_HERE>"),
+		}),
 	)
 
-	res, err := s.Tenants.Upsert(ctx, openapi.String("<id>"))
+	res, err := s.Tenants.Upsert(ctx, client.String("<id>"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -260,19 +233,17 @@ To change the default retry strategy for a single API call, simply provide a `re
 package main
 
 import (
+	"client"
+	"client/retry"
 	"context"
 	"log"
 	"models/operations"
-	"openapi"
-	"openapi/retry"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
-	)
+	s := client.New()
 
 	res, err := s.Health.Check(ctx, operations.WithRetries(
 		retry.Config{
@@ -300,17 +271,17 @@ If you'd like to override the default retry strategy for all operations that sup
 package main
 
 import (
+	"client"
+	"client/retry"
 	"context"
 	"log"
-	"openapi"
-	"openapi/retry"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithRetryConfig(
+	s := client.New(
+		client.WithRetryConfig(
 			retry.Config{
 				Strategy: "backoff",
 				Backoff: &retry.BackoffStrategy{
@@ -321,7 +292,6 @@ func main() {
 				},
 				RetryConnectionErrors: false,
 			}),
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
 	)
 
 	res, err := s.Health.Check(ctx)
@@ -365,19 +335,17 @@ For example, the `Check` function may return the following errors:
 package main
 
 import (
+	"client"
+	"client/models/apierrors"
 	"context"
 	"errors"
 	"log"
-	"openapi"
-	"openapi/models/apierrors"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
-	)
+	s := client.New()
 
 	res, err := s.Health.Check(ctx)
 	if err != nil {
@@ -463,17 +431,16 @@ The default server can be overridden globally using the `WithServerURL(serverURL
 package main
 
 import (
+	"client"
 	"context"
 	"log"
-	"openapi"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithServerURL("http://localhost:3333/api/v1"),
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
+	s := client.New(
+		client.WithServerURL("http://localhost:3333/api/v1"),
 	)
 
 	res, err := s.Health.Check(ctx)
