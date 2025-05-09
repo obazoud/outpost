@@ -1,0 +1,613 @@
+lockVersion: 2.0.0
+id: edb58086-83b9-45a3-9095-52bf57a11009
+management:
+  docChecksum: facaffd173e65f9c7d9b42e7d5d4f736
+  docVersion: 0.0.1
+  speakeasyVersion: 1.543.4
+  generationVersion: 2.598.22
+  releaseVersion: 0.1.1
+  configChecksum: 611d67272cc407af6d96d2106ffcf268
+  published: true
+features:
+  typescript:
+    additionalDependencies: 0.1.0
+    additionalProperties: 0.1.1
+    core: 3.21.7
+    defaultEnabledRetries: 0.1.0
+    enumUnions: 0.1.0
+    envVarSecurityUsage: 0.1.2
+    globalSecurity: 2.82.13
+    globalSecurityCallbacks: 0.1.0
+    globalServerURLs: 2.82.5
+    globals: 2.82.2
+    mcpServer: 0.9.2
+    nameOverrides: 2.81.2
+    nullables: 0.1.1
+    responseFormat: 0.2.3
+    retries: 2.83.0
+    sdkHooks: 0.2.0
+    unions: 2.85.8
+generatedFiles:
+  - .gitattributes
+  - .npmignore
+  - FUNCTIONS.md
+  - RUNTIMES.md
+  - USAGE.md
+  - docs/lib/utils/retryconfig.md
+  - docs/models/components/awskinesisconfig.md
+  - docs/models/components/awskinesiscredentials.md
+  - docs/models/components/awssqsconfig.md
+  - docs/models/components/awssqscredentials.md
+  - docs/models/components/deliveryattempt.md
+  - docs/models/components/destination.md
+  - docs/models/components/destinationawskinesis.md
+  - docs/models/components/destinationawskinesistype.md
+  - docs/models/components/destinationawssqs.md
+  - docs/models/components/destinationawssqstype.md
+  - docs/models/components/destinationcreate.md
+  - docs/models/components/destinationcreateawskinesis.md
+  - docs/models/components/destinationcreateawskinesistype.md
+  - docs/models/components/destinationcreateawssqs.md
+  - docs/models/components/destinationcreateawssqstype.md
+  - docs/models/components/destinationcreatehookdeck.md
+  - docs/models/components/destinationcreatehookdecktype.md
+  - docs/models/components/destinationcreaterabbitmq.md
+  - docs/models/components/destinationcreaterabbitmqtype.md
+  - docs/models/components/destinationcreatewebhook.md
+  - docs/models/components/destinationcreatewebhooktype.md
+  - docs/models/components/destinationhookdeck.md
+  - docs/models/components/destinationhookdecktype.md
+  - docs/models/components/destinationrabbitmq.md
+  - docs/models/components/destinationrabbitmqtype.md
+  - docs/models/components/destinationschemafield.md
+  - docs/models/components/destinationschemafieldtype.md
+  - docs/models/components/destinationtypeschema.md
+  - docs/models/components/destinationupdate.md
+  - docs/models/components/destinationupdateawskinesis.md
+  - docs/models/components/destinationupdateawssqs.md
+  - docs/models/components/destinationupdatehookdeck.md
+  - docs/models/components/destinationupdaterabbitmq.md
+  - docs/models/components/destinationupdatewebhook.md
+  - docs/models/components/destinationwebhook.md
+  - docs/models/components/destinationwebhooktype.md
+  - docs/models/components/event.md
+  - docs/models/components/hookdeckcredentials.md
+  - docs/models/components/portalredirect.md
+  - docs/models/components/publishrequest.md
+  - docs/models/components/rabbitmqconfig.md
+  - docs/models/components/rabbitmqcredentials.md
+  - docs/models/components/security.md
+  - docs/models/components/status.md
+  - docs/models/components/successresponse.md
+  - docs/models/components/tenant.md
+  - docs/models/components/tenanttoken.md
+  - docs/models/components/tls.md
+  - docs/models/components/topics.md
+  - docs/models/components/topicsenum.md
+  - docs/models/components/webhookconfig.md
+  - docs/models/components/webhookcredentials.md
+  - docs/models/components/webhookcredentialsupdate.md
+  - docs/models/errors/badrequesterror.md
+  - docs/models/errors/internalservererror.md
+  - docs/models/errors/notfounderror.md
+  - docs/models/errors/ratelimitederror.md
+  - docs/models/errors/timeouterror.md
+  - docs/models/errors/unauthorizederror.md
+  - docs/models/operations/createtenantdestinationglobals.md
+  - docs/models/operations/createtenantdestinationrequest.md
+  - docs/models/operations/deletetenantdestinationglobals.md
+  - docs/models/operations/deletetenantdestinationrequest.md
+  - docs/models/operations/deletetenantglobals.md
+  - docs/models/operations/deletetenantrequest.md
+  - docs/models/operations/destinationid.md
+  - docs/models/operations/disabletenantdestinationglobals.md
+  - docs/models/operations/disabletenantdestinationrequest.md
+  - docs/models/operations/enabletenantdestinationglobals.md
+  - docs/models/operations/enabletenantdestinationrequest.md
+  - docs/models/operations/getdestinationtypeschemarequest.md
+  - docs/models/operations/getdestinationtypeschematype.md
+  - docs/models/operations/gettenantdestinationglobals.md
+  - docs/models/operations/gettenantdestinationrequest.md
+  - docs/models/operations/gettenantdestinationtypeschemaglobals.md
+  - docs/models/operations/gettenantdestinationtypeschemarequest.md
+  - docs/models/operations/gettenantdestinationtypeschematype.md
+  - docs/models/operations/gettenanteventbydestinationglobals.md
+  - docs/models/operations/gettenanteventbydestinationrequest.md
+  - docs/models/operations/gettenanteventglobals.md
+  - docs/models/operations/gettenanteventrequest.md
+  - docs/models/operations/gettenantglobals.md
+  - docs/models/operations/gettenantportalurlglobals.md
+  - docs/models/operations/gettenantportalurlrequest.md
+  - docs/models/operations/gettenantrequest.md
+  - docs/models/operations/gettenanttokenglobals.md
+  - docs/models/operations/gettenanttokenrequest.md
+  - docs/models/operations/listtenantdestinationsglobals.md
+  - docs/models/operations/listtenantdestinationsrequest.md
+  - docs/models/operations/listtenantdestinationstypeenum1.md
+  - docs/models/operations/listtenantdestinationstypeenum2.md
+  - docs/models/operations/listtenantdestinationtypeschemasglobals.md
+  - docs/models/operations/listtenantdestinationtypeschemasrequest.md
+  - docs/models/operations/listtenanteventdeliveriesglobals.md
+  - docs/models/operations/listtenanteventdeliveriesrequest.md
+  - docs/models/operations/listtenanteventsbydestinationglobals.md
+  - docs/models/operations/listtenanteventsbydestinationrequest.md
+  - docs/models/operations/listtenanteventsbydestinationstatus.md
+  - docs/models/operations/listtenanteventsglobals.md
+  - docs/models/operations/listtenanteventsrequest.md
+  - docs/models/operations/listtenanteventsstatus.md
+  - docs/models/operations/listtenanttopicsglobals.md
+  - docs/models/operations/listtenanttopicsrequest.md
+  - docs/models/operations/retrytenanteventglobals.md
+  - docs/models/operations/retrytenanteventrequest.md
+  - docs/models/operations/theme.md
+  - docs/models/operations/topics.md
+  - docs/models/operations/type.md
+  - docs/models/operations/updatetenantdestinationglobals.md
+  - docs/models/operations/updatetenantdestinationrequest.md
+  - docs/models/operations/updatetenantdestinationresponse.md
+  - docs/models/operations/upserttenantglobals.md
+  - docs/models/operations/upserttenantrequest.md
+  - docs/sdks/destinations/README.md
+  - docs/sdks/events/README.md
+  - docs/sdks/health/README.md
+  - docs/sdks/outpost/README.md
+  - docs/sdks/publish/README.md
+  - docs/sdks/schemas/README.md
+  - docs/sdks/tenants/README.md
+  - docs/sdks/topics/README.md
+  - eslint.config.mjs
+  - jsr.json
+  - package.json
+  - src/core.ts
+  - src/funcs/destinationsCreate.ts
+  - src/funcs/destinationsDelete.ts
+  - src/funcs/destinationsDisable.ts
+  - src/funcs/destinationsEnable.ts
+  - src/funcs/destinationsGet.ts
+  - src/funcs/destinationsList.ts
+  - src/funcs/destinationsUpdate.ts
+  - src/funcs/eventsGet.ts
+  - src/funcs/eventsGetByDestination.ts
+  - src/funcs/eventsList.ts
+  - src/funcs/eventsListByDestination.ts
+  - src/funcs/eventsListDeliveries.ts
+  - src/funcs/eventsRetry.ts
+  - src/funcs/healthCheck.ts
+  - src/funcs/publishEvent.ts
+  - src/funcs/schemasGet.ts
+  - src/funcs/schemasGetDestinationTypeJwt.ts
+  - src/funcs/schemasListDestinationTypesJwt.ts
+  - src/funcs/schemasListTenantDestinationTypes.ts
+  - src/funcs/tenantsDelete.ts
+  - src/funcs/tenantsGet.ts
+  - src/funcs/tenantsGetPortalUrl.ts
+  - src/funcs/tenantsGetToken.ts
+  - src/funcs/tenantsUpsert.ts
+  - src/funcs/topicsList.ts
+  - src/funcs/topicsListJwt.ts
+  - src/hooks/hooks.ts
+  - src/hooks/index.ts
+  - src/hooks/types.ts
+  - src/index.ts
+  - src/lib/base64.ts
+  - src/lib/config.ts
+  - src/lib/dlv.ts
+  - src/lib/encodings.ts
+  - src/lib/files.ts
+  - src/lib/http.ts
+  - src/lib/is-plain-object.ts
+  - src/lib/logger.ts
+  - src/lib/matchers.ts
+  - src/lib/primitives.ts
+  - src/lib/retries.ts
+  - src/lib/schemas.ts
+  - src/lib/sdks.ts
+  - src/lib/security.ts
+  - src/lib/url.ts
+  - src/mcp-server/build.mts
+  - src/mcp-server/cli.ts
+  - src/mcp-server/cli/start/command.ts
+  - src/mcp-server/cli/start/impl.ts
+  - src/mcp-server/console-logger.ts
+  - src/mcp-server/extensions.ts
+  - src/mcp-server/mcp-server.ts
+  - src/mcp-server/prompts.ts
+  - src/mcp-server/resources.ts
+  - src/mcp-server/scopes.ts
+  - src/mcp-server/server.ts
+  - src/mcp-server/shared.ts
+  - src/mcp-server/tools.ts
+  - src/mcp-server/tools/destinationsCreate.ts
+  - src/mcp-server/tools/destinationsDelete.ts
+  - src/mcp-server/tools/destinationsDisable.ts
+  - src/mcp-server/tools/destinationsEnable.ts
+  - src/mcp-server/tools/destinationsGet.ts
+  - src/mcp-server/tools/destinationsList.ts
+  - src/mcp-server/tools/destinationsUpdate.ts
+  - src/mcp-server/tools/eventsGet.ts
+  - src/mcp-server/tools/eventsGetByDestination.ts
+  - src/mcp-server/tools/eventsList.ts
+  - src/mcp-server/tools/eventsListByDestination.ts
+  - src/mcp-server/tools/eventsListDeliveries.ts
+  - src/mcp-server/tools/eventsRetry.ts
+  - src/mcp-server/tools/healthCheck.ts
+  - src/mcp-server/tools/publishEvent.ts
+  - src/mcp-server/tools/schemasGet.ts
+  - src/mcp-server/tools/schemasGetDestinationTypeJwt.ts
+  - src/mcp-server/tools/schemasListDestinationTypesJwt.ts
+  - src/mcp-server/tools/schemasListTenantDestinationTypes.ts
+  - src/mcp-server/tools/tenantsDelete.ts
+  - src/mcp-server/tools/tenantsGet.ts
+  - src/mcp-server/tools/tenantsGetPortalUrl.ts
+  - src/mcp-server/tools/tenantsGetToken.ts
+  - src/mcp-server/tools/tenantsUpsert.ts
+  - src/mcp-server/tools/topicsList.ts
+  - src/mcp-server/tools/topicsListJwt.ts
+  - src/models/components/awskinesisconfig.ts
+  - src/models/components/awskinesiscredentials.ts
+  - src/models/components/awssqsconfig.ts
+  - src/models/components/awssqscredentials.ts
+  - src/models/components/deliveryattempt.ts
+  - src/models/components/destination.ts
+  - src/models/components/destinationawskinesis.ts
+  - src/models/components/destinationawssqs.ts
+  - src/models/components/destinationcreate.ts
+  - src/models/components/destinationcreateawskinesis.ts
+  - src/models/components/destinationcreateawssqs.ts
+  - src/models/components/destinationcreatehookdeck.ts
+  - src/models/components/destinationcreaterabbitmq.ts
+  - src/models/components/destinationcreatewebhook.ts
+  - src/models/components/destinationhookdeck.ts
+  - src/models/components/destinationrabbitmq.ts
+  - src/models/components/destinationschemafield.ts
+  - src/models/components/destinationtypeschema.ts
+  - src/models/components/destinationupdate.ts
+  - src/models/components/destinationupdateawskinesis.ts
+  - src/models/components/destinationupdateawssqs.ts
+  - src/models/components/destinationupdatehookdeck.ts
+  - src/models/components/destinationupdaterabbitmq.ts
+  - src/models/components/destinationupdatewebhook.ts
+  - src/models/components/destinationwebhook.ts
+  - src/models/components/event.ts
+  - src/models/components/hookdeckcredentials.ts
+  - src/models/components/index.ts
+  - src/models/components/portalredirect.ts
+  - src/models/components/publishrequest.ts
+  - src/models/components/rabbitmqconfig.ts
+  - src/models/components/rabbitmqcredentials.ts
+  - src/models/components/security.ts
+  - src/models/components/successresponse.ts
+  - src/models/components/tenant.ts
+  - src/models/components/tenanttoken.ts
+  - src/models/components/topics.ts
+  - src/models/components/webhookconfig.ts
+  - src/models/components/webhookcredentials.ts
+  - src/models/components/webhookcredentialsupdate.ts
+  - src/models/errors/apierror.ts
+  - src/models/errors/badrequesterror.ts
+  - src/models/errors/httpclienterrors.ts
+  - src/models/errors/index.ts
+  - src/models/errors/internalservererror.ts
+  - src/models/errors/notfounderror.ts
+  - src/models/errors/ratelimitederror.ts
+  - src/models/errors/sdkvalidationerror.ts
+  - src/models/errors/timeouterror.ts
+  - src/models/errors/unauthorizederror.ts
+  - src/models/operations/createtenantdestination.ts
+  - src/models/operations/deletetenant.ts
+  - src/models/operations/deletetenantdestination.ts
+  - src/models/operations/disabletenantdestination.ts
+  - src/models/operations/enabletenantdestination.ts
+  - src/models/operations/getdestinationtypeschema.ts
+  - src/models/operations/gettenant.ts
+  - src/models/operations/gettenantdestination.ts
+  - src/models/operations/gettenantdestinationtypeschema.ts
+  - src/models/operations/gettenantevent.ts
+  - src/models/operations/gettenanteventbydestination.ts
+  - src/models/operations/gettenantportalurl.ts
+  - src/models/operations/gettenanttoken.ts
+  - src/models/operations/index.ts
+  - src/models/operations/listtenantdestinations.ts
+  - src/models/operations/listtenantdestinationtypeschemas.ts
+  - src/models/operations/listtenanteventdeliveries.ts
+  - src/models/operations/listtenantevents.ts
+  - src/models/operations/listtenanteventsbydestination.ts
+  - src/models/operations/listtenanttopics.ts
+  - src/models/operations/retrytenantevent.ts
+  - src/models/operations/updatetenantdestination.ts
+  - src/models/operations/upserttenant.ts
+  - src/sdk/destinations.ts
+  - src/sdk/events.ts
+  - src/sdk/health.ts
+  - src/sdk/index.ts
+  - src/sdk/publish.ts
+  - src/sdk/schemas.ts
+  - src/sdk/sdk.ts
+  - src/sdk/tenants.ts
+  - src/sdk/topics.ts
+  - src/types/async.ts
+  - src/types/blobs.ts
+  - src/types/constdatetime.ts
+  - src/types/enums.ts
+  - src/types/fp.ts
+  - src/types/index.ts
+  - src/types/operations.ts
+  - src/types/rfcdate.ts
+  - src/types/streams.ts
+  - tsconfig.json
+examples:
+  healthCheck:
+    speakeasy-default-health-check:
+      responses:
+        "200":
+          text/plain: "<value>"
+        "404":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "401":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "408":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "400":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "510":
+          application/json: {"key": "<value>"}
+        "511":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+  upsertTenant:
+    TenantExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "tenant_123", "destinations_count": 5, "topics": ["user.created", "user.deleted"], "created_at": "2024-01-01T00:00:00Z"}
+  getTenant:
+    TenantExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "tenant_123", "destinations_count": 5, "topics": ["user.created", "user.deleted"], "created_at": "2024-01-01T00:00:00Z"}
+  deleteTenant:
+    SuccessExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"success": true}
+  getTenantPortalUrl:
+    PortalRedirectExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: {"redirect_url": "https://webhooks.acme.com/?token=JWT_TOKEN"}
+  getTenantToken:
+    TenantTokenExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: {"token": "SOME_JWT_TOKEN"}
+  listTenantDestinations:
+    DestinationsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}, {"id": "des_sqs_456", "type": "aws_sqs", "topics": ["*"], "disabled_at": "2024-03-01T12:00:00Z", "created_at": "2024-02-20T11:30:00Z", "config": {"endpoint": "https://sqs.us-west-2.amazonaws.com", "queue_url": "https://sqs.us-west-2.amazonaws.com/123456789012/my-app-queue"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}]
+  createTenantDestination:
+    WebhookCreatedExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      requestBody:
+        application/json: {"id": "user-provided-id", "type": "rabbitmq", "topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
+      responses:
+        "201":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456"}}
+  getTenantDestination:
+    WebhookGetExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  updateTenantDestination:
+    DestinationUpdatedExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      requestBody:
+        application/json: {"topics": "*", "config": {"stream_name": "my-data-stream", "region": "us-east-1", "endpoint": "https://kinesis.us-east-1.amazonaws.com", "partition_key_template": "data.\"user_id\""}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", "session": "AQoDYXdzEPT//////////wEXAMPLE..."}}
+      responses:
+        "200":
+          application/json: {"id": "des_rmq_789", "type": "rabbitmq", "topics": ["inventory.updated"], "disabled_at": null, "created_at": "2024-01-10T09:00:00Z", "config": {"server_url": "amqp.cloudamqp.com:5671", "exchange": "events-exchange", "tls": "true"}, "credentials": {"username": "app_user", "password": "secure_password_123"}}
+  deleteTenantDestination:
+    SuccessExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"success": true}
+  enableTenantDestination:
+    WebhookEnabledExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  disableTenantDestination:
+    WebhookDisabledExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created", "order.shipped"], "disabled_at": "2024-04-11T21:00:00Z", "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
+  publishEvent:
+    speakeasy-default-publish-event:
+      requestBody:
+        application/json: {"tenant_id": "<TENANT_ID>", "destination_id": "<DESTINATION_ID>", "topic": "topic.name", "eligible_for_retry": false, "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+      responses:
+        "404":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "403":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "408":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "413":
+          application/json: {"key": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "510":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "511":
+          application/json: {"key": "<value>", "key1": "<value>"}
+  listTenantDestinationTypeSchemas:
+    DestinationTypesExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: [{"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the webhook to.", "required": true, "pattern": "^https?://.*"}], "credential_fields": [{"type": "text", "label": "Secret", "description": "Optional signing secret.", "required": false, "sensitive": true}]}, {"type": "aws_sqs", "label": "AWS SQS", "description": "Send event to an AWS SQS queue", "icon": "<svg />", "instructions": "Enter Queue URL...", "config_fields": [{"type": "text", "label": "Queue URL", "description": "The URL of the SQS queue.", "required": true}, {"type": "text", "label": "Endpoint", "description": "Optional custom AWS endpoint URL.", "required": false}], "credential_fields": [{"type": "text", "label": "Key", "description": "AWS Access Key ID.", "required": true, "sensitive": true}, {"type": "text", "label": "Secret", "description": "AWS Secret Access Key.", "required": true, "sensitive": true}, {"type": "text", "label": "Session", "description": "Optional AWS Session Token.", "required": false, "sensitive": true}]}]
+  getTenantDestinationTypeSchema:
+    WebhookSchemaExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          type: "hookdeck"
+      responses:
+        "200":
+          application/json: {"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the webhook to.", "required": true, "pattern": "^https?://.*"}], "credential_fields": [{"type": "text", "label": "Secret", "description": "Optional signing secret.", "required": false, "sensitive": true}]}
+  listDestinationTypeSchemasJwt:
+    DestinationTypesExample:
+      responses:
+        "200":
+          application/json: [{"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the webhook to.", "required": true, "pattern": "^https?://.*"}], "credential_fields": [{"type": "text", "label": "Secret", "description": "Optional signing secret.", "required": false, "sensitive": true}]}, {"type": "aws_sqs", "label": "AWS SQS", "description": "Send event to an AWS SQS queue", "icon": "<svg />", "instructions": "Enter Queue URL...", "config_fields": [{"type": "text", "label": "Queue URL", "description": "The URL of the SQS queue.", "required": true}, {"type": "text", "label": "Endpoint", "description": "Optional custom AWS endpoint URL.", "required": false}], "credential_fields": [{"type": "text", "label": "Key", "description": "AWS Access Key ID.", "required": true, "sensitive": true}, {"type": "text", "label": "Secret", "description": "AWS Secret Access Key.", "required": true, "sensitive": true}, {"type": "text", "label": "Session", "description": "Optional AWS Session Token.", "required": false, "sensitive": true}]}]
+  getDestinationTypeSchema:
+    WebhookSchemaExample:
+      parameters:
+        path:
+          type: "aws_kinesis"
+      responses:
+        "200":
+          application/json: {"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the webhook to.", "required": true, "pattern": "^https?://.*"}], "credential_fields": [{"type": "text", "label": "Secret", "description": "Optional signing secret.", "required": false, "sensitive": true}]}
+  listTenantTopics:
+    TopicsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+      responses:
+        "200":
+          application/json: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+  listTopics:
+    TopicsListExample:
+      responses:
+        "200":
+          application/json: ["user.created", "user.updated", "order.shipped", "inventory.updated"]
+  listTenantEvents:
+    EventsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}, {"id": "evt_789", "destination_id": "des_456", "topic": "order.shipped", "time": "2024-01-02T10:00:00Z", "successful_at": null, "metadata": {"source": "oms"}, "data": {"order_id": "orderid", "tracking": "1Z..."}}]
+  getTenantEvent:
+    EventExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+  listTenantEventDeliveries:
+    DeliveriesListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: [{"delivered_at": "2024-01-01T00:00:05Z", "status": "success", "response_status_code": 200, "response_body": "{\"status\":\"ok\"}", "response_headers": {"content-type": "application/json"}}, {"delivered_at": "2024-01-01T00:00:01Z", "status": "failed", "response_status_code": 503, "response_body": "Service Unavailable", "response_headers": {"content-type": "text/plain"}}]
+  listTenantEventsByDestination:
+    EventsListExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+        query: {}
+      responses:
+        "200":
+          application/json: [{"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}, {"id": "evt_789", "destination_id": "des_456", "topic": "order.shipped", "time": "2024-01-02T10:00:00Z", "successful_at": null, "metadata": {"source": "oms"}, "data": {"order_id": "orderid", "tracking": "1Z..."}}]
+  getTenantEventByDestination:
+    EventExample:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "200":
+          application/json: {"id": "evt_123", "destination_id": "des_456", "topic": "user.created", "time": "2024-01-01T00:00:00Z", "successful_at": "2024-01-01T00:00:05Z", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+  retryTenantEvent:
+    speakeasy-default-retry-tenant-event:
+      parameters:
+        path:
+          tenant_id: "<id>"
+          destination_id: "<id>"
+          event_id: "<id>"
+      responses:
+        "401":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "408":
+          application/json: {"key": "<value>"}
+        "429":
+          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+        "400":
+          application/json: {"key": "<value>"}
+        "504":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "501":
+          application/json: {"key": "<value>"}
+        "500":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "510":
+          application/json: {"key": "<value>", "key1": "<value>"}
+        "511":
+          application/json: {"key": "<value>"}
+examplesVersion: 1.0.1
+generatedTests: {}

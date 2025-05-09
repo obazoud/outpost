@@ -13,7 +13,7 @@ targets:
     outpost-go:
         target: go
         source: Outpost API
-        output: ./sdks/go
+        output: ./sdks/outpost-go
         codeSamples:
             registry:
                 location: registry.speakeasyapi.dev/hookdeck-dev/outpost/outpost-api-go-code-samples
@@ -23,7 +23,7 @@ targets:
     outpost-python:
         target: python
         source: Outpost API
-        output: ./sdks/python
+        output: ./sdks/outpost-python
         publish:
             pypi:
                 token: $pypi_token
@@ -36,7 +36,7 @@ targets:
     outpost-ts:
         target: typescript
         source: Outpost API
-        output: ./sdks/typescript
+        output: ./sdks/outpost-typescript
         publish:
             npm:
                 token: $npm_token
