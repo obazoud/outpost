@@ -246,6 +246,13 @@ export function resolveGlobalSecurity(
         value: security?.adminApiKey,
       },
     ],
+    [
+      {
+        fieldName: "Authorization",
+        type: "http:bearer",
+        value: security?.tenantJwt,
+      },
+    ],
   );
 }
 

@@ -3,7 +3,7 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeJSON } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
@@ -32,7 +32,7 @@ import { Result } from "../types/fp.js";
  * Publishes an event to the specified topic, potentially routed to a specific destination. Requires Admin API Key.
  */
 export function publishEvent(
-  client: SDKCore,
+  client: OutpostCore,
   request: components.PublishRequest,
   options?: RequestOptions,
 ): APIPromise<
@@ -65,7 +65,7 @@ export function publishEvent(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   request: components.PublishRequest,
   options?: RequestOptions,
 ): Promise<
@@ -111,8 +111,7 @@ async function $do(
     Accept: "application/json",
   }));
 
-  const secConfig = await extractSecurity(client._options.adminApiKey);
-  const securityInput = secConfig == null ? {} : { adminApiKey: secConfig };
+  const securityInput = await extractSecurity(client._options.security);
   const requestSecurity = resolveGlobalSecurity(securityInput);
 
   const context = {
@@ -122,7 +121,7 @@ async function $do(
 
     resolvedSecurity: requestSecurity,
 
-    securitySource: client._options.adminApiKey,
+    securitySource: client._options.security,
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },

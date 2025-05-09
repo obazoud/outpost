@@ -57,6 +57,14 @@ export const startCommand = buildCommand({
           return z.string().parse(value);
         },
       },
+      "tenant-jwt": {
+        kind: "parsed",
+        brief: "Sets the tenantJwt auth field for the API",
+        optional: true,
+        parse: (value) => {
+          return z.string().parse(value);
+        },
+      },
       "tenant-id": {
         kind: "parsed",
         brief:

@@ -12,11 +12,6 @@ export type GetTenantGlobals = {
   tenantId?: string | undefined;
 };
 
-export type GetTenantSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 export type GetTenantRequest = {
   /**
    * The ID of the tenant. Required when using AdminApiKey authentication.
@@ -83,73 +78,6 @@ export function getTenantGlobalsFromJSON(
     jsonString,
     (x) => GetTenantGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'GetTenantGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const GetTenantSecurity$inboundSchema: z.ZodType<
-  GetTenantSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type GetTenantSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const GetTenantSecurity$outboundSchema: z.ZodType<
-  GetTenantSecurity$Outbound,
-  z.ZodTypeDef,
-  GetTenantSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace GetTenantSecurity$ {
-  /** @deprecated use `GetTenantSecurity$inboundSchema` instead. */
-  export const inboundSchema = GetTenantSecurity$inboundSchema;
-  /** @deprecated use `GetTenantSecurity$outboundSchema` instead. */
-  export const outboundSchema = GetTenantSecurity$outboundSchema;
-  /** @deprecated use `GetTenantSecurity$Outbound` instead. */
-  export type Outbound = GetTenantSecurity$Outbound;
-}
-
-export function getTenantSecurityToJSON(
-  getTenantSecurity: GetTenantSecurity,
-): string {
-  return JSON.stringify(
-    GetTenantSecurity$outboundSchema.parse(getTenantSecurity),
-  );
-}
-
-export function getTenantSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<GetTenantSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => GetTenantSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'GetTenantSecurity' from JSON`,
   );
 }
 

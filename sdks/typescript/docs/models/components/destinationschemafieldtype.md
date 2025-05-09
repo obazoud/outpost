@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DestinationSchemaFieldType } from "openapi/models/components";
+import { DestinationSchemaFieldType } from "@hookdeck/outpost-sdk/models/components";
 
 let value: DestinationSchemaFieldType = "text";
 ```
@@ -11,5 +11,5 @@ let value: DestinationSchemaFieldType = "text";
 ## Values
 
 ```typescript
-"text" | "number" | "boolean"
+"text" | "checkbox"
 ```

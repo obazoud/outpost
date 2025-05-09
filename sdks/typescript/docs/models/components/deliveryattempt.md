@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { DeliveryAttempt } from "openapi/models/components";
+import { DeliveryAttempt } from "@hookdeck/outpost-sdk/models/components";
 
 let value: DeliveryAttempt = {
   deliveredAt: new Date("2024-01-01T00:00:00Z"),

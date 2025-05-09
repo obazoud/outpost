@@ -10,6 +10,7 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type Security = {
   adminApiKey?: string | undefined;
+  tenantJwt?: string | undefined;
 };
 
 /** @internal */
@@ -19,15 +20,18 @@ export const Security$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   AdminApiKey: z.string().optional(),
+  TenantJwt: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     "AdminApiKey": "adminApiKey",
+    "TenantJwt": "tenantJwt",
   });
 });
 
 /** @internal */
 export type Security$Outbound = {
   AdminApiKey?: string | undefined;
+  TenantJwt?: string | undefined;
 };
 
 /** @internal */
@@ -37,9 +41,11 @@ export const Security$outboundSchema: z.ZodType<
   Security
 > = z.object({
   adminApiKey: z.string().optional(),
+  tenantJwt: z.string().optional(),
 }).transform((v) => {
   return remap$(v, {
     adminApiKey: "AdminApiKey",
+    tenantJwt: "TenantJwt",
   });
 });
 

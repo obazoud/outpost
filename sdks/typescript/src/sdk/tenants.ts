@@ -5,9 +5,7 @@
 import { tenantsDelete } from "../funcs/tenantsDelete.js";
 import { tenantsGet } from "../funcs/tenantsGet.js";
 import { tenantsGetPortalUrl } from "../funcs/tenantsGetPortalUrl.js";
-import { tenantsGetPortalUrlJwtContext } from "../funcs/tenantsGetPortalUrlJwtContext.js";
 import { tenantsGetToken } from "../funcs/tenantsGetToken.js";
-import { tenantsGetTokenJwtContext } from "../funcs/tenantsGetTokenJwtContext.js";
 import { tenantsUpsert } from "../funcs/tenantsUpsert.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
 import * as components from "../models/components/index.js";
@@ -39,13 +37,11 @@ export class Tenants extends ClientSDK {
    * Retrieves details for a specific tenant.
    */
   async get(
-    security: operations.GetTenantSecurity,
     request: operations.GetTenantRequest,
     options?: RequestOptions,
   ): Promise<components.Tenant> {
     return unwrapAsync(tenantsGet(
       this,
-      security,
       request,
       options,
     ));
@@ -58,13 +54,11 @@ export class Tenants extends ClientSDK {
    * Deletes the tenant and all associated destinations.
    */
   async delete(
-    security: operations.DeleteTenantSecurity,
     request: operations.DeleteTenantRequest,
     options?: RequestOptions,
   ): Promise<components.SuccessResponse> {
     return unwrapAsync(tenantsDelete(
       this,
-      security,
       request,
       options,
     ));
@@ -100,38 +94,6 @@ export class Tenants extends ClientSDK {
     return unwrapAsync(tenantsGetToken(
       this,
       request,
-      options,
-    ));
-  }
-
-  /**
-   * Get Portal Redirect URL (JWT Auth Context)
-   *
-   * @remarks
-   * Returns a redirect URL containing a JWT to authenticate the user with the portal (infers tenant from JWT). Requires Admin API Key.
-   */
-  async getPortalUrlJwtContext(
-    request: operations.GetPortalUrlJwtContextRequest,
-    options?: RequestOptions,
-  ): Promise<components.PortalRedirect> {
-    return unwrapAsync(tenantsGetPortalUrlJwtContext(
-      this,
-      request,
-      options,
-    ));
-  }
-
-  /**
-   * Get Tenant JWT Token (JWT Auth Context)
-   *
-   * @remarks
-   * Returns a JWT token scoped to the tenant (infers tenant from JWT). Requires Admin API Key.
-   */
-  async getTokenJwtContext(
-    options?: RequestOptions,
-  ): Promise<components.TenantToken> {
-    return unwrapAsync(tenantsGetTokenJwtContext(
-      this,
       options,
     ));
   }

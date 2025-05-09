@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { AWSSQSConfig } from "openapi/models/components";
+import { AWSSQSConfig } from "@hookdeck/outpost-sdk/models/components";
 
 let value: AWSSQSConfig = {
   endpoint: "https://sqs.us-east-1.amazonaws.com",

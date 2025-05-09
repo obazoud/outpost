@@ -21,13 +21,11 @@ export class Events extends ClientSDK {
    * Retrieves a list of events for the tenant, supporting cursor navigation (details TBD) and filtering.
    */
   async list(
-    security: operations.ListTenantEventsSecurity,
     request: operations.ListTenantEventsRequest,
     options?: RequestOptions,
   ): Promise<Array<components.Event>> {
     return unwrapAsync(eventsList(
       this,
-      security,
       request,
       options,
     ));
@@ -40,13 +38,11 @@ export class Events extends ClientSDK {
    * Retrieves details for a specific event.
    */
   async get(
-    security: operations.GetTenantEventSecurity,
     request: operations.GetTenantEventRequest,
     options?: RequestOptions,
   ): Promise<components.Event> {
     return unwrapAsync(eventsGet(
       this,
-      security,
       request,
       options,
     ));
@@ -59,13 +55,11 @@ export class Events extends ClientSDK {
    * Retrieves a list of delivery attempts for a specific event, including response details.
    */
   async listDeliveries(
-    security: operations.ListTenantEventDeliveriesSecurity,
     request: operations.ListTenantEventDeliveriesRequest,
     options?: RequestOptions,
   ): Promise<Array<components.DeliveryAttempt>> {
     return unwrapAsync(eventsListDeliveries(
       this,
-      security,
       request,
       options,
     ));
@@ -78,13 +72,11 @@ export class Events extends ClientSDK {
    * Retrieves events associated with a specific destination for the tenant.
    */
   async listByDestination(
-    security: operations.ListTenantEventsByDestinationSecurity,
     request: operations.ListTenantEventsByDestinationRequest,
     options?: RequestOptions,
   ): Promise<Array<components.Event>> {
     return unwrapAsync(eventsListByDestination(
       this,
-      security,
       request,
       options,
     ));
@@ -97,13 +89,11 @@ export class Events extends ClientSDK {
    * Retrieves a specific event associated with a specific destination for the tenant.
    */
   async getByDestination(
-    security: operations.GetTenantEventByDestinationSecurity,
     request: operations.GetTenantEventByDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.Event> {
     return unwrapAsync(eventsGetByDestination(
       this,
-      security,
       request,
       options,
     ));
@@ -116,13 +106,11 @@ export class Events extends ClientSDK {
    * Triggers a retry for a failed event delivery.
    */
   async retry(
-    security: operations.RetryTenantEventSecurity,
     request: operations.RetryTenantEventRequest,
     options?: RequestOptions,
   ): Promise<void> {
     return unwrapAsync(eventsRetry(
       this,
-      security,
       request,
       options,
     ));

@@ -16,31 +16,27 @@ export class Topics extends ClientSDK {
    * Returns a list of available event topics configured in the Outpost instance. Requires Admin API Key or Tenant JWT.
    */
   async list(
-    security: operations.ListTenantTopicsSecurity,
     request: operations.ListTenantTopicsRequest,
     options?: RequestOptions,
   ): Promise<Array<string>> {
     return unwrapAsync(topicsList(
       this,
-      security,
       request,
       options,
     ));
   }
 
   /**
-   * List Available Topics (JWT Auth)
+   * List Available Topics)
    *
    * @remarks
-   * Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
+   * Returns a list of available event topics configured in the Outpost instance.
    */
   async listJwt(
-    security: operations.ListTopicsJwtSecurity,
     options?: RequestOptions,
   ): Promise<Array<string>> {
     return unwrapAsync(topicsListJwt(
       this,
-      security,
       options,
     ));
   }

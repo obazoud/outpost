@@ -5,7 +5,7 @@ Type of the destination.
 ## Example Usage
 
 ```typescript
-import { DestinationRabbitMQType } from "openapi/models/components";
+import { DestinationRabbitMQType } from "@hookdeck/outpost-sdk/models/components";
 
 let value: DestinationRabbitMQType = "rabbitmq";
 ```

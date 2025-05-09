@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { TopicsEnum } from "openapi/models/components";
+import { TopicsEnum } from "@hookdeck/outpost-sdk/models/components";
 
 let value: TopicsEnum = "*";
 ```
