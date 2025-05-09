@@ -5,8 +5,8 @@ management:
   docVersion: 0.0.1
   speakeasyVersion: 1.543.4
   generationVersion: 2.598.22
-  releaseVersion: 0.1.0
-  configChecksum: 63ee3278dcaf5697bb4f44e22d59e245
+  releaseVersion: 0.1.1
+  configChecksum: 29b2dead444c91f07b22acd228e04897
   repoURL: https://github.com/hookdeck/outpost.git
   repoSubDirectory: sdks/go
   installationURL: https://github.com/hookdeck/outpost/sdks/go
