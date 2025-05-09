@@ -16,14 +16,12 @@ Simple health check endpoint.
 ### Example Usage
 
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost() as outpost:
 
-    res = sdk.health.check()
+    res = outpost.health.check()
 
     # Handle response
     print(res)

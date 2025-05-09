@@ -16,14 +16,16 @@ Publishes an event to the specified topic, potentially routed to a specific dest
 ### Example Usage
 
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost, models
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    sdk.publish.event(tenant_id="<TENANT_ID>", topic="topic.name", eligible_for_retry=False, data={
+    outpost.publish.event(tenant_id="<TENANT_ID>", topic="topic.name", eligible_for_retry=False, data={
         "user_id": "userid",
         "status": "active",
     }, destination_id="<DESTINATION_ID>", metadata={
