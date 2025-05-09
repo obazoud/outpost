@@ -3,9 +3,9 @@
 package operations
 
 import (
+	"client/models/components"
 	"encoding/json"
 	"fmt"
-	"openapi/models/components"
 )
 
 type ListTenantEventsByDestinationGlobals struct {
@@ -17,25 +17,6 @@ func (o *ListTenantEventsByDestinationGlobals) GetTenantID() *string {
 		return nil
 	}
 	return o.TenantID
-}
-
-type ListTenantEventsByDestinationSecurity struct {
-	AdminAPIKey *string `security:"scheme,type=http,subtype=bearer,name=Authorization"`
-	TenantJwt   *string `security:"scheme,type=http,subtype=bearer,name=Authorization"`
-}
-
-func (o *ListTenantEventsByDestinationSecurity) GetAdminAPIKey() *string {
-	if o == nil {
-		return nil
-	}
-	return o.AdminAPIKey
-}
-
-func (o *ListTenantEventsByDestinationSecurity) GetTenantJwt() *string {
-	if o == nil {
-		return nil
-	}
-	return o.TenantJwt
 }
 
 // ListTenantEventsByDestinationStatus - Filter events by delivery status.

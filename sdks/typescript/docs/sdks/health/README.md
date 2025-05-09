@@ -16,14 +16,12 @@ Simple health check endpoint.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -37,17 +35,15 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { healthCheck } from "openapi/funcs/healthCheck.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { healthCheck } from "@hookdeck/outpost-sdk/funcs/healthCheck.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new OutpostCore();
 
 async function run() {
-  const res = await healthCheck(sdk);
+  const res = await healthCheck(outpost);
 
   if (!res.ok) {
     throw res.error;

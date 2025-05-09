@@ -1,18 +1,13 @@
-# openapi
+# Outpost TypeScript SDK
 
-Developer-friendly & type-safe Typescript SDK specifically catered to leverage *openapi* API.
+Developer-friendly & type-safe Typescript SDK specifically catered to leverage the Outpost API.
 
 <div align="left">
-    <a href="https://www.speakeasy.com/?utm_source=openapi&utm_campaign=typescript"><img src="https://custom-icon-badges.demolab.com/badge/-Built%20By%20Speakeasy-212015?style=for-the-badge&logoColor=FBE331&logo=speakeasy&labelColor=545454" /></a>
+    <a href="https://www.speakeasy.com/?utm_source=outpost-github&utm_campaign=typescript"><img src="https://custom-icon-badges.demolab.com/badge/-Built%20By%20Speakeasy-212015?style=for-the-badge&logoColor=FBE331&logo=speakeasy&labelColor=545454" /></a>
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/License-MIT-blue.svg" style="width: 100px; height: 28px;" />
     </a>
 </div>
-
-
-<br /><br />
-> [!IMPORTANT]
-> This SDK is not yet ready for production use. To complete setup please follow the steps outlined in your [workspace](https://app.speakeasy.com/org/speakeasy-onboarding/onboarding). Delete this section before > publishing to a package manager.
 
 <!-- Start Summary [summary] -->
 ## Summary
@@ -23,7 +18,7 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [openapi](#openapi)
+* [Outpost TypeScript SDK](#outpost-typescript-sdk)
   * [SDK Installation](#sdk-installation)
   * [Requirements](#requirements)
   * [SDK Example Usage](#sdk-example-usage)
@@ -45,34 +40,30 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start SDK Installation [installation] -->
 ## SDK Installation
 
-> [!TIP]
-> To finish publishing your SDK to npm and others you must [run your first generation action](https://www.speakeasy.com/docs/github-setup#step-by-step-guide).
-
-
 The SDK can be installed with either [npm](https://www.npmjs.com/), [pnpm](https://pnpm.io/), [bun](https://bun.sh/) or [yarn](https://classic.yarnpkg.com/en/) package managers.
 
 ### NPM
 
 ```bash
-npm add <UNSET>
+npm add @hookdeck/outpost-sdk
 ```
 
 ### PNPM
 
 ```bash
-pnpm add <UNSET>
+pnpm add @hookdeck/outpost-sdk
 ```
 
 ### Bun
 
 ```bash
-bun add <UNSET>
+bun add @hookdeck/outpost-sdk
 ```
 
 ### Yarn
 
 ```bash
-yarn add <UNSET> zod
+yarn add @hookdeck/outpost-sdk zod
 
 # Note that Yarn does not install peer dependencies automatically. You will need
 # to install zod as shown above.
@@ -97,13 +88,14 @@ Add the following server definition to your `claude_desktop_config.json` file:
 ```json
 {
   "mcpServers": {
-    "SDK": {
+    "Outpost": {
       "command": "npx",
       "args": [
-        "-y", "--package", "openapi",
+        "-y", "--package", "@hookdeck/outpost-sdk",
         "--",
         "mcp", "start",
         "--admin-api-key", "...",
+        "--tenant-jwt", "...",
         "--tenant-id", "..."
       ]
     }
@@ -121,13 +113,14 @@ Create a `.cursor/mcp.json` file in your project root with the following content
 ```json
 {
   "mcpServers": {
-    "SDK": {
+    "Outpost": {
       "command": "npx",
       "args": [
-        "-y", "--package", "openapi",
+        "-y", "--package", "@hookdeck/outpost-sdk",
         "--",
         "mcp", "start",
         "--admin-api-key", "...",
+        "--tenant-jwt", "...",
         "--tenant-id", "..."
       ]
     }
@@ -164,7 +157,7 @@ If the repo is a private repo you must add your Github PAT to download a release
 For a full list of server arguments, run:
 
 ```sh
-npx -y --package openapi -- mcp start --help
+npx -y --package @hookdeck/outpost-sdk -- mcp start --help
 ```
 <!-- End SDK Installation [installation] -->
 
@@ -180,14 +173,12 @@ For supported JavaScript runtimes, please consult [RUNTIMES.md](RUNTIMES.md).
 ### Example
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -203,43 +194,25 @@ run();
 
 ### Per-Client Security Schemes
 
-This SDK supports the following security scheme globally:
+This SDK supports the following security schemes globally:
 
 | Name          | Type | Scheme      |
 | ------------- | ---- | ----------- |
 | `adminApiKey` | http | HTTP Bearer |
+| `tenantJwt`   | http | HTTP Bearer |
 
-To authenticate with the API the `adminApiKey` parameter must be set when initializing the SDK client instance. For example:
+You can set the security parameters through the `security` optional parameter when initializing the SDK client instance. The selected scheme will be used by default to authenticate with the API for all operations that support it. For example:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
 });
 
 async function run() {
-  const result = await sdk.health.check();
-
-  // Handle the result
-  console.log(result);
-}
-
-run();
-
-```
-
-### Per-Operation Security Schemes
-
-Some operations in this SDK require the security scheme to be specified at the request level. For example:
-```typescript
-import { SDK } from "openapi";
-
-const sdk = new SDK();
-
-async function run() {
-  const result = await sdk.tenants.get({}, {
-    tenantId: "<id>",
-  });
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -279,6 +252,7 @@ run();
 
 * [check](docs/sdks/health/README.md#check) - Health Check
 
+
 ### [publish](docs/sdks/publish/README.md)
 
 * [event](docs/sdks/publish/README.md#event) - Publish Event
@@ -288,8 +262,7 @@ run();
 * [listTenantDestinationTypes](docs/sdks/schemas/README.md#listtenantdestinationtypes) - List Destination Type Schemas (for Tenant)
 * [get](docs/sdks/schemas/README.md#get) - Get Destination Type Schema (for Tenant)
 * [listDestinationTypesJwt](docs/sdks/schemas/README.md#listdestinationtypesjwt) - List Destination Type Schemas (JWT Auth)
-* [getDestinationTypeJwt](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema (JWT Auth)
-
+* [getDestinationTypeJwt](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema
 
 ### [tenants](docs/sdks/tenants/README.md)
 
@@ -298,13 +271,11 @@ run();
 * [delete](docs/sdks/tenants/README.md#delete) - Delete Tenant
 * [getPortalUrl](docs/sdks/tenants/README.md#getportalurl) - Get Portal Redirect URL
 * [getToken](docs/sdks/tenants/README.md#gettoken) - Get Tenant JWT Token
-* [getPortalUrlJwtContext](docs/sdks/tenants/README.md#getportalurljwtcontext) - Get Portal Redirect URL (JWT Auth Context)
-* [getTokenJwtContext](docs/sdks/tenants/README.md#gettokenjwtcontext) - Get Tenant JWT Token (JWT Auth Context)
 
 ### [topics](docs/sdks/topics/README.md)
 
 * [list](docs/sdks/topics/README.md#list) - List Available Topics (for Tenant)
-* [listJwt](docs/sdks/topics/README.md#listjwt) - List Available Topics (JWT Auth)
+* [listJwt](docs/sdks/topics/README.md#listjwt) - List Available Topics)
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -340,18 +311,16 @@ To read more about standalone functions, check [FUNCTIONS.md](./FUNCTIONS.md).
 - [`healthCheck`](docs/sdks/health/README.md#check) - Health Check
 - [`publishEvent`](docs/sdks/publish/README.md#event) - Publish Event
 - [`schemasGet`](docs/sdks/schemas/README.md#get) - Get Destination Type Schema (for Tenant)
-- [`schemasGetDestinationTypeJwt`](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema (JWT Auth)
+- [`schemasGetDestinationTypeJwt`](docs/sdks/schemas/README.md#getdestinationtypejwt) - Get Destination Type Schema
 - [`schemasListDestinationTypesJwt`](docs/sdks/schemas/README.md#listdestinationtypesjwt) - List Destination Type Schemas (JWT Auth)
 - [`schemasListTenantDestinationTypes`](docs/sdks/schemas/README.md#listtenantdestinationtypes) - List Destination Type Schemas (for Tenant)
 - [`tenantsDelete`](docs/sdks/tenants/README.md#delete) - Delete Tenant
 - [`tenantsGet`](docs/sdks/tenants/README.md#get) - Get Tenant
 - [`tenantsGetPortalUrl`](docs/sdks/tenants/README.md#getportalurl) - Get Portal Redirect URL
-- [`tenantsGetPortalUrlJwtContext`](docs/sdks/tenants/README.md#getportalurljwtcontext) - Get Portal Redirect URL (JWT Auth Context)
 - [`tenantsGetToken`](docs/sdks/tenants/README.md#gettoken) - Get Tenant JWT Token
-- [`tenantsGetTokenJwtContext`](docs/sdks/tenants/README.md#gettokenjwtcontext) - Get Tenant JWT Token (JWT Auth Context)
 - [`tenantsUpsert`](docs/sdks/tenants/README.md#upsert) - Create or Update Tenant
 - [`topicsList`](docs/sdks/topics/README.md#list) - List Available Topics (for Tenant)
-- [`topicsListJwt`](docs/sdks/topics/README.md#listjwt) - List Available Topics (JWT Auth)
+- [`topicsListJwt`](docs/sdks/topics/README.md#listjwt) - List Available Topics)
 
 </details>
 <!-- End Standalone functions [standalone-funcs] -->
@@ -375,14 +344,16 @@ The following global parameter is available.
 ### Example
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
 });
 
 async function run() {
-  const result = await sdk.tenants.upsert({
+  const result = await outpost.tenants.upsert({
     tenantId: "<id>",
   });
 
@@ -402,14 +373,12 @@ Some of the endpoints in this SDK support retries.  If you use the SDK without a
 
 To change the default retry strategy for a single API call, simply provide a retryConfig object to the call:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
-  const result = await sdk.health.check({
+  const result = await outpost.health.check({
     retries: {
       strategy: "backoff",
       backoff: {
@@ -432,9 +401,9 @@ run();
 
 If you'd like to override the default retry strategy for all operations that support retries, you can provide a retryConfig at SDK initialization:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   retryConfig: {
     strategy: "backoff",
     backoff: {
@@ -445,11 +414,10 @@ const sdk = new SDK({
     },
     retryConnectionErrors: false,
   },
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -482,7 +450,7 @@ Some methods specify known errors which can be thrown. All the known errors are 
 If the method throws an error and it is not captured by the known errors, it will default to throwing a `APIError`.
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 import {
   BadRequestError,
   InternalServerError,
@@ -491,16 +459,14 @@ import {
   SDKValidationError,
   TimeoutError,
   UnauthorizedError,
-} from "openapi/models/errors";
+} from "@hookdeck/outpost-sdk/models/errors";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-});
+const outpost = new Outpost();
 
 async function run() {
   let result;
   try {
-    result = await sdk.health.check();
+    result = await outpost.health.check();
 
     // Handle the result
     console.log(result);
@@ -596,15 +562,14 @@ In some rare cases, the SDK can fail to get a response from the server or even m
 
 The default server can be overridden globally by passing a URL to the `serverURL: string` optional parameter when initializing the SDK client instance. For example:
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
+const outpost = new Outpost({
   serverURL: "http://localhost:3333/api/v1",
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
 });
 
 async function run() {
-  const result = await sdk.health.check();
+  const result = await outpost.health.check();
 
   // Handle the result
   console.log(result);
@@ -633,8 +598,8 @@ custom header and a timeout to requests and how to use the `"requestError"` hook
 to log errors:
 
 ```typescript
-import { SDK } from "openapi";
-import { HTTPClient } from "openapi/lib/http";
+import { Outpost } from "@hookdeck/outpost-sdk";
+import { HTTPClient } from "@hookdeck/outpost-sdk/lib/http";
 
 const httpClient = new HTTPClient({
   // fetcher takes a function that has the same signature as native `fetch`.
@@ -660,7 +625,7 @@ httpClient.addHook("requestError", (error, request) => {
   console.groupEnd();
 });
 
-const sdk = new SDK({ httpClient });
+const sdk = new Outpost({ httpClient });
 ```
 <!-- End Custom HTTP Client [http-client] -->
 
@@ -675,9 +640,9 @@ You can pass a logger that matches `console`'s interface as an SDK option.
 > Beware that debug logging will reveal secrets, like API tokens in headers, in log messages printed to a console or files. It's recommended to use this feature only during local development and not in production.
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({ debugLogger: console });
+const sdk = new Outpost({ debugLogger: console });
 ```
 <!-- End Debugging [debug] -->
 

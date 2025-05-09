@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { PortalRedirect } from "openapi/models/components";
+import { PortalRedirect } from "@hookdeck/outpost-sdk/models/components";
 
 let value: PortalRedirect = {
   redirectUrl: "https://webhooks.acme.com/?token=JWT_TOKEN",

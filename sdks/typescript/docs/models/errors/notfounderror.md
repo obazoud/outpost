@@ -5,7 +5,7 @@ Status codes relating to the resource/entity they are requesting not being found
 ## Example Usage
 
 ```typescript
-import { NotFoundError } from "openapi/models/errors";
+import { NotFoundError } from "@hookdeck/outpost-sdk/models/errors";
 
 // No examples available for this model
 ```

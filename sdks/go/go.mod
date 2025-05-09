@@ -1,4 +1,4 @@
-module openapi
+module github.com/hookdeck/outpost/sdks/go
 
 go 1.20
 

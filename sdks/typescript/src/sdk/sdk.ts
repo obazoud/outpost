@@ -11,7 +11,7 @@ import { Schemas } from "./schemas.js";
 import { Tenants } from "./tenants.js";
 import { Topics } from "./topics.js";
 
-export class SDK extends ClientSDK {
+export class Outpost extends ClientSDK {
   private _health?: Health;
   get health(): Health {
     return (this._health ??= new Health(this._options));

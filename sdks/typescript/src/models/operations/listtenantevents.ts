@@ -13,11 +13,6 @@ export type ListTenantEventsGlobals = {
   tenantId?: string | undefined;
 };
 
-export type ListTenantEventsSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 /**
  * Filter events by destination ID(s).
  */
@@ -109,73 +104,6 @@ export function listTenantEventsGlobalsFromJSON(
     jsonString,
     (x) => ListTenantEventsGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'ListTenantEventsGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const ListTenantEventsSecurity$inboundSchema: z.ZodType<
-  ListTenantEventsSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type ListTenantEventsSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const ListTenantEventsSecurity$outboundSchema: z.ZodType<
-  ListTenantEventsSecurity$Outbound,
-  z.ZodTypeDef,
-  ListTenantEventsSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace ListTenantEventsSecurity$ {
-  /** @deprecated use `ListTenantEventsSecurity$inboundSchema` instead. */
-  export const inboundSchema = ListTenantEventsSecurity$inboundSchema;
-  /** @deprecated use `ListTenantEventsSecurity$outboundSchema` instead. */
-  export const outboundSchema = ListTenantEventsSecurity$outboundSchema;
-  /** @deprecated use `ListTenantEventsSecurity$Outbound` instead. */
-  export type Outbound = ListTenantEventsSecurity$Outbound;
-}
-
-export function listTenantEventsSecurityToJSON(
-  listTenantEventsSecurity: ListTenantEventsSecurity,
-): string {
-  return JSON.stringify(
-    ListTenantEventsSecurity$outboundSchema.parse(listTenantEventsSecurity),
-  );
-}
-
-export function listTenantEventsSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<ListTenantEventsSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) => ListTenantEventsSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'ListTenantEventsSecurity' from JSON`,
   );
 }
 

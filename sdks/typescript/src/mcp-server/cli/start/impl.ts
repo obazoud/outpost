@@ -20,6 +20,7 @@ interface StartCommandFlags {
   readonly tool?: string[];
   readonly scope?: MCPScope[];
   readonly "admin-api-key"?: string | undefined;
+  readonly "tenant-jwt"?: string | undefined;
   readonly "tenant-id"?: SDKOptions["tenantId"] | undefined;
   readonly "server-url"?: string;
   readonly "server-index"?: SDKOptions["serverIdx"];
@@ -51,7 +52,10 @@ async function startStdio(flags: StartCommandFlags) {
     logger,
     allowedTools: flags.tool,
     scopes: flags.scope,
-    ...{ adminApiKey: flags["admin-api-key"] },
+    security: {
+      adminApiKey: flags["admin-api-key"],
+      tenantJwt: flags["tenant-jwt"],
+    },
     tenantId: flags["tenant-id"],
     serverURL: flags["server-url"],
     serverIdx: flags["server-index"],
@@ -73,7 +77,10 @@ async function startSSE(flags: StartCommandFlags) {
     logger,
     allowedTools: flags.tool,
     scopes: flags.scope,
-    ...{ adminApiKey: flags["admin-api-key"] },
+    security: {
+      adminApiKey: flags["admin-api-key"],
+      tenantJwt: flags["tenant-jwt"],
+    },
     tenantId: flags["tenant-id"],
     serverURL: flags["server-url"],
     serverIdx: flags["server-index"],

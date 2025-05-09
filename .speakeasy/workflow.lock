@@ -1,19 +1,42 @@
-speakeasyVersion: 1.541.2
-sources: {}
+speakeasyVersion: 1.543.4
+sources:
+    Outpost API:
+        sourceNamespace: outpost-api
+        sourceRevisionDigest: sha256:c70cdc1ec34614f0f81b48f214fed35151004bea6b10392538578d4788d808e2
+        sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
+        tags:
+            - latest
+            - speakeasy-sdk-regen-1746822090
+            - 0.0.1
 targets:
     outpost-go:
         source: Outpost API
+        sourceNamespace: outpost-api
+        sourceRevisionDigest: sha256:c70cdc1ec34614f0f81b48f214fed35151004bea6b10392538578d4788d808e2
+        sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
+        codeSamplesNamespace: outpost-api-go-code-samples
+        codeSamplesRevisionDigest: sha256:062b094a7de0088d77479bcb002a8f50a2a005340f72b20845b73028bcde47f8
     outpost-python:
         source: Outpost API
+        sourceNamespace: outpost-api
+        sourceRevisionDigest: sha256:33a0ebc725c9abcd74405bb2929aa2875f9849edd79a5c14ef5cb7bf08e80e81
+        sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
+        codeSamplesNamespace: outpost-api-python-code-samples
+        codeSamplesRevisionDigest: sha256:3982db0ce1099c1389488deeb542ba67a0f764e2c082ad1bedfe245d3fac1759
     outpost-ts:
         source: Outpost API
+        sourceNamespace: outpost-api
+        sourceRevisionDigest: sha256:6c60451579799a9a2125a1ebdd98b65a85afe580e5c10e7bb486ff4ff8629597
+        sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
+        codeSamplesNamespace: outpost-api-typescript-code-samples
+        codeSamplesRevisionDigest: sha256:e63cf33cfc01b002b5d03c264ad43c1fd29c18683eb9b811a2e69766f18b48d4
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: latest
     sources:
         Outpost API:
             inputs:
-                - location: ./sdks/schemas/hookdeck-schema.yaml
+                - location: ./docs/apis/openapi.yaml
             overlays:
                 - location: ./sdks/schemas/speakeasy-modifications-overlay.yaml
                 - location: ./sdks/schemas/error-types.yaml
@@ -34,6 +57,9 @@ workflow:
             target: python
             source: Outpost API
             output: ./sdks/python
+            publish:
+                pypi:
+                    token: $pypi_token
             codeSamples:
                 registry:
                     location: registry.speakeasyapi.dev/hookdeck-dev/outpost/outpost-api-python-code-samples
@@ -44,6 +70,9 @@ workflow:
             target: typescript
             source: Outpost API
             output: ./sdks/typescript
+            publish:
+                npm:
+                    token: $npm_token
             codeSamples:
                 registry:
                     location: registry.speakeasyapi.dev/hookdeck-dev/outpost/outpost-api-typescript-code-samples

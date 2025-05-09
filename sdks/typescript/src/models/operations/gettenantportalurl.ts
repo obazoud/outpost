@@ -16,16 +16,14 @@ export type GetTenantPortalUrlGlobals = {
 /**
  * Optional theme preference for the portal.
  */
-export const GetTenantPortalUrlTheme = {
+export const Theme = {
   Light: "light",
   Dark: "dark",
 } as const;
 /**
  * Optional theme preference for the portal.
  */
-export type GetTenantPortalUrlTheme = ClosedEnum<
-  typeof GetTenantPortalUrlTheme
->;
+export type Theme = ClosedEnum<typeof Theme>;
 
 export type GetTenantPortalUrlRequest = {
   /**
@@ -35,7 +33,7 @@ export type GetTenantPortalUrlRequest = {
   /**
    * Optional theme preference for the portal.
    */
-  theme?: GetTenantPortalUrlTheme | undefined;
+  theme?: Theme | undefined;
 };
 
 /** @internal */
@@ -101,24 +99,23 @@ export function getTenantPortalUrlGlobalsFromJSON(
 }
 
 /** @internal */
-export const GetTenantPortalUrlTheme$inboundSchema: z.ZodNativeEnum<
-  typeof GetTenantPortalUrlTheme
-> = z.nativeEnum(GetTenantPortalUrlTheme);
+export const Theme$inboundSchema: z.ZodNativeEnum<typeof Theme> = z.nativeEnum(
+  Theme,
+);
 
 /** @internal */
-export const GetTenantPortalUrlTheme$outboundSchema: z.ZodNativeEnum<
-  typeof GetTenantPortalUrlTheme
-> = GetTenantPortalUrlTheme$inboundSchema;
+export const Theme$outboundSchema: z.ZodNativeEnum<typeof Theme> =
+  Theme$inboundSchema;
 
 /**
  * @internal
  * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
  */
-export namespace GetTenantPortalUrlTheme$ {
-  /** @deprecated use `GetTenantPortalUrlTheme$inboundSchema` instead. */
-  export const inboundSchema = GetTenantPortalUrlTheme$inboundSchema;
-  /** @deprecated use `GetTenantPortalUrlTheme$outboundSchema` instead. */
-  export const outboundSchema = GetTenantPortalUrlTheme$outboundSchema;
+export namespace Theme$ {
+  /** @deprecated use `Theme$inboundSchema` instead. */
+  export const inboundSchema = Theme$inboundSchema;
+  /** @deprecated use `Theme$outboundSchema` instead. */
+  export const outboundSchema = Theme$outboundSchema;
 }
 
 /** @internal */
@@ -128,7 +125,7 @@ export const GetTenantPortalUrlRequest$inboundSchema: z.ZodType<
   unknown
 > = z.object({
   tenant_id: z.string().optional(),
-  theme: GetTenantPortalUrlTheme$inboundSchema.optional(),
+  theme: Theme$inboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     "tenant_id": "tenantId",
@@ -148,7 +145,7 @@ export const GetTenantPortalUrlRequest$outboundSchema: z.ZodType<
   GetTenantPortalUrlRequest
 > = z.object({
   tenantId: z.string().optional(),
-  theme: GetTenantPortalUrlTheme$outboundSchema.optional(),
+  theme: Theme$outboundSchema.optional(),
 }).transform((v) => {
   return remap$(v, {
     tenantId: "tenant_id",

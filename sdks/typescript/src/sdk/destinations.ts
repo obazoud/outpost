@@ -22,13 +22,11 @@ export class Destinations extends ClientSDK {
    * Return a list of the destinations for the tenant. The endpoint is not paged.
    */
   async list(
-    security: operations.ListTenantDestinationsSecurity,
     request: operations.ListTenantDestinationsRequest,
     options?: RequestOptions,
   ): Promise<Array<components.Destination>> {
     return unwrapAsync(destinationsList(
       this,
-      security,
       request,
       options,
     ));
@@ -41,13 +39,11 @@ export class Destinations extends ClientSDK {
    * Creates a new destination for the tenant. The request body structure depends on the `type`.
    */
   async create(
-    security: operations.CreateTenantDestinationSecurity,
     request: operations.CreateTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.Destination> {
     return unwrapAsync(destinationsCreate(
       this,
-      security,
       request,
       options,
     ));
@@ -60,13 +56,11 @@ export class Destinations extends ClientSDK {
    * Retrieves details for a specific destination.
    */
   async get(
-    security: operations.GetTenantDestinationSecurity,
     request: operations.GetTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.Destination> {
     return unwrapAsync(destinationsGet(
       this,
-      security,
       request,
       options,
     ));
@@ -79,13 +73,11 @@ export class Destinations extends ClientSDK {
    * Updates the configuration of an existing destination. The request body structure depends on the destination's `type`. Type itself cannot be updated. May return an OAuth redirect URL for certain types.
    */
   async update(
-    security: operations.UpdateTenantDestinationSecurity,
     request: operations.UpdateTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<operations.UpdateTenantDestinationResponse> {
     return unwrapAsync(destinationsUpdate(
       this,
-      security,
       request,
       options,
     ));
@@ -98,13 +90,11 @@ export class Destinations extends ClientSDK {
    * Deletes a specific destination.
    */
   async delete(
-    security: operations.DeleteTenantDestinationSecurity,
     request: operations.DeleteTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.SuccessResponse> {
     return unwrapAsync(destinationsDelete(
       this,
-      security,
       request,
       options,
     ));
@@ -117,13 +107,11 @@ export class Destinations extends ClientSDK {
    * Enables a previously disabled destination.
    */
   async enable(
-    security: operations.EnableTenantDestinationSecurity,
     request: operations.EnableTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.Destination> {
     return unwrapAsync(destinationsEnable(
       this,
-      security,
       request,
       options,
     ));
@@ -136,13 +124,11 @@ export class Destinations extends ClientSDK {
    * Disables a previously enabled destination.
    */
   async disable(
-    security: operations.DisableTenantDestinationSecurity,
     request: operations.DisableTenantDestinationRequest,
     options?: RequestOptions,
   ): Promise<components.Destination> {
     return unwrapAsync(destinationsDisable(
       this,
-      security,
       request,
       options,
     ));

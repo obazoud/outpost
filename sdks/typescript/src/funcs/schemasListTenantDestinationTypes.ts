@@ -3,13 +3,13 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import { encodeSimple } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { safeParse } from "../lib/schemas.js";
 import { RequestOptions } from "../lib/sdks.js";
-import { resolveSecurity } from "../lib/security.js";
+import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
 import * as components from "../models/components/index.js";
 import { APIError } from "../models/errors/apierror.js";
@@ -33,8 +33,7 @@ import { Result } from "../types/fp.js";
  * Returns a list of JSON-based input schemas for each available destination type. Requires Admin API Key or Tenant JWT.
  */
 export function schemasListTenantDestinationTypes(
-  client: SDKCore,
-  security: operations.ListTenantDestinationTypeSchemasSecurity,
+  client: OutpostCore,
   request: operations.ListTenantDestinationTypeSchemasRequest,
   options?: RequestOptions,
 ): APIPromise<
@@ -60,15 +59,13 @@ export function schemasListTenantDestinationTypes(
 > {
   return new APIPromise($do(
     client,
-    security,
     request,
     options,
   ));
 }
 
 async function $do(
-  client: SDKCore,
-  security: operations.ListTenantDestinationTypeSchemasSecurity,
+  client: OutpostCore,
   request: operations.ListTenantDestinationTypeSchemasRequest,
   options?: RequestOptions,
 ): Promise<
@@ -123,31 +120,17 @@ async function $do(
     Accept: "application/json",
   }));
 
-  const requestSecurity = resolveSecurity(
-    [
-      {
-        fieldName: "Authorization",
-        type: "http:bearer",
-        value: security?.adminApiKey,
-      },
-    ],
-    [
-      {
-        fieldName: "Authorization",
-        type: "http:bearer",
-        value: security?.tenantJwt,
-      },
-    ],
-  );
+  const securityInput = await extractSecurity(client._options.security);
+  const requestSecurity = resolveGlobalSecurity(securityInput);
 
   const context = {
     baseURL: options?.serverURL ?? client._baseURL ?? "",
     operationID: "listTenantDestinationTypeSchemas",
-    oAuth2Scopes: null,
+    oAuth2Scopes: [],
 
     resolvedSecurity: requestSecurity,
 
-    securitySource: security,
+    securitySource: client._options.security,
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },

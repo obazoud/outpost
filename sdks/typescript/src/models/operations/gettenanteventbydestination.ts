@@ -12,11 +12,6 @@ export type GetTenantEventByDestinationGlobals = {
   tenantId?: string | undefined;
 };
 
-export type GetTenantEventByDestinationSecurity = {
-  adminApiKey?: string | undefined;
-  tenantJwt?: string | undefined;
-};
-
 export type GetTenantEventByDestinationRequest = {
   /**
    * The ID of the tenant. Required when using AdminApiKey authentication.
@@ -95,78 +90,6 @@ export function getTenantEventByDestinationGlobalsFromJSON(
     (x) =>
       GetTenantEventByDestinationGlobals$inboundSchema.parse(JSON.parse(x)),
     `Failed to parse 'GetTenantEventByDestinationGlobals' from JSON`,
-  );
-}
-
-/** @internal */
-export const GetTenantEventByDestinationSecurity$inboundSchema: z.ZodType<
-  GetTenantEventByDestinationSecurity,
-  z.ZodTypeDef,
-  unknown
-> = z.object({
-  AdminApiKey: z.string().optional(),
-  TenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    "AdminApiKey": "adminApiKey",
-    "TenantJwt": "tenantJwt",
-  });
-});
-
-/** @internal */
-export type GetTenantEventByDestinationSecurity$Outbound = {
-  AdminApiKey?: string | undefined;
-  TenantJwt?: string | undefined;
-};
-
-/** @internal */
-export const GetTenantEventByDestinationSecurity$outboundSchema: z.ZodType<
-  GetTenantEventByDestinationSecurity$Outbound,
-  z.ZodTypeDef,
-  GetTenantEventByDestinationSecurity
-> = z.object({
-  adminApiKey: z.string().optional(),
-  tenantJwt: z.string().optional(),
-}).transform((v) => {
-  return remap$(v, {
-    adminApiKey: "AdminApiKey",
-    tenantJwt: "TenantJwt",
-  });
-});
-
-/**
- * @internal
- * @deprecated This namespace will be removed in future versions. Use schemas and types that are exported directly from this module.
- */
-export namespace GetTenantEventByDestinationSecurity$ {
-  /** @deprecated use `GetTenantEventByDestinationSecurity$inboundSchema` instead. */
-  export const inboundSchema =
-    GetTenantEventByDestinationSecurity$inboundSchema;
-  /** @deprecated use `GetTenantEventByDestinationSecurity$outboundSchema` instead. */
-  export const outboundSchema =
-    GetTenantEventByDestinationSecurity$outboundSchema;
-  /** @deprecated use `GetTenantEventByDestinationSecurity$Outbound` instead. */
-  export type Outbound = GetTenantEventByDestinationSecurity$Outbound;
-}
-
-export function getTenantEventByDestinationSecurityToJSON(
-  getTenantEventByDestinationSecurity: GetTenantEventByDestinationSecurity,
-): string {
-  return JSON.stringify(
-    GetTenantEventByDestinationSecurity$outboundSchema.parse(
-      getTenantEventByDestinationSecurity,
-    ),
-  );
-}
-
-export function getTenantEventByDestinationSecurityFromJSON(
-  jsonString: string,
-): SafeParseResult<GetTenantEventByDestinationSecurity, SDKValidationError> {
-  return safeParse(
-    jsonString,
-    (x) =>
-      GetTenantEventByDestinationSecurity$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'GetTenantEventByDestinationSecurity' from JSON`,
   );
 }
 

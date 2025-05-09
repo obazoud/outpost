@@ -3,11 +3,10 @@
  */
 
 import * as z from "zod";
-import { SDKCore } from "../core.js";
+import { OutpostCore } from "../core.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { RequestOptions } from "../lib/sdks.js";
-import { extractSecurity, resolveGlobalSecurity } from "../lib/security.js";
 import { pathToFunc } from "../lib/url.js";
 import { APIError } from "../models/errors/apierror.js";
 import {
@@ -29,7 +28,7 @@ import { Result } from "../types/fp.js";
  * Simple health check endpoint.
  */
 export function healthCheck(
-  client: SDKCore,
+  client: OutpostCore,
   options?: RequestOptions,
 ): APIPromise<
   Result<
@@ -60,7 +59,7 @@ export function healthCheck(
 }
 
 async function $do(
-  client: SDKCore,
+  client: OutpostCore,
   options?: RequestOptions,
 ): Promise<
   [
@@ -93,18 +92,14 @@ async function $do(
     Accept: "text/plain",
   }));
 
-  const secConfig = await extractSecurity(client._options.adminApiKey);
-  const securityInput = secConfig == null ? {} : { adminApiKey: secConfig };
-  const requestSecurity = resolveGlobalSecurity(securityInput);
-
   const context = {
     baseURL: options?.serverURL ?? client._baseURL ?? "",
     operationID: "healthCheck",
     oAuth2Scopes: [],
 
-    resolvedSecurity: requestSecurity,
+    resolvedSecurity: null,
 
-    securitySource: client._options.adminApiKey,
+    securitySource: null,
     retryConfig: options?.retries
       || client._options.retryConfig
       || { strategy: "none" },
@@ -112,7 +107,6 @@ async function $do(
   };
 
   const requestRes = client._createRequest(context, {
-    security: requestSecurity,
     method: "GET",
     baseURL: options?.serverURL,
     path: path,

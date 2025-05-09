@@ -45,14 +45,16 @@ Return a list of the destinations for the tenant. The endpoint is not paged.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.list({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.list({
     tenantId: "<id>",
   });
 
@@ -68,17 +70,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsList } from "openapi/funcs/destinationsList.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsList } from "@hookdeck/outpost-sdk/funcs/destinationsList.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsList(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsList(outpost, {
     tenantId: "<id>",
   });
 
@@ -100,7 +104,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.ListTenantDestinationsRequest](../../models/operations/listtenantdestinationsrequest.md)                                                                           | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.ListTenantDestinationsSecurity](../../models/operations/listtenantdestinationssecurity.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -131,14 +134,16 @@ Creates a new destination for the tenant. The request body structure depends on 
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.create({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.create({
     tenantId: "<id>",
     destinationCreate: {
       id: "user-provided-id",
@@ -168,17 +173,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsCreate } from "openapi/funcs/destinationsCreate.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsCreate } from "@hookdeck/outpost-sdk/funcs/destinationsCreate.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsCreate(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsCreate(outpost, {
     tenantId: "<id>",
     destinationCreate: {
       id: "user-provided-id",
@@ -214,7 +221,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.CreateTenantDestinationRequest](../../models/operations/createtenantdestinationrequest.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.CreateTenantDestinationSecurity](../../models/operations/createtenantdestinationsecurity.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -245,14 +251,16 @@ Retrieves details for a specific destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.get({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.get({
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -269,17 +277,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsGet } from "openapi/funcs/destinationsGet.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsGet } from "@hookdeck/outpost-sdk/funcs/destinationsGet.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsGet(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsGet(outpost, {
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -302,7 +312,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.GetTenantDestinationRequest](../../models/operations/gettenantdestinationrequest.md)                                                                               | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.GetTenantDestinationSecurity](../../models/operations/gettenantdestinationsecurity.md)                                                                             | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -333,14 +342,16 @@ Updates the configuration of an existing destination. The request body structure
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.update({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.update({
     tenantId: "<id>",
     destinationId: "<id>",
     destinationUpdate: {
@@ -369,17 +380,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsUpdate } from "openapi/funcs/destinationsUpdate.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsUpdate } from "@hookdeck/outpost-sdk/funcs/destinationsUpdate.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsUpdate(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsUpdate(outpost, {
     tenantId: "<id>",
     destinationId: "<id>",
     destinationUpdate: {
@@ -414,7 +427,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.UpdateTenantDestinationRequest](../../models/operations/updatetenantdestinationrequest.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.UpdateTenantDestinationSecurity](../../models/operations/updatetenantdestinationsecurity.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -445,14 +457,16 @@ Deletes a specific destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.delete({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.delete({
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -469,17 +483,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsDelete } from "openapi/funcs/destinationsDelete.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsDelete } from "@hookdeck/outpost-sdk/funcs/destinationsDelete.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsDelete(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsDelete(outpost, {
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -502,7 +518,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.DeleteTenantDestinationRequest](../../models/operations/deletetenantdestinationrequest.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.DeleteTenantDestinationSecurity](../../models/operations/deletetenantdestinationsecurity.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -533,14 +548,16 @@ Enables a previously disabled destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.enable({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.enable({
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -557,17 +574,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsEnable } from "openapi/funcs/destinationsEnable.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsEnable } from "@hookdeck/outpost-sdk/funcs/destinationsEnable.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsEnable(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsEnable(outpost, {
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -590,7 +609,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.EnableTenantDestinationRequest](../../models/operations/enabletenantdestinationrequest.md)                                                                         | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.EnableTenantDestinationSecurity](../../models/operations/enabletenantdestinationsecurity.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |
@@ -621,14 +639,16 @@ Disables a previously enabled destination.
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK();
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const result = await sdk.destinations.disable({
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const result = await outpost.destinations.disable({
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -645,17 +665,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { destinationsDisable } from "openapi/funcs/destinationsDisable.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { destinationsDisable } from "@hookdeck/outpost-sdk/funcs/destinationsDisable.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore();
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
+});
 
 async function run() {
-  const res = await destinationsDisable(sdk, {
-    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
-  }, {
+  const res = await destinationsDisable(outpost, {
     tenantId: "<id>",
     destinationId: "<id>",
   });
@@ -678,7 +700,6 @@ run();
 | Parameter                                                                                                                                                                      | Type                                                                                                                                                                           | Required                                                                                                                                                                       | Description                                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `request`                                                                                                                                                                      | [operations.DisableTenantDestinationRequest](../../models/operations/disabletenantdestinationrequest.md)                                                                       | :heavy_check_mark:                                                                                                                                                             | The request object to use for the request.                                                                                                                                     |
-| `security`                                                                                                                                                                     | [operations.DisableTenantDestinationSecurity](../../models/operations/disabletenantdestinationsecurity.md)                                                                     | :heavy_check_mark:                                                                                                                                                             | The security requirements to use for the request.                                                                                                                              |
 | `options`                                                                                                                                                                      | RequestOptions                                                                                                                                                                 | :heavy_minus_sign:                                                                                                                                                             | Used to set various options for making HTTP requests.                                                                                                                          |
 | `options.fetchOptions`                                                                                                                                                         | [RequestInit](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request#options)                                                                                        | :heavy_minus_sign:                                                                                                                                                             | Options that are passed to the underlying HTTP request. This can be used to inject extra headers for examples. All `Request` options, except `method` and `body`, are allowed. |
 | `options.retries`                                                                                                                                                              | [RetryConfig](../../lib/utils/retryconfig.md)                                                                                                                                  | :heavy_minus_sign:                                                                                                                                                             | Enables retrying HTTP requests under certain failure conditions.                                                                                                               |

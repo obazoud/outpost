@@ -3,7 +3,7 @@
 package operations
 
 import (
-	"openapi/models/components"
+	"client/models/components"
 )
 
 type PublishEventResponse struct {

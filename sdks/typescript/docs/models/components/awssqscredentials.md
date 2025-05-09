@@ -3,7 +3,7 @@
 ## Example Usage
 
 ```typescript
-import { AWSSQSCredentials } from "openapi/models/components";
+import { AWSSQSCredentials } from "@hookdeck/outpost-sdk/models/components";
 
 let value: AWSSQSCredentials = {
   key: "AKIAIOSFODNN7EXAMPLE",

@@ -1,18 +1,13 @@
-# openapi
+# Outpost Python SDK
 
-Developer-friendly & type-safe Python SDK specifically catered to leverage *openapi* API.
+Developer-friendly & type-safe Python SDK specifically catered to leverage the Outpost API.
 
 <div align="left">
-    <a href="https://www.speakeasy.com/?utm_source=openapi&utm_campaign=python"><img src="https://custom-icon-badges.demolab.com/badge/-Built%20By%20Speakeasy-212015?style=for-the-badge&logoColor=FBE331&logo=speakeasy&labelColor=545454" /></a>
+    <a href="https://www.speakeasy.com/?utm_source=outpost-github&utm_campaign=python"><img src="https://custom-icon-badges.demolab.com/badge/-Built%20By%20Speakeasy-212015?style=for-the-badge&logoColor=FBE331&logo=speakeasy&labelColor=545454" /></a>
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/License-MIT-blue.svg" style="width: 100px; height: 28px;" />
     </a>
 </div>
-
-
-<br /><br />
-> [!IMPORTANT]
-> This SDK is not yet ready for production use. To complete setup please follow the steps outlined in your [workspace](https://app.speakeasy.com/org/speakeasy-onboarding/onboarding). Delete this section before > publishing to a package manager.
 
 <!-- Start Summary [summary] -->
 ## Summary
@@ -23,7 +18,7 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [openapi](#openapi)
+* [Outpost Python SDK](#outpost-python-sdk)
   * [SDK Installation](#sdk-installation)
   * [IDE Support](#ide-support)
   * [SDK Example Usage](#sdk-example-usage)
@@ -45,10 +40,6 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 <!-- Start SDK Installation [installation] -->
 ## SDK Installation
 
-> [!TIP]
-> To finish publishing your SDK to PyPI you must [run your first generation action](https://www.speakeasy.com/docs/github-setup#step-by-step-guide).
-
-
 > [!NOTE]
 > **Python version upgrade policy**
 >
@@ -61,7 +52,7 @@ The SDK can be installed with either *pip* or *poetry* package managers.
 *PIP* is the default package installer for Python, enabling easy installation and management of packages from PyPI via the command line.
 
 ```bash
-pip install git+<UNSET>.git
+pip install outpost_sdk
 ```
 
 ### Poetry
@@ -69,7 +60,7 @@ pip install git+<UNSET>.git
 *Poetry* is a modern tool that simplifies dependency management and package publishing by using a single `pyproject.toml` file to handle project metadata and dependencies.
 
 ```bash
-poetry add git+<UNSET>.git
+poetry add outpost_sdk
 ```
 
 ### Shell and script usage with `uv`
@@ -77,7 +68,7 @@ poetry add git+<UNSET>.git
 You can use this SDK in a Python shell with [uv](https://docs.astral.sh/uv/) and the `uvx` command that comes with it like so:
 
 ```shell
-uvx --from openapi python
+uvx --from outpost_sdk python
 ```
 
 It's also possible to write a standalone Python script without needing to set up a whole project like so:
@@ -87,13 +78,13 @@ It's also possible to write a standalone Python script without needing to set up
 # /// script
 # requires-python = ">=3.9"
 # dependencies = [
-#     "openapi",
+#     "outpost_sdk",
 # ]
 # ///
 
-from openapi import SDK
+from outpost_sdk import Outpost
 
-sdk = SDK(
+sdk = Outpost(
   # SDK arguments
 )
 
@@ -121,14 +112,12 @@ Generally, the SDK will work well with most IDEs out of the box. However, when u
 
 ```python
 # Synchronous Example
-from openapi import SDK
+from outpost_sdk import Outpost
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost() as outpost:
 
-    res = sdk.health.check()
+    res = outpost.health.check()
 
     # Handle response
     print(res)
@@ -140,15 +129,13 @@ The same SDK client can also be used to make asychronous requests by importing a
 ```python
 # Asynchronous Example
 import asyncio
-from openapi import SDK
+from outpost_sdk import Outpost
 
 async def main():
 
-    async with SDK(
-        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ) as sdk:
+    async with Outpost() as outpost:
 
-        res = await sdk.health.check_async()
+        res = await outpost.health.check_async()
 
         # Handle response
         print(res)
@@ -162,40 +149,25 @@ asyncio.run(main())
 
 ### Per-Client Security Schemes
 
-This SDK supports the following security scheme globally:
+This SDK supports the following security schemes globally:
 
 | Name            | Type | Scheme      |
 | --------------- | ---- | ----------- |
 | `admin_api_key` | http | HTTP Bearer |
+| `tenant_jwt`    | http | HTTP Bearer |
 
-To authenticate with the API the `admin_api_key` parameter must be set when initializing the SDK client instance. For example:
+You can set the security parameters through the `security` optional parameter when initializing the SDK client instance. The selected scheme will be used by default to authenticate with the API for all operations that support it. For example:
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost, models
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    res = sdk.health.check()
-
-    # Handle response
-    print(res)
-
-```
-
-### Per-Operation Security Schemes
-
-Some operations in this SDK require the security scheme to be specified at the request level. For example:
-```python
-from openapi import SDK, models
-
-
-with SDK() as sdk:
-
-    res = sdk.tenants.get(security=models.GetTenantSecurity(
-
-    ), tenant_id="<id>")
+    res = outpost.health.check()
 
     # Handle response
     print(res)
@@ -232,6 +204,7 @@ with SDK() as sdk:
 
 * [check](docs/sdks/health/README.md#check) - Health Check
 
+
 ### [publish](docs/sdks/publish/README.md)
 
 * [event](docs/sdks/publish/README.md#event) - Publish Event
@@ -241,8 +214,7 @@ with SDK() as sdk:
 * [list_tenant_destination_types](docs/sdks/schemas/README.md#list_tenant_destination_types) - List Destination Type Schemas (for Tenant)
 * [get](docs/sdks/schemas/README.md#get) - Get Destination Type Schema (for Tenant)
 * [list_destination_types_jwt](docs/sdks/schemas/README.md#list_destination_types_jwt) - List Destination Type Schemas (JWT Auth)
-* [get_destination_type_jwt](docs/sdks/schemas/README.md#get_destination_type_jwt) - Get Destination Type Schema (JWT Auth)
-
+* [get_destination_type_jwt](docs/sdks/schemas/README.md#get_destination_type_jwt) - Get Destination Type Schema
 
 ### [tenants](docs/sdks/tenants/README.md)
 
@@ -251,13 +223,11 @@ with SDK() as sdk:
 * [delete](docs/sdks/tenants/README.md#delete) - Delete Tenant
 * [get_portal_url](docs/sdks/tenants/README.md#get_portal_url) - Get Portal Redirect URL
 * [get_token](docs/sdks/tenants/README.md#get_token) - Get Tenant JWT Token
-* [get_portal_url_jwt_context](docs/sdks/tenants/README.md#get_portal_url_jwt_context) - Get Portal Redirect URL (JWT Auth Context)
-* [get_token_jwt_context](docs/sdks/tenants/README.md#get_token_jwt_context) - Get Tenant JWT Token (JWT Auth Context)
 
 ### [topics](docs/sdks/topicssdk/README.md)
 
 * [list](docs/sdks/topicssdk/README.md#list) - List Available Topics (for Tenant)
-* [list_jwt](docs/sdks/topicssdk/README.md#list_jwt) - List Available Topics (JWT Auth)
+* [list_jwt](docs/sdks/topicssdk/README.md#list_jwt) - List Available Topics)
 
 </details>
 <!-- End Available Resources and Operations [operations] -->
@@ -281,14 +251,16 @@ The following global parameter is available.
 ### Example
 
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost, models
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    res = sdk.tenants.upsert(tenant_id="<id>")
+    res = outpost.tenants.upsert(tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -303,15 +275,13 @@ Some of the endpoints in this SDK support retries. If you use the SDK without an
 
 To change the default retry strategy for a single API call, simply provide a `RetryConfig` object to the call:
 ```python
-from openapi import SDK
-from openapi.utils import BackoffStrategy, RetryConfig
+from outpost_sdk import Outpost
+from outpost_sdk.utils import BackoffStrategy, RetryConfig
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost() as outpost:
 
-    res = sdk.health.check(,
+    res = outpost.health.check(,
         RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False))
 
     # Handle response
@@ -321,16 +291,15 @@ with SDK(
 
 If you'd like to override the default retry strategy for all operations that support retries, you can use the `retry_config` optional parameter when initializing the SDK:
 ```python
-from openapi import SDK
-from openapi.utils import BackoffStrategy, RetryConfig
+from outpost_sdk import Outpost
+from outpost_sdk.utils import BackoffStrategy, RetryConfig
 
 
-with SDK(
+with Outpost(
     retry_config=RetryConfig("backoff", BackoffStrategy(1, 50, 1.1, 100), False),
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+) as outpost:
 
-    res = sdk.health.check()
+    res = outpost.health.check()
 
     # Handle response
     print(res)
@@ -371,16 +340,14 @@ When custom error responses are specified for an operation, the SDK may also rai
 ### Example
 
 ```python
-from openapi import SDK, errors
+from outpost_sdk import Outpost, errors
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost() as outpost:
     res = None
     try:
 
-        res = sdk.health.check()
+        res = outpost.health.check()
 
         # Handle response
         print(res)
@@ -428,15 +395,14 @@ with SDK(
 
 The default server can be overridden globally by passing a URL to the `server_url: str` optional parameter when initializing the SDK client instance. For example:
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost
 
 
-with SDK(
+with Outpost(
     server_url="http://localhost:3333/api/v1",
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+) as outpost:
 
-    res = sdk.health.check()
+    res = outpost.health.check()
 
     # Handle response
     print(res)
@@ -453,17 +419,17 @@ This allows you to wrap the client with your own custom logic, such as adding cu
 
 For example, you could specify a header for every request that this sdk makes as follows:
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost
 import httpx
 
 http_client = httpx.Client(headers={"x-custom-header": "someValue"})
-s = SDK(client=http_client)
+s = Outpost(client=http_client)
 ```
 
 or you could wrap the client with your own custom logic:
 ```python
-from openapi import SDK
-from openapi.httpclient import AsyncHttpClient
+from outpost_sdk import Outpost
+from outpost_sdk.httpclient import AsyncHttpClient
 import httpx
 
 class CustomClient(AsyncHttpClient):
@@ -521,33 +487,29 @@ class CustomClient(AsyncHttpClient):
             extensions=extensions,
         )
 
-s = SDK(async_client=CustomClient(httpx.AsyncClient()))
+s = Outpost(async_client=CustomClient(httpx.AsyncClient()))
 ```
 <!-- End Custom HTTP Client [http-client] -->
 
 <!-- Start Resource Management [resource-management] -->
 ## Resource Management
 
-The `SDK` class implements the context manager protocol and registers a finalizer function to close the underlying sync and async HTTPX clients it uses under the hood. This will close HTTP connections, release memory and free up other resources held by the SDK. In short-lived Python programs and notebooks that make a few SDK method calls, resource management may not be a concern. However, in longer-lived programs, it is beneficial to create a single SDK instance via a [context manager][context-manager] and reuse it across the application.
+The `Outpost` class implements the context manager protocol and registers a finalizer function to close the underlying sync and async HTTPX clients it uses under the hood. This will close HTTP connections, release memory and free up other resources held by the SDK. In short-lived Python programs and notebooks that make a few SDK method calls, resource management may not be a concern. However, in longer-lived programs, it is beneficial to create a single SDK instance via a [context manager][context-manager] and reuse it across the application.
 
 [context-manager]: https://docs.python.org/3/reference/datamodel.html#context-managers
 
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost
 def main():
 
-    with SDK(
-        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ) as sdk:
+    with Outpost() as outpost:
         # Rest of application here...
 
 
 # Or when using async:
 async def amain():
 
-    async with SDK(
-        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ) as sdk:
+    async with Outpost() as outpost:
         # Rest of application here...
 ```
 <!-- End Resource Management [resource-management] -->
@@ -559,11 +521,11 @@ You can setup your SDK to emit debug logs for SDK requests and responses.
 
 You can pass your own logger class directly into your SDK.
 ```python
-from openapi import SDK
+from outpost_sdk import Outpost
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-s = SDK(debug_logger=logging.getLogger("openapi"))
+s = Outpost(debug_logger=logging.getLogger("outpost_sdk"))
 ```
 <!-- End Debugging [debug] -->
 

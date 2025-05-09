@@ -16,14 +16,16 @@ Publishes an event to the specified topic, potentially routed to a specific dest
 ### Example Usage
 
 ```typescript
-import { SDK } from "openapi";
+import { Outpost } from "@hookdeck/outpost-sdk";
 
-const sdk = new SDK({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+const outpost = new Outpost({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
 });
 
 async function run() {
-  await sdk.publish.event({
+  await outpost.publish.event({
     tenantId: "<TENANT_ID>",
     destinationId: "<DESTINATION_ID>",
     topic: "topic.name",
@@ -48,17 +50,19 @@ run();
 The standalone function version of this method:
 
 ```typescript
-import { SDKCore } from "openapi/core.js";
-import { publishEvent } from "openapi/funcs/publishEvent.js";
+import { OutpostCore } from "@hookdeck/outpost-sdk/core.js";
+import { publishEvent } from "@hookdeck/outpost-sdk/funcs/publishEvent.js";
 
-// Use `SDKCore` for best tree-shaking performance.
+// Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
-const sdk = new SDKCore({
-  adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+const outpost = new OutpostCore({
+  security: {
+    adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
+  },
 });
 
 async function run() {
-  const res = await publishEvent(sdk, {
+  const res = await publishEvent(outpost, {
     tenantId: "<TENANT_ID>",
     destinationId: "<DESTINATION_ID>",
     topic: "topic.name",

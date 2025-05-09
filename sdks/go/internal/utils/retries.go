@@ -3,6 +3,7 @@
 package utils
 
 import (
+	"client/retry"
 	"context"
 	"errors"
 	"fmt"
@@ -10,7 +11,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
-	"openapi/retry"
 	"strconv"
 	"strings"
 	"time"
