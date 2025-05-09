@@ -34,5 +34,5 @@ go:
   maxMethodParams: 4
   methodArguments: require-security-and-request
   outputModelSuffix: output
-  packageName: github.com/hookdeck/outpost/sdks/go/client
+  packageName: github.com/hookdeck/outpost/sdks/go
   responseFormat: envelope-http
