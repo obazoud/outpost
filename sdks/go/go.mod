@@ -1,4 +1,4 @@
-module client
+module github.com/hookdeck/outpost/sdk/go
 
 go 1.20
 
