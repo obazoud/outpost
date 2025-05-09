@@ -1,4 +1,4 @@
-module github.com/hookdeck/outpost/sdk/go
+module github.com/hookdeck/outpost/sdks/go
 
 go 1.20
 
