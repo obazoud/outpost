@@ -3,17 +3,15 @@
 package main
 
 import (
+	"client"
 	"context"
 	"log"
-	"openapi"
 )
 
 func main() {
 	ctx := context.Background()
 
-	s := openapi.New(
-		openapi.WithSecurity("<YOUR_BEARER_TOKEN_HERE>"),
-	)
+	s := client.New()
 
 	res, err := s.Health.Check(ctx)
 	if err != nil {

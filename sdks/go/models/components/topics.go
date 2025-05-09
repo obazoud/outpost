@@ -3,10 +3,10 @@
 package components
 
 import (
+	"client/internal/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"openapi/internal/utils"
 )
 
 type TopicsEnum string
