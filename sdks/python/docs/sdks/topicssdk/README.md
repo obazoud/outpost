@@ -8,7 +8,7 @@ Operations for retrieving available event topics.
 ### Available Operations
 
 * [list](#list) - List Available Topics (for Tenant)
-* [list_jwt](#list_jwt) - List Available Topics (JWT Auth)
+* [list_jwt](#list_jwt) - List Available Topics)
 
 ## list
 
@@ -17,14 +17,16 @@ Returns a list of available event topics configured in the Outpost instance. Req
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.topics.list(security=models.ListTenantTopicsSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.topics.list(tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -33,11 +35,10 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                   | Type                                                                        | Required                                                                    | Description                                                                 |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `security`                                                                  | [models.ListTenantTopicsSecurity](../../models/listtenanttopicssecurity.md) | :heavy_check_mark:                                                          | N/A                                                                         |
-| `tenant_id`                                                                 | *Optional[str]*                                                             | :heavy_minus_sign:                                                          | The ID of the tenant. Required when using AdminApiKey authentication.       |
-| `retries`                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)            | :heavy_minus_sign:                                                          | Configuration to override the default retry behavior of the client.         |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -60,19 +61,21 @@ with SDK() as sdk:
 
 ## list_jwt
 
-Returns a list of available event topics configured in the Outpost instance (infers tenant from JWT).
+Returns a list of available event topics configured in the Outpost instance.
 
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    res = sdk.topics.list_jwt(security=models.ListTopicsJwtSecurity(
-        tenant_jwt="<YOUR_BEARER_TOKEN_HERE>",
-    ))
+    res = outpost.topics.list_jwt()
 
     # Handle response
     print(res)
@@ -83,7 +86,6 @@ with SDK() as sdk:
 
 | Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `security`                                                          | [models.ListTopicsJwtSecurity](../../listtopicsjwtsecurity.md)      | :heavy_check_mark:                                                  | The security requirements to use for the request.                   |
 | `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response

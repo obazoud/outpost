@@ -10,7 +10,7 @@ Operations for retrieving destination type schemas.
 * [list_tenant_destination_types](#list_tenant_destination_types) - List Destination Type Schemas (for Tenant)
 * [get](#get) - Get Destination Type Schema (for Tenant)
 * [list_destination_types_jwt](#list_destination_types_jwt) - List Destination Type Schemas (JWT Auth)
-* [get_destination_type_jwt](#get_destination_type_jwt) - Get Destination Type Schema (JWT Auth)
+* [get_destination_type_jwt](#get_destination_type_jwt) - Get Destination Type Schema
 
 ## list_tenant_destination_types
 
@@ -19,14 +19,16 @@ Returns a list of JSON-based input schemas for each available destination type. 
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.schemas.list_tenant_destination_types(security=models.ListTenantDestinationTypeSchemasSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.schemas.list_tenant_destination_types(tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -35,11 +37,10 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                                   | Type                                                                                                        | Required                                                                                                    | Description                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `security`                                                                                                  | [models.ListTenantDestinationTypeSchemasSecurity](../../models/listtenantdestinationtypeschemassecurity.md) | :heavy_check_mark:                                                                                          | N/A                                                                                                         |
-| `tenant_id`                                                                                                 | *Optional[str]*                                                                                             | :heavy_minus_sign:                                                                                          | The ID of the tenant. Required when using AdminApiKey authentication.                                       |
-| `retries`                                                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                            | :heavy_minus_sign:                                                                                          | Configuration to override the default retry behavior of the client.                                         |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -67,14 +68,16 @@ Returns the input schema for a specific destination type. Requires Admin API Key
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.schemas.get(security=models.GetTenantDestinationTypeSchemaSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), type_=models.GetTenantDestinationTypeSchemaType.RABBITMQ, tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.schemas.get(type_=models.GetTenantDestinationTypeSchemaType.RABBITMQ, tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -83,12 +86,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                               | Type                                                                                                    | Required                                                                                                | Description                                                                                             |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `security`                                                                                              | [models.GetTenantDestinationTypeSchemaSecurity](../../models/gettenantdestinationtypeschemasecurity.md) | :heavy_check_mark:                                                                                      | N/A                                                                                                     |
-| `type`                                                                                                  | [models.GetTenantDestinationTypeSchemaType](../../models/gettenantdestinationtypeschematype.md)         | :heavy_check_mark:                                                                                      | The type of the destination.                                                                            |
-| `tenant_id`                                                                                             | *Optional[str]*                                                                                         | :heavy_minus_sign:                                                                                      | The ID of the tenant. Required when using AdminApiKey authentication.                                   |
-| `retries`                                                                                               | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                        | :heavy_minus_sign:                                                                                      | Configuration to override the default retry behavior of the client.                                     |
+| Parameter                                                                                       | Type                                                                                            | Required                                                                                        | Description                                                                                     |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `type`                                                                                          | [models.GetTenantDestinationTypeSchemaType](../../models/gettenantdestinationtypeschematype.md) | :heavy_check_mark:                                                                              | The type of the destination.                                                                    |
+| `tenant_id`                                                                                     | *Optional[str]*                                                                                 | :heavy_minus_sign:                                                                              | The ID of the tenant. Required when using AdminApiKey authentication.                           |
+| `retries`                                                                                       | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                | :heavy_minus_sign:                                                                              | Configuration to override the default retry behavior of the client.                             |
 
 ### Response
 
@@ -116,14 +118,16 @@ Returns a list of JSON-based input schemas for each available destination type (
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    res = sdk.schemas.list_destination_types_jwt(security=models.ListDestinationTypeSchemasJwtSecurity(
-        tenant_jwt="<YOUR_BEARER_TOKEN_HERE>",
-    ))
+    res = outpost.schemas.list_destination_types_jwt()
 
     # Handle response
     print(res)
@@ -132,10 +136,9 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                      | Type                                                                                           | Required                                                                                       | Description                                                                                    |
-| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `security`                                                                                     | [models.ListDestinationTypeSchemasJwtSecurity](../../listdestinationtypeschemasjwtsecurity.md) | :heavy_check_mark:                                                                             | The security requirements to use for the request.                                              |
-| `retries`                                                                                      | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                               | :heavy_minus_sign:                                                                             | Configuration to override the default retry behavior of the client.                            |
+| Parameter                                                           | Type                                                                | Required                                                            | Description                                                         |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `retries`                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)    | :heavy_minus_sign:                                                  | Configuration to override the default retry behavior of the client. |
 
 ### Response
 
@@ -159,19 +162,21 @@ with SDK() as sdk:
 
 ## get_destination_type_jwt
 
-Returns the input schema for a specific destination type (infers tenant from JWT).
+Returns the input schema for a specific destination type.
 
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
+with Outpost(
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
 
-    res = sdk.schemas.get_destination_type_jwt(security=models.GetDestinationTypeSchemaJwtSecurity(
-        tenant_jwt="<YOUR_BEARER_TOKEN_HERE>",
-    ), type_=models.GetDestinationTypeSchemaJwtType.RABBITMQ)
+    res = outpost.schemas.get_destination_type_jwt(type_=models.GetDestinationTypeSchemaType.AWS_KINESIS)
 
     # Handle response
     print(res)
@@ -180,11 +185,10 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                         | Type                                                                                              | Required                                                                                          | Description                                                                                       |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `security`                                                                                        | [models.GetDestinationTypeSchemaJwtSecurity](../../models/getdestinationtypeschemajwtsecurity.md) | :heavy_check_mark:                                                                                | N/A                                                                                               |
-| `type`                                                                                            | [models.GetDestinationTypeSchemaJwtType](../../models/getdestinationtypeschemajwttype.md)         | :heavy_check_mark:                                                                                | The type of the destination.                                                                      |
-| `retries`                                                                                         | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                  | :heavy_minus_sign:                                                                                | Configuration to override the default retry behavior of the client.                               |
+| Parameter                                                                           | Type                                                                                | Required                                                                            | Description                                                                         |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `type`                                                                              | [models.GetDestinationTypeSchemaType](../../models/getdestinationtypeschematype.md) | :heavy_check_mark:                                                                  | The type of the destination.                                                        |
+| `retries`                                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                    | :heavy_minus_sign:                                                                  | Configuration to override the default retry behavior of the client.                 |
 
 ### Response
 

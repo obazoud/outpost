@@ -1,14 +1,12 @@
 <!-- Start SDK Example Usage [usage] -->
 ```python
 # Synchronous Example
-from openapi import SDK
+from outpost_sdk import Outpost
 
 
-with SDK(
-    admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-) as sdk:
+with Outpost() as outpost:
 
-    res = sdk.health.check()
+    res = outpost.health.check()
 
     # Handle response
     print(res)
@@ -20,15 +18,13 @@ The same SDK client can also be used to make asychronous requests by importing a
 ```python
 # Asynchronous Example
 import asyncio
-from openapi import SDK
+from outpost_sdk import Outpost
 
 async def main():
 
-    async with SDK(
-        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ) as sdk:
+    async with Outpost() as outpost:
 
-        res = await sdk.health.check_async()
+        res = await outpost.health.check_async()
 
         # Handle response
         print(res)

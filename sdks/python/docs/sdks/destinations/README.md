@@ -45,14 +45,16 @@ Return a list of the destinations for the tenant. The endpoint is not paged.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.list(security=models.ListTenantDestinationsSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.destinations.list(tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -63,7 +65,6 @@ with SDK() as sdk:
 
 | Parameter                                                                                     | Type                                                                                          | Required                                                                                      | Description                                                                                   |
 | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `security`                                                                                    | [models.ListTenantDestinationsSecurity](../../models/listtenantdestinationssecurity.md)       | :heavy_check_mark:                                                                            | N/A                                                                                           |
 | `tenant_id`                                                                                   | *Optional[str]*                                                                               | :heavy_minus_sign:                                                                            | The ID of the tenant. Required when using AdminApiKey authentication.                         |
 | `type`                                                                                        | [Optional[models.Type]](../../models/type.md)                                                 | :heavy_minus_sign:                                                                            | Filter destinations by type(s).                                                               |
 | `topics`                                                                                      | [Optional[models.ListTenantDestinationsTopics]](../../models/listtenantdestinationstopics.md) | :heavy_minus_sign:                                                                            | Filter destinations by supported topic(s).                                                    |
@@ -95,14 +96,16 @@ Creates a new destination for the tenant. The request body structure depends on 
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.create(security=models.CreateTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_create={
+    ),
+) as outpost:
+
+    res = outpost.destinations.create(destination_create={
         "id": "user-provided-id",
         "type": models.DestinationCreateAWSSQSType.AWS_SQS,
         "topics": models.TopicsEnum.WILDCARD_,
@@ -124,12 +127,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                 | Type                                                                                      | Required                                                                                  | Description                                                                               |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `security`                                                                                | [models.CreateTenantDestinationSecurity](../../models/createtenantdestinationsecurity.md) | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `destination_create`                                                                      | [models.DestinationCreate](../../models/destinationcreate.md)                             | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `tenant_id`                                                                               | *Optional[str]*                                                                           | :heavy_minus_sign:                                                                        | The ID of the tenant. Required when using AdminApiKey authentication.                     |
-| `retries`                                                                                 | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                          | :heavy_minus_sign:                                                                        | Configuration to override the default retry behavior of the client.                       |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_create`                                                  | [models.DestinationCreate](../../models/destinationcreate.md)         | :heavy_check_mark:                                                    | N/A                                                                   |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -157,14 +159,16 @@ Retrieves details for a specific destination.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.get(security=models.GetTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.destinations.get(destination_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -173,12 +177,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                           | Type                                                                                | Required                                                                            | Description                                                                         |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `security`                                                                          | [models.GetTenantDestinationSecurity](../../models/gettenantdestinationsecurity.md) | :heavy_check_mark:                                                                  | N/A                                                                                 |
-| `destination_id`                                                                    | *str*                                                                               | :heavy_check_mark:                                                                  | The ID of the destination.                                                          |
-| `tenant_id`                                                                         | *Optional[str]*                                                                     | :heavy_minus_sign:                                                                  | The ID of the tenant. Required when using AdminApiKey authentication.               |
-| `retries`                                                                           | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                    | :heavy_minus_sign:                                                                  | Configuration to override the default retry behavior of the client.                 |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -206,14 +209,16 @@ Updates the configuration of an existing destination. The request body structure
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.update(security=models.UpdateTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", destination_update={
+    ),
+) as outpost:
+
+    res = outpost.destinations.update(destination_id="<id>", destination_update={
         "topics": models.TopicsEnum.WILDCARD_,
         "config": {
             "server_url": "localhost:5672",
@@ -233,13 +238,12 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                 | Type                                                                                      | Required                                                                                  | Description                                                                               |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `security`                                                                                | [models.UpdateTenantDestinationSecurity](../../models/updatetenantdestinationsecurity.md) | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `destination_id`                                                                          | *str*                                                                                     | :heavy_check_mark:                                                                        | The ID of the destination.                                                                |
-| `destination_update`                                                                      | [models.DestinationUpdate](../../models/destinationupdate.md)                             | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `tenant_id`                                                                               | *Optional[str]*                                                                           | :heavy_minus_sign:                                                                        | The ID of the tenant. Required when using AdminApiKey authentication.                     |
-| `retries`                                                                                 | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                          | :heavy_minus_sign:                                                                        | Configuration to override the default retry behavior of the client.                       |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `destination_update`                                                  | [models.DestinationUpdate](../../models/destinationupdate.md)         | :heavy_check_mark:                                                    | N/A                                                                   |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -267,14 +271,16 @@ Deletes a specific destination.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.delete(security=models.DeleteTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.destinations.delete(destination_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -283,12 +289,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                 | Type                                                                                      | Required                                                                                  | Description                                                                               |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `security`                                                                                | [models.DeleteTenantDestinationSecurity](../../models/deletetenantdestinationsecurity.md) | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `destination_id`                                                                          | *str*                                                                                     | :heavy_check_mark:                                                                        | The ID of the destination.                                                                |
-| `tenant_id`                                                                               | *Optional[str]*                                                                           | :heavy_minus_sign:                                                                        | The ID of the tenant. Required when using AdminApiKey authentication.                     |
-| `retries`                                                                                 | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                          | :heavy_minus_sign:                                                                        | Configuration to override the default retry behavior of the client.                       |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -316,14 +321,16 @@ Enables a previously disabled destination.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.enable(security=models.EnableTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.destinations.enable(destination_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -332,12 +339,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                 | Type                                                                                      | Required                                                                                  | Description                                                                               |
-| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `security`                                                                                | [models.EnableTenantDestinationSecurity](../../models/enabletenantdestinationsecurity.md) | :heavy_check_mark:                                                                        | N/A                                                                                       |
-| `destination_id`                                                                          | *str*                                                                                     | :heavy_check_mark:                                                                        | The ID of the destination.                                                                |
-| `tenant_id`                                                                               | *Optional[str]*                                                                           | :heavy_minus_sign:                                                                        | The ID of the tenant. Required when using AdminApiKey authentication.                     |
-| `retries`                                                                                 | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                          | :heavy_minus_sign:                                                                        | Configuration to override the default retry behavior of the client.                       |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -365,14 +371,16 @@ Disables a previously enabled destination.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.destinations.disable(security=models.DisableTenantDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.destinations.disable(destination_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -381,12 +389,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                   | Type                                                                                        | Required                                                                                    | Description                                                                                 |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `security`                                                                                  | [models.DisableTenantDestinationSecurity](../../models/disabletenantdestinationsecurity.md) | :heavy_check_mark:                                                                          | N/A                                                                                         |
-| `destination_id`                                                                            | *str*                                                                                       | :heavy_check_mark:                                                                          | The ID of the destination.                                                                  |
-| `tenant_id`                                                                                 | *Optional[str]*                                                                             | :heavy_minus_sign:                                                                          | The ID of the tenant. Required when using AdminApiKey authentication.                       |
-| `retries`                                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                            | :heavy_minus_sign:                                                                          | Configuration to override the default retry behavior of the client.                         |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 

@@ -21,14 +21,16 @@ Retrieves a list of events for the tenant, supporting cursor navigation (details
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.events.list(security=models.ListTenantEventsSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.events.list(tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -39,7 +41,6 @@ with SDK() as sdk:
 
 | Parameter                                                                         | Type                                                                              | Required                                                                          | Description                                                                       |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `security`                                                                        | [models.ListTenantEventsSecurity](../../models/listtenanteventssecurity.md)       | :heavy_check_mark:                                                                | N/A                                                                               |
 | `tenant_id`                                                                       | *Optional[str]*                                                                   | :heavy_minus_sign:                                                                | The ID of the tenant. Required when using AdminApiKey authentication.             |
 | `destination_id`                                                                  | [Optional[models.DestinationID]](../../models/destinationid.md)                   | :heavy_minus_sign:                                                                | Filter events by destination ID(s).                                               |
 | `status`                                                                          | [Optional[models.ListTenantEventsStatus]](../../models/listtenanteventsstatus.md) | :heavy_minus_sign:                                                                | Filter events by delivery status.                                                 |
@@ -71,14 +72,16 @@ Retrieves details for a specific event.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.events.get(security=models.GetTenantEventSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), event_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.events.get(event_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -87,12 +90,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                               | Type                                                                    | Required                                                                | Description                                                             |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `security`                                                              | [models.GetTenantEventSecurity](../../models/gettenanteventsecurity.md) | :heavy_check_mark:                                                      | N/A                                                                     |
-| `event_id`                                                              | *str*                                                                   | :heavy_check_mark:                                                      | The ID of the event.                                                    |
-| `tenant_id`                                                             | *Optional[str]*                                                         | :heavy_minus_sign:                                                      | The ID of the tenant. Required when using AdminApiKey authentication.   |
-| `retries`                                                               | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)        | :heavy_minus_sign:                                                      | Configuration to override the default retry behavior of the client.     |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `event_id`                                                            | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the event.                                                  |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -120,14 +122,16 @@ Retrieves a list of delivery attempts for a specific event, including response d
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.events.list_deliveries(security=models.ListTenantEventDeliveriesSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), event_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.events.list_deliveries(event_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -136,12 +140,11 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                     | Type                                                                                          | Required                                                                                      | Description                                                                                   |
-| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `security`                                                                                    | [models.ListTenantEventDeliveriesSecurity](../../models/listtenanteventdeliveriessecurity.md) | :heavy_check_mark:                                                                            | N/A                                                                                           |
-| `event_id`                                                                                    | *str*                                                                                         | :heavy_check_mark:                                                                            | The ID of the event.                                                                          |
-| `tenant_id`                                                                                   | *Optional[str]*                                                                               | :heavy_minus_sign:                                                                            | The ID of the tenant. Required when using AdminApiKey authentication.                         |
-| `retries`                                                                                     | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                              | :heavy_minus_sign:                                                                            | Configuration to override the default retry behavior of the client.                           |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `event_id`                                                            | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the event.                                                  |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -169,14 +172,16 @@ Retrieves events associated with a specific destination for the tenant.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.events.list_by_destination(security=models.ListTenantEventsByDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.events.list_by_destination(destination_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -187,7 +192,6 @@ with SDK() as sdk:
 
 | Parameter                                                                                                   | Type                                                                                                        | Required                                                                                                    | Description                                                                                                 |
 | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `security`                                                                                                  | [models.ListTenantEventsByDestinationSecurity](../../models/listtenanteventsbydestinationsecurity.md)       | :heavy_check_mark:                                                                                          | N/A                                                                                                         |
 | `destination_id`                                                                                            | *str*                                                                                                       | :heavy_check_mark:                                                                                          | The ID of the destination.                                                                                  |
 | `tenant_id`                                                                                                 | *Optional[str]*                                                                                             | :heavy_minus_sign:                                                                                          | The ID of the tenant. Required when using AdminApiKey authentication.                                       |
 | `status`                                                                                                    | [Optional[models.ListTenantEventsByDestinationStatus]](../../models/listtenanteventsbydestinationstatus.md) | :heavy_minus_sign:                                                                                          | Filter events by delivery status.                                                                           |
@@ -219,14 +223,16 @@ Retrieves a specific event associated with a specific destination for the tenant
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    res = sdk.events.get_by_destination(security=models.GetTenantEventByDestinationSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", event_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    res = outpost.events.get_by_destination(destination_id="<id>", event_id="<id>", tenant_id="<id>")
 
     # Handle response
     print(res)
@@ -235,13 +241,12 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                                         | Type                                                                                              | Required                                                                                          | Description                                                                                       |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `security`                                                                                        | [models.GetTenantEventByDestinationSecurity](../../models/gettenanteventbydestinationsecurity.md) | :heavy_check_mark:                                                                                | N/A                                                                                               |
-| `destination_id`                                                                                  | *str*                                                                                             | :heavy_check_mark:                                                                                | The ID of the destination.                                                                        |
-| `event_id`                                                                                        | *str*                                                                                             | :heavy_check_mark:                                                                                | The ID of the event.                                                                              |
-| `tenant_id`                                                                                       | *Optional[str]*                                                                                   | :heavy_minus_sign:                                                                                | The ID of the tenant. Required when using AdminApiKey authentication.                             |
-| `retries`                                                                                         | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                  | :heavy_minus_sign:                                                                                | Configuration to override the default retry behavior of the client.                               |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `event_id`                                                            | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the event.                                                  |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Response
 
@@ -269,14 +274,16 @@ Triggers a retry for a failed event delivery.
 ### Example Usage
 
 ```python
-from openapi import SDK, models
+from outpost_sdk import Outpost, models
 
 
-with SDK() as sdk:
-
-    sdk.events.retry(security=models.RetryTenantEventSecurity(
+with Outpost(
+    security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
-    ), destination_id="<id>", event_id="<id>", tenant_id="<id>")
+    ),
+) as outpost:
+
+    outpost.events.retry(destination_id="<id>", event_id="<id>", tenant_id="<id>")
 
     # Use the SDK ...
 
@@ -284,13 +291,12 @@ with SDK() as sdk:
 
 ### Parameters
 
-| Parameter                                                                   | Type                                                                        | Required                                                                    | Description                                                                 |
-| --------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| `security`                                                                  | [models.RetryTenantEventSecurity](../../models/retrytenanteventsecurity.md) | :heavy_check_mark:                                                          | N/A                                                                         |
-| `destination_id`                                                            | *str*                                                                       | :heavy_check_mark:                                                          | The ID of the destination.                                                  |
-| `event_id`                                                                  | *str*                                                                       | :heavy_check_mark:                                                          | The ID of the event to retry.                                               |
-| `tenant_id`                                                                 | *Optional[str]*                                                             | :heavy_minus_sign:                                                          | The ID of the tenant. Required when using AdminApiKey authentication.       |
-| `retries`                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)            | :heavy_minus_sign:                                                          | Configuration to override the default retry behavior of the client.         |
+| Parameter                                                             | Type                                                                  | Required                                                              | Description                                                           |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `destination_id`                                                      | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the destination.                                            |
+| `event_id`                                                            | *str*                                                                 | :heavy_check_mark:                                                    | The ID of the event to retry.                                         |
+| `tenant_id`                                                           | *Optional[str]*                                                       | :heavy_minus_sign:                                                    | The ID of the tenant. Required when using AdminApiKey authentication. |
+| `retries`                                                             | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)      | :heavy_minus_sign:                                                    | Configuration to override the default retry behavior of the client.   |
 
 ### Errors
 
