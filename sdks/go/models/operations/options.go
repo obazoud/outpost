@@ -3,9 +3,9 @@
 package operations
 
 import (
+	"client/internal/utils"
+	"client/retry"
 	"errors"
-	"openapi/internal/utils"
-	"openapi/retry"
 	"time"
 )
 

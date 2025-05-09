@@ -13,7 +13,7 @@ import (
 	"time"
 	"unsafe"
 
-	"openapi/types"
+	"client/types"
 
 	"github.com/ericlagergren/decimal"
 )

@@ -3,9 +3,9 @@
 package components
 
 import (
+	"client/internal/utils"
 	"encoding/json"
 	"fmt"
-	"openapi/internal/utils"
 	"time"
 )
 

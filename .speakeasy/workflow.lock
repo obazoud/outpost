@@ -1,16 +1,21 @@
-speakeasyVersion: 1.543.3
+speakeasyVersion: 1.543.4
 sources:
     Outpost API:
         sourceNamespace: outpost-api
-        sourceRevisionDigest: sha256:33a0ebc725c9abcd74405bb2929aa2875f9849edd79a5c14ef5cb7bf08e80e81
+        sourceRevisionDigest: sha256:c70cdc1ec34614f0f81b48f214fed35151004bea6b10392538578d4788d808e2
         sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
         tags:
             - latest
-            - speakeasy-sdk-regen-1746795251
+            - speakeasy-sdk-regen-1746822090
             - 0.0.1
 targets:
     outpost-go:
         source: Outpost API
+        sourceNamespace: outpost-api
+        sourceRevisionDigest: sha256:c70cdc1ec34614f0f81b48f214fed35151004bea6b10392538578d4788d808e2
+        sourceBlobDigest: sha256:0e5867349e513ef193e2077149c98453ab2d429af67bfb7fee79a86f22f8e47e
+        codeSamplesNamespace: outpost-api-go-code-samples
+        codeSamplesRevisionDigest: sha256:062b094a7de0088d77479bcb002a8f50a2a005340f72b20845b73028bcde47f8
     outpost-python:
         source: Outpost API
         sourceNamespace: outpost-api
