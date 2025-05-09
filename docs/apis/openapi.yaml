@@ -1870,36 +1870,6 @@ paths:
   # They are included here for completeness of paths derived from AllowTenantFromJWT=true,
   # but their security reflects the Admin requirement.
 
-  /portal:
-    get:
-      tags: [Tenants]
-      summary: Get Portal Redirect URL
-      description: Returns a redirect URL containing a JWT to authenticate the user with the portal. Requires Admin API Key.
-      operationId: getPortalUrl
-      parameters:
-        - name: theme
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [light, dark]
-          description: Optional theme preference for the portal.
-      responses:
-        "200":
-          description: Portal redirect URL.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PortalRedirect"
-              examples:
-                PortalRedirectExample:
-                  value:
-                    redirect_url: "https://webhooks.acme.com/?token=JWT_TOKEN"
-        "401":
-          description: Unauthorized (Admin API Key missing or invalid).
-        "404":
-          description: Tenant (inferred from JWT) not found.
-
   /destination-types:
     get:
       tags: [Schemas]
