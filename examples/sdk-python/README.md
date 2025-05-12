@@ -2,6 +2,8 @@
 
 This example demonstrates using the Outpost Python SDK.
 
+The source code for the Python SDK can be found in the [`sdks/outpost-python/`](../../sdks/outpost-python/) directory.
+
 ### Prerequisites
 
 *   Python 3.7+

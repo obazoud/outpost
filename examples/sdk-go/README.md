@@ -2,6 +2,8 @@
 
 This example demonstrates using the Outpost Go SDK.
 
+The source code for the Go SDK can be found in the [`sdks/outpost-go/`](../../sdks/outpost-go/) directory.
+
 ### Prerequisites
 
 *   Go (version specified in `go.mod`)

@@ -2,6 +2,8 @@
 
 This example demonstrates using the Outpost TypeScript SDK.
 
+The source code for the TypeScript SDK can be found in the [`sdks/outpost-typescript/`](../../sdks/outpost-typescript/) directory.
+
 ### Prerequisites
 
 *   Node.js (LTS recommended)
