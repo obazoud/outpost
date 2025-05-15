@@ -10,6 +10,7 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "start": "node --loader ts-node/esm index.ts"
+    "start": "node --loader ts-node/esm index.ts",
+    "auth": "node --loader ts-node/esm auth.ts"
   }
 }

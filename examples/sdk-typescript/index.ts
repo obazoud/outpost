@@ -3,108 +3,68 @@ import dotenv from "dotenv";
 dotenv.config();
 import { Outpost } from "@hookdeck/outpost-sdk";
 
-const TENANT_ID = process.env.TENANT_ID;
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
-const SERVER_URL = process.env.SERVER_URL;
+const SERVER_URL = process.env.OUTPOST_URL || "http://localhost:3333";
 
-if (!process.env.ADMIN_API_KEY) {
+if (!ADMIN_API_KEY) {
   console.error("Please set the ADMIN_API_KEY environment variable.");
   process.exit(1);
 }
-if (!process.env.SERVER_URL) {
-  console.error("Please set the SERVER_URL environment variable.");
-  process.exit(1);
-}
-if (!process.env.TENANT_ID ) {
-  console.error("Please set the TENANT_ID environment variable.");
-  process.exit(1);
-}
 
-const debugLogger = {
-  debug: (message: string) => {
-    console.log("DEBUG", message);
-  },
-  group: (message: string) => {
-    console.group(message);
-  },
-  groupEnd: () => {
-    console.groupEnd();
-  },
-  log: (message: string) => {
-    console.log(message);
-  }
-};
-
-const withJwt  = async (jwt: string) => {
-  const outpost = new Outpost({security: {tenantJwt: jwt}, serverURL: `${SERVER_URL}/api/v1`, tenantId: TENANT_ID });
-  const destinations = await outpost.destinations.list({});
-
-  console.log(destinations);
-}
-
-const withAdminApiKey  = async () => {
-  const outpost = new Outpost({security: {adminApiKey: ADMIN_API_KEY}, serverURL: `${SERVER_URL}/api/v1`});
-
-  const result = await outpost.health.check();
-  console.log(result);
+async function manageOutpostResources() {
+  // 1. Create an Outpost instance using the AdminAPIKey
+  const outpostAdmin = new Outpost({
+    security: { adminApiKey: ADMIN_API_KEY },
+    serverURL: `${SERVER_URL}/api/v1`,
+  });
 
   const tenantId = `hookdeck`;
   const topic = `user.created`;
   const newDestinationName = `My Test Destination ${randomUUID()}`;
 
-  console.log(`Creating tenant: ${tenantId}`);
-  const tenant = await outpost.tenants.upsert({
-    tenantId: tenantId,
-  });
-  console.log("Tenant created successfully:", tenant);
+  try {
+    // 2. Create a tenant
+    console.log(`Creating tenant: ${tenantId}`);
+    const tenant = await outpostAdmin.tenants.upsert({
+      tenantId,
+    });
+    console.log("Tenant created successfully:", tenant);
 
-  console.log(
-    `Creating destination: ${newDestinationName} for tenant ${tenantId}...`
-  );
-  const destination = await outpost.destinations.create({
-    tenantId,
-    destinationCreate: {
-      type: "webhook",
-      config: {
-        url: "https://example.com/webhook-receiver",
+    // 3. Create a destination for the tenant
+    console.log(
+      `Creating destination: ${newDestinationName} for tenant ${tenantId}...`
+    );
+    const destination = await outpostAdmin.destinations.create({
+      tenantId,
+      destinationCreate: {
+        type: "webhook",
+        config: {
+          url: "https://example.com/webhook-receiver",
+        },
+        topics: [topic],
       },
-      topics: ["user.created"],
-    }
-  });
-  console.log("Destination created successfully:", destination);
+    });
+    console.log("Destination created successfully:", destination);
 
-  const eventPayload = {
-    userId: "user_456",
-    orderId: "order_xyz",
-    timestamp: new Date().toISOString(),
-  };
+    // 4. Publish an event for the created tenant
+    const eventPayload = {
+      userId: "user_456",
+      orderId: "order_xyz",
+      timestamp: new Date().toISOString(),
+    };
 
-  console.log(
-    `Publishing event to topic ${topic} for tenant ${tenantId}...`
-  );
-  await outpost.publish.event({
-    data: eventPayload,
-    tenantId,
-    topic: "user.created",
-    eligibleForRetry: true,
-  });
+    console.log(`Publishing event to topic ${topic} for tenant ${tenantId}...`);
+    await outpostAdmin.publish.event({
+      data: eventPayload,
+      tenantId,
+      topic,
+      eligibleForRetry: true,
+    });
 
-  console.log("Event published successfully");
-
-  const destinations = await outpost.destinations.list({tenantId: TENANT_ID})
-
-  console.log(destinations);
-
-  const jwt = await outpost.tenants.getToken({tenantId: TENANT_ID});
-
-  await withJwt(jwt.token!);
+    console.log("Event published successfully");
+  } catch (error) {
+    console.error("An error occurred:", error);
+  }
 }
 
-const main = async () => {
-  await withAdminApiKey();
-}
-
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+manageOutpostResources();
