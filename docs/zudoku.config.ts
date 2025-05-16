@@ -112,6 +112,11 @@ const config: ZudokuConfig = {
           { type: "doc", id: "features/tenant-user-portal" },
           { type: "doc", id: "features/opentelemetry" },
           { type: "doc", id: "features/logging" },
+          {
+            type: "doc",
+            label: "SDKs",
+            id: "sdks",
+          },
         ],
       },
       {
