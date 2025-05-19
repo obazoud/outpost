@@ -74,6 +74,7 @@ components:
           format: url
           description: Redirect URL for OAuth flow if applicable during destination update.
           example: "https://dashboard.hookdeck.com/authorize?token=12313123"
+      additionalProperties: false
     Topics:
       oneOf:
         - type: string
@@ -321,7 +322,7 @@ components:
     DestinationCreateWebhook:
       type: object
       # Properties duplicated from DestinationCreateBase
-      required: [type, topics, config] # Credentials not required for webhook create base
+      required: [type, topics] # Config and credentials not required for webhook create base
       properties:
         id:
           type: string
@@ -342,7 +343,7 @@ components:
     DestinationCreateAWSSQS:
       type: object
       # Properties duplicated from DestinationCreateBase + specific required
-      required: [type, topics, config, credentials]
+      required: [type, topics, credentials] # Config is now optional
       properties:
         id:
           type: string
@@ -362,7 +363,7 @@ components:
     DestinationCreateRabbitMQ:
       type: object
       # Properties duplicated from DestinationCreateBase + specific required
-      required: [type, topics, config, credentials]
+      required: [type, topics, credentials] # Config is now optional
       properties:
         id:
           type: string
@@ -388,10 +389,10 @@ components:
         - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
       discriminator:
         propertyName: type
-        # mapping:
-        #   webhook: "#/components/schemas/DestinationCreateWebhook"
-        #   aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
-        #   rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
+        mapping:
+          webhook: "#/components/schemas/DestinationCreateWebhook"
+          aws_sqs: "#/components/schemas/DestinationCreateAWSSQS"
+          rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
 
     # Type-Specific Destination Update Schemas (for Request Bodies)
     WebhookCredentialsUpdate:
