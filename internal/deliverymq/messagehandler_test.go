@@ -1240,11 +1240,12 @@ func TestMessageHandler_AlertMonitorError(t *testing.T) {
 func assertAlertMonitor(t *testing.T, m *mockAlertMonitor, success bool, destination *models.Destination, expectedData map[string]interface{}) {
 	t.Helper()
 
-	// Wait a bit for goroutines
-	time.Sleep(100 * time.Millisecond)
+	// Wait for the alert monitor to be called
+	require.Eventually(t, func() bool {
+		return len(m.Calls) > 0
+	}, 200*time.Millisecond, 10*time.Millisecond, "timed out waiting for alert monitor to be called")
 
-	calls := m.Calls
-	require.NotEmpty(t, calls, "alert monitor should be called")
+	calls := m.Calls // m.Calls is now guaranteed to be non-empty
 
 	lastCall := calls[len(calls)-1]
 	attempt := lastCall.Arguments[1].(alert.DeliveryAttempt)
