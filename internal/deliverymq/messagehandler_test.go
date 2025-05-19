@@ -1224,6 +1224,15 @@ func TestMessageHandler_AlertMonitorError(t *testing.T) {
 	assert.Equal(t, models.DeliveryStatusSuccess, logPublisher.deliveries[0].Delivery.Status, "delivery status should be OK")
 
 	// Verify alert monitor was called but error was ignored
+	// Wait for the HandleAttempt call to be made
+	require.Eventually(t, func() bool {
+		for _, call := range alertMonitor.Calls {
+			if call.Method == "HandleAttempt" {
+				return true
+			}
+		}
+		return false
+	}, 200*time.Millisecond, 10*time.Millisecond, "timed out waiting for HandleAttempt call on alertMonitor")
 	alertMonitor.AssertCalled(t, "HandleAttempt", mock.Anything, mock.Anything)
 }
 
