@@ -270,21 +270,19 @@ func main() {
         }),
     )
 
-    res, err := s.Destinations.Update(ctx, "<id>", components.CreateDestinationUpdateDestinationUpdateAWSKinesis(
-        components.DestinationUpdateAWSKinesis{
+    res, err := s.Destinations.Update(ctx, "<id>", components.CreateDestinationUpdateDestinationUpdateRabbitMQ(
+        components.DestinationUpdateRabbitMQ{
             Topics: outpostgo.Pointer(components.CreateTopicsTopicsEnum(
                 components.TopicsEnumWildcard,
             )),
-            Config: &components.AWSKinesisConfig{
-                StreamName: "my-data-stream",
-                Region: "us-east-1",
-                Endpoint: outpostgo.String("https://kinesis.us-east-1.amazonaws.com"),
-                PartitionKeyTemplate: outpostgo.String("data.\"user_id\""),
+            Config: &components.RabbitMQConfig{
+                ServerURL: "localhost:5672",
+                Exchange: "my-exchange",
+                TLS: components.TLSFalse.ToPointer(),
             },
-            Credentials: &components.AWSKinesisCredentials{
-                Key: "AKIAIOSFODNN7EXAMPLE",
-                Secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-                Session: outpostgo.String("AQoDYXdzEPT//////////wEXAMPLE..."),
+            Credentials: &components.RabbitMQCredentials{
+                Username: "guest",
+                Password: "guest",
             },
         },
     ), outpostgo.String("<id>"))

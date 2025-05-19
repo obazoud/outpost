@@ -226,7 +226,7 @@ func main() {
         }),
     )
 
-    res, err := s.Schemas.GetDestinationTypeJwt(ctx, operations.GetDestinationTypeSchemaTypeAwsKinesis)
+    res, err := s.Schemas.GetDestinationTypeJwt(ctx, operations.GetDestinationTypeSchemaTypeRabbitmq)
     if err != nil {
         log.Fatal(err)
     }

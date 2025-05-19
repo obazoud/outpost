@@ -3,23 +3,32 @@
 package components
 
 type PublishRequest struct {
+	// Optional. A unique identifier for the event. If not provided, a UUID will be generated.
+	ID *string `json:"id,omitempty"`
 	// The ID of the tenant to publish for.
-	TenantID string `json:"tenant_id"`
+	TenantID *string `json:"tenant_id,omitempty"`
 	// Optional. Route event to a specific destination.
 	DestinationID *string `json:"destination_id,omitempty"`
-	// Topic name for the event.
-	Topic string `json:"topic"`
+	// Topic name for the event. Required if Outpost has been configured with topics.
+	Topic *string `json:"topic,omitempty"`
 	// Should event delivery be retried on failure.
-	EligibleForRetry bool `json:"eligible_for_retry"`
+	EligibleForRetry *bool `json:"eligible_for_retry,omitempty"`
 	// Any key-value string pairs for metadata.
 	Metadata map[string]string `json:"metadata,omitempty"`
 	// Any JSON payload for the event data.
 	Data map[string]any `json:"data"`
 }
 
-func (o *PublishRequest) GetTenantID() string {
+func (o *PublishRequest) GetID() *string {
 	if o == nil {
-		return ""
+		return nil
+	}
+	return o.ID
+}
+
+func (o *PublishRequest) GetTenantID() *string {
+	if o == nil {
+		return nil
 	}
 	return o.TenantID
 }
@@ -31,16 +40,16 @@ func (o *PublishRequest) GetDestinationID() *string {
 	return o.DestinationID
 }
 
-func (o *PublishRequest) GetTopic() string {
+func (o *PublishRequest) GetTopic() *string {
 	if o == nil {
-		return ""
+		return nil
 	}
 	return o.Topic
 }
 
-func (o *PublishRequest) GetEligibleForRetry() bool {
+func (o *PublishRequest) GetEligibleForRetry() *bool {
 	if o == nil {
-		return false
+		return nil
 	}
 	return o.EligibleForRetry
 }
