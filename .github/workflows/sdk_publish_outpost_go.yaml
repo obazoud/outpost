@@ -140,8 +140,7 @@ jobs:
               --base main \
               --head "$BRANCH_NAME" \
               --title "$PR_TITLE" \
-              --body "$PR_BODY" \
-              --label "automated pr,sdk,outpost-go"
+              --body "$PR_BODY"
             
             echo "Pull Request created for branch $BRANCH_NAME."
           fi
