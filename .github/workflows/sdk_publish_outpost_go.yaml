@@ -90,47 +90,59 @@ jobs:
           echo "Updated $SHIELDS_FILE content:"
           cat "$SHIELDS_FILE"
 
-      - name: Commit and push shields.json update
+      - name: Create Pull Request for shields.json update
         env:
           NEW_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          SHIELDS_FILE="sdks/outpost-go/shields.json"
-          
-          if [ ! -f "$SHIELDS_FILE" ]; then
-            echo "Error: $SHIELDS_FILE not found during commit step."
-            exit 1
-          fi
-          
-          git add "$SHIELDS_FILE"
-          
-          if git diff --staged --quiet; then
-            echo "No changes to commit in $SHIELDS_FILE."
-          else
-            echo "Committing and pushing changes to $SHIELDS_FILE..."
-            # Extract the version part if the tag is like sdks/go/v1.0.0 for the commit message
-            COMMIT_MSG_VERSION_FULL=$NEW_VERSION
-            COMMIT_MSG_VERSION_PART=$(echo "$COMMIT_MSG_VERSION_FULL" | sed 's#^sdks/go/##')
 
-            if [[ ! $COMMIT_MSG_VERSION_PART == v* ]]; then
-              COMMIT_MSG_VERSION_PART="v$COMMIT_MSG_VERSION_PART"
-            fi
-            git commit -m "chore(sdk): update outpost-go shields.json to version $COMMIT_MSG_VERSION_PART"
-            
-            for attempt in 1 2 3; do
-              if git push; then
-                echo "Changes pushed successfully on attempt $attempt."
-                exit 0 
-              fi
-              echo "Push attempt $attempt failed."
-              if [ $attempt -lt 3 ]; then
-                echo "Retrying in 10 seconds..."
-                sleep 10
-              fi
-            done
-            
-            echo "Failed to push changes after multiple attempts."
+          SHIELDS_FILE="sdks/outpost-go/shields.json"
+          if [ ! -f "$SHIELDS_FILE" ]; then
+            echo "Error: $SHIELDS_FILE not found."
             exit 1
           fi
+
+          # Determine version for commit message and branch name
+          COMMIT_MSG_VERSION_FULL=$NEW_VERSION
+          # Extract version part like "v0.1.0" from "sdks/go/v0.1.0"
+          COMMIT_MSG_VERSION_PART=$(echo "$COMMIT_MSG_VERSION_FULL" | sed 's#^sdks/go/##')
+          # Ensure it starts with 'v'
+          if [[ ! $COMMIT_MSG_VERSION_PART == v* ]]; then
+            COMMIT_MSG_VERSION_PART="v$COMMIT_MSG_VERSION_PART"
+          fi
+          
+          BRANCH_NAME="chore/update-go-shields-$COMMIT_MSG_VERSION_PART"
+          COMMIT_MESSAGE="chore(sdk): update outpost-go shields.json to version $COMMIT_MSG_VERSION_PART"
+          PR_TITLE="Chore(sdk): Update outpost-go shields.json to version $COMMIT_MSG_VERSION_PART"
+          PR_BODY=$(cat <<EOF
+          This PR updates the \`sdks/outpost-go/shields.json\` file to version $COMMIT_MSG_VERSION_PART.
+
+          This change was triggered by the automated workflow due to a new Go SDK tag: \`$NEW_VERSION\`.
+          EOF
+          )
+
+          git checkout -b "$BRANCH_NAME"
+          git add "$SHIELDS_FILE"
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit in $SHIELDS_FILE. Branch $BRANCH_NAME will not be created or pushed."
+          else
+            echo "Committing changes to $SHIELDS_FILE..."
+            git commit -m "$COMMIT_MESSAGE"
+            
+            echo "Pushing branch $BRANCH_NAME..."
+            git push origin "$BRANCH_NAME"
+            
+            echo "Creating Pull Request..."
+            gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "$PR_TITLE" \
+              --body "$PR_BODY" \
+              --label "automated pr,sdk,outpost-go"
+            
+            echo "Pull Request created for branch $BRANCH_NAME."
+          fi
+        shell: bash
