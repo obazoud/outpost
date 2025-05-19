@@ -1,0 +1,93 @@
+name: Update Outpost Version in compose.yml
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # Prevent running on forks for release trigger to avoid duplicate runs
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && !github.event.release.prerelease)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # We need to fetch all history for gh release list and to push
+          fetch-depth: 0
+          # For pushing changes back
+          token: ${{ secrets.GITHUB_TOKEN }} # Or a PAT with write access if GITHUB_TOKEN is not enough
+
+      - name: Determine Version
+        id: get_version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            echo "Using release version: $VERSION"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Fetching latest release version..."
+            # Ensure gh is installed (usually available on GitHub runners)
+            # This command fetches the latest non-prerelease, non-draft release tag
+            VERSION=$(gh release list --repo "${{ github.repository }}" --limit 1 --exclude-drafts --exclude-pre-releases --json tagName --jq '.[0].tagName')
+            if [[ -z "$VERSION" ]]; then
+              echo "Error: Could not fetch latest release version."
+              exit 1
+            fi
+            echo "Using latest fetched version: $VERSION"
+          else
+            echo "Error: Unknown event type."
+            exit 1
+          fi
+          # Remove 'v' prefix if present, as the compose file doesn't use it in the example, but releases usually do.
+          # Adjust if your compose file expects 'v'
+          VERSION_NO_V=${VERSION#v}
+          echo "Version without 'v': $VERSION_NO_V"
+          echo "version_tag=$VERSION_NO_V" >> $GITHUB_OUTPUT
+
+      - name: Update compose.yml
+        run: |
+          VERSION_TO_USE="${{ steps.get_version.outputs.version_tag }}"
+          echo "Updating compose.yml with version: $VERSION_TO_USE"
+          # Using a temporary file for sed to avoid issues with in-place editing on different sed versions
+          sed "s|hookdeck/outpost:v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9.]\+\)\?|hookdeck/outpost:v${VERSION_TO_USE}|g" examples/docker-compose/compose.yml > examples/docker-compose/compose.yml.tmp
+          mv examples/docker-compose/compose.yml.tmp examples/docker-compose/compose.yml
+          echo "compose.yml updated."
+          cat examples/docker-compose/compose.yml
+
+      - name: Create Pull Request
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          VERSION_TAG="${{ steps.get_version.outputs.version_tag }}"
+          BRANCH_NAME="ci/update-compose-version-$VERSION_TAG"
+
+          git checkout -b "$BRANCH_NAME"
+          git add examples/docker-compose/compose.yml
+
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit. Branch $BRANCH_NAME will not be created or pushed."
+          else
+            COMMIT_MESSAGE="ci: Update outpost version in compose.yml to $VERSION_TAG"
+            git commit -m "$COMMIT_MESSAGE"
+            git push origin "$BRANCH_NAME"
+
+            echo "Changes committed and pushed to branch $BRANCH_NAME."
+
+            gh pr create \
+              --base main \
+              --head "$BRANCH_NAME" \
+              --title "$COMMIT_MESSAGE" \
+              --body "Automated PR to update outpost version in compose.yml to $VERSION_TAG."
+            echo "Pull request created."
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

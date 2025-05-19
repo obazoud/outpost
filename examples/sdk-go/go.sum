@@ -1,0 +1,6 @@
+github.com/ericlagergren/decimal v0.0.0-20221120152707-495c53812d05 h1:S92OBrGuLLZsyM5ybUzgc/mPjIYk2AZqufieooe98uw=
+github.com/ericlagergren/decimal v0.0.0-20221120152707-495c53812d05/go.mod h1:M9R1FoZ3y//hwwnJtO51ypFGwm8ZfpxPT/ZLtO1mcgQ=
+github.com/hookdeck/outpost/sdks/outpost-go v0.1.7 h1:6jtGYk+W7jXuttO+xr6Hn1RPKiJZzsdJ8Gwj2dh5rys=
+github.com/hookdeck/outpost/sdks/outpost-go v0.1.7/go.mod h1:OrLM7zcKVaPA7nwUK8VdmkviUt/XlQ/eyKsLy3QyvPM=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=

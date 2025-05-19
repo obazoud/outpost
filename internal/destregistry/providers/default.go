@@ -26,6 +26,7 @@ type DestAWSKinesisConfig struct {
 }
 
 type RegisterDefaultDestinationOptions struct {
+	UserAgent  string
 	Webhook    *DestWebhookConfig
 	AWSKinesis *DestAWSKinesisConfig
 }
@@ -36,9 +37,11 @@ type RegisterDefaultDestinationOptions struct {
 func RegisterDefault(registry destregistry.Registry, opts RegisterDefaultDestinationOptions) error {
 	loader := registry.MetadataLoader()
 
-	webhookOpts := []destwebhook.Option{}
+	webhookOpts := []destwebhook.Option{
+		destwebhook.WithUserAgent(opts.UserAgent),
+	}
 	if opts.Webhook != nil {
-		webhookOpts = []destwebhook.Option{
+		webhookOpts = append(webhookOpts,
 			destwebhook.WithHeaderPrefix(opts.Webhook.HeaderPrefix),
 			destwebhook.WithDisableDefaultEventIDHeader(opts.Webhook.DisableDefaultEventIDHeader),
 			destwebhook.WithDisableDefaultSignatureHeader(opts.Webhook.DisableDefaultSignatureHeader),
@@ -48,7 +51,7 @@ func RegisterDefault(registry destregistry.Registry, opts RegisterDefaultDestina
 			destwebhook.WithSignatureHeaderTemplate(opts.Webhook.SignatureHeaderTemplate),
 			destwebhook.WithSignatureEncoding(opts.Webhook.SignatureEncoding),
 			destwebhook.WithSignatureAlgorithm(opts.Webhook.SignatureAlgorithm),
-		}
+		)
 	}
 	webhook, err := destwebhook.New(loader, webhookOpts...)
 	if err != nil {
@@ -56,7 +59,8 @@ func RegisterDefault(registry destregistry.Registry, opts RegisterDefaultDestina
 	}
 	registry.RegisterProvider("webhook", webhook)
 
-	hookdeck, err := desthookdeck.New(loader)
+	hookdeck, err := desthookdeck.New(loader,
+		desthookdeck.WithUserAgent(opts.UserAgent))
 	if err != nil {
 		return err
 	}

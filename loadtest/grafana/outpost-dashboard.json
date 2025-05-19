@@ -1,0 +1,332 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "bekb7z031w8hsb",
+    "title": "Outpost Load Testing Dashboard",
+    "tags": ["kubernetes", "outpost", "loadtest"],
+    "timezone": "browser",
+    "schemaVersion": 26,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "title": "API CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-api.*\"}[1m])",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.1 },
+                { "color": "red", "value": 0.2 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "API Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-api.*\"} / (1024*1024)",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 128 },
+                { "color": "red", "value": 235 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Delivery CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-delivery.*\"}[1m])",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.2 },
+                { "color": "red", "value": 0.35 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Delivery Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-delivery.*\"} / (1024*1024)",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 256 },
+                { "color": "red", "value": 480 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Log CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-log.*\"}[1m])",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.1 },
+                { "color": "red", "value": 0.18 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Log Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-log.*\"} / (1024*1024)",
+            "legendFormat": "{{namespace}} - {{pod}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 128 },
+                { "color": "red", "value": 235 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "PostgreSQL CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-postgresql.*\"}[1m]))",
+            "legendFormat": "{{namespace}} - PostgreSQL"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "RabbitMQ CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-rabbitmq.*\"}[1m]))",
+            "legendFormat": "{{namespace}} - RabbitMQ"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "Redis CPU Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"outpost-redis.*\"}[1m]))",
+            "legendFormat": "{{namespace}} - Redis"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "title": "PostgreSQL Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 32 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-postgresql.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Working Set"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_usage_bytes{namespace=~\"$namespace\", pod=~\"outpost-postgresql.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Total Usage"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_rss{namespace=~\"$namespace\", pod=~\"outpost-postgresql.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - RSS"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "displayName": "${__field.labels.legendFormat}"
+          }
+        }
+      },
+      {
+        "title": "RabbitMQ Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 32 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-rabbitmq.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Working Set"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_usage_bytes{namespace=~\"$namespace\", pod=~\"outpost-rabbitmq.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Total Usage"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_rss{namespace=~\"$namespace\", pod=~\"outpost-rabbitmq.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - RSS"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "displayName": "${__field.labels.legendFormat}"
+          }
+        }
+      },
+      {
+        "title": "Redis Memory Usage - $namespace",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 32 },
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum by (namespace) (container_memory_working_set_bytes{namespace=~\"$namespace\", pod=~\"outpost-redis.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Working Set"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_usage_bytes{namespace=~\"$namespace\", pod=~\"outpost-redis.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - Total Usage"
+          },
+          {
+            "expr": "sum by (namespace) (container_memory_rss{namespace=~\"$namespace\", pod=~\"outpost-redis.*\"}) / (1024*1024)",
+            "legendFormat": "{{namespace}} - RSS"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {},
+            "unit": "MiB",
+            "displayName": "${__field.labels.legendFormat}"
+          }
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "namespace",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(container_cpu_usage_seconds_total, namespace)",
+          "regex": "/outpost-loadtest-.*/",
+          "current": {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          "includeAll": true,
+          "multi": true,
+          "label": "Namespace",
+          "refresh": 1,
+          "sort": 1
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  },
+  "overwrite": true,
+  "folderId": 0
+}

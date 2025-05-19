@@ -1,0 +1,10 @@
+# DestinationUpdateAWSSQS
+
+
+## Fields
+
+| Field                                                                         | Type                                                                          | Required                                                                      | Description                                                                   | Example                                                                       |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `Topics`                                                                      | [*components.Topics](../../models/components/topics.md)                       | :heavy_minus_sign:                                                            | "*" or an array of enabled topics.                                            | *                                                                             |
+| `Config`                                                                      | [*components.AWSSQSConfig](../../models/components/awssqsconfig.md)           | :heavy_minus_sign:                                                            | N/A                                                                           |                                                                               |
+| `Credentials`                                                                 | [*components.AWSSQSCredentials](../../models/components/awssqscredentials.md) | :heavy_minus_sign:                                                            | N/A                                                                           |                                                                               |

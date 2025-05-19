@@ -1,0 +1,10 @@
+# DestinationUpdateAWSSQS
+
+
+## Fields
+
+| Field                                                                | Type                                                                 | Required                                                             | Description                                                          | Example                                                              |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `topics`                                                             | [Optional[models.TopicsUnion]](../models/topicsunion.md)             | :heavy_minus_sign:                                                   | "*" or an array of enabled topics.                                   | *                                                                    |
+| `config`                                                             | [Optional[models.AWSSQSConfig]](../models/awssqsconfig.md)           | :heavy_minus_sign:                                                   | N/A                                                                  |                                                                      |
+| `credentials`                                                        | [Optional[models.AWSSQSCredentials]](../models/awssqscredentials.md) | :heavy_minus_sign:                                                   | N/A                                                                  |                                                                      |

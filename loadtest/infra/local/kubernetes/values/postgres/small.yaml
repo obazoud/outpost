@@ -1,0 +1,24 @@
+auth:
+  username: outpost
+  database: outpost
+
+primary:
+  persistence:
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  extendedConfiguration: |
+    shared_buffers = 128MB
+    effective_cache_size = 384MB
+    max_worker_processes = 4
+
+readReplicas:
+  replicaCount: 0
+
+metrics:
+  enabled: false

@@ -1,0 +1,16 @@
+{
+  "options": {
+    "thresholds": {
+      "http_req_duration": ["p(95)<1000"],
+      "http_req_failed": ["rate<0.01"]
+    },
+    "scenarios": {
+      "events": {
+        "executor": "per-vu-iterations",
+        "iterations": 3,
+        "vus": 3,
+        "maxDuration": "30s"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+auth:
+  username: outpost
+
+replicaCount: 1
+
+persistence:
+  enabled: true
+  size: 2Gi
+
+resources:
+  requests:
+    cpu: 400m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+metrics:
+  enabled: false

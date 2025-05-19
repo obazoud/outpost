@@ -1,0 +1,19 @@
+# Git files
+.git
+.gitignore
+
+# Build artifacts
+/mock-webhook
+*.exe
+*.test
+*.prof
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
