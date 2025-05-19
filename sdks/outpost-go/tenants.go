@@ -194,6 +194,8 @@ func (s *Tenants) Upsert(ctx context.Context, tenantID *string, opts ...operatio
 
 	switch {
 	case httpRes.StatusCode == 200:
+		fallthrough
+	case httpRes.StatusCode == 201:
 		switch {
 		case utils.MatchContentType(httpRes.Header.Get("Content-Type"), `application/json`):
 			rawBody, err := utils.ConsumeRawBody(httpRes)

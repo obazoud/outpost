@@ -31,7 +31,7 @@ func (o *UpsertTenantRequest) GetTenantID() *string {
 
 type UpsertTenantResponse struct {
 	HTTPMeta components.HTTPMetadata `json:"-"`
-	// Tenant details.
+	// Tenant updated details.
 	Tenant *components.Tenant
 }
 

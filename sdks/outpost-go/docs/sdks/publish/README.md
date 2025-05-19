@@ -35,10 +35,10 @@ func main() {
     )
 
     res, err := s.Publish.Event(ctx, components.PublishRequest{
-        TenantID: "<TENANT_ID>",
+        ID: outpostgo.String("evt_custom_123"),
+        TenantID: outpostgo.String("<TENANT_ID>"),
         DestinationID: outpostgo.String("<DESTINATION_ID>"),
-        Topic: "topic.name",
-        EligibleForRetry: false,
+        Topic: outpostgo.String("topic.name"),
         Metadata: map[string]string{
             "source": "crm",
         },
