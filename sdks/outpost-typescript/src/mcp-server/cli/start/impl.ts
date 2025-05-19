@@ -53,8 +53,8 @@ async function startStdio(flags: StartCommandFlags) {
     allowedTools: flags.tool,
     scopes: flags.scope,
     security: {
-      adminApiKey: flags["admin-api-key"],
-      tenantJwt: flags["tenant-jwt"],
+      adminApiKey: flags["admin-api-key"] ?? "",
+      tenantJwt: flags["tenant-jwt"] ?? "",
     },
     tenantId: flags["tenant-id"],
     serverURL: flags["server-url"],
@@ -78,8 +78,8 @@ async function startSSE(flags: StartCommandFlags) {
     allowedTools: flags.tool,
     scopes: flags.scope,
     security: {
-      adminApiKey: flags["admin-api-key"],
-      tenantJwt: flags["tenant-jwt"],
+      adminApiKey: flags["admin-api-key"] ?? "",
+      tenantJwt: flags["tenant-jwt"] ?? "",
     },
     tenantId: flags["tenant-id"],
     serverURL: flags["server-url"],

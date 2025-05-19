@@ -294,7 +294,7 @@ const outpost = new Outpost({
 
 async function run() {
   const result = await outpost.schemas.getDestinationTypeJwt({
-    type: "aws_kinesis",
+    type: "rabbitmq",
   });
 
   // Handle the result
@@ -322,7 +322,7 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await schemasGetDestinationTypeJwt(outpost, {
-    type: "aws_kinesis",
+    type: "rabbitmq",
   });
 
   if (!res.ok) {

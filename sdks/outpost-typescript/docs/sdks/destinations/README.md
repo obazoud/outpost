@@ -357,15 +357,13 @@ async function run() {
     destinationUpdate: {
       topics: "*",
       config: {
-        streamName: "my-data-stream",
-        region: "us-east-1",
-        endpoint: "https://kinesis.us-east-1.amazonaws.com",
-        partitionKeyTemplate: "data.\"user_id\"",
+        serverUrl: "localhost:5672",
+        exchange: "my-exchange",
+        tls: "false",
       },
       credentials: {
-        key: "AKIAIOSFODNN7EXAMPLE",
-        secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-        session: "AQoDYXdzEPT//////////wEXAMPLE...",
+        username: "guest",
+        password: "guest",
       },
     },
   });
@@ -400,15 +398,13 @@ async function run() {
     destinationUpdate: {
       topics: "*",
       config: {
-        streamName: "my-data-stream",
-        region: "us-east-1",
-        endpoint: "https://kinesis.us-east-1.amazonaws.com",
-        partitionKeyTemplate: "data.\"user_id\"",
+        serverUrl: "localhost:5672",
+        exchange: "my-exchange",
+        tls: "false",
       },
       credentials: {
-        key: "AKIAIOSFODNN7EXAMPLE",
-        secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-        session: "AQoDYXdzEPT//////////wEXAMPLE...",
+        username: "guest",
+        password: "guest",
       },
     },
   });
