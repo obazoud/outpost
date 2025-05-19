@@ -714,6 +714,10 @@ components:
         - eligible_for_retry
         - data
       properties:
+        id:
+          type: string
+          description: Optional. A unique identifier for the event. If not provided, a UUID will be generated.
+          example: "evt_custom_123"
         tenant_id:
           type: string
           description: The ID of the tenant to publish for.
@@ -1406,6 +1410,8 @@ paths:
           description: Invalid request body.
         "401":
           description: Unauthorized (Admin API Key missing or invalid).
+        "409":
+          description: Conflict. An event with the provided `id` already exists.
         # Add other error responses
 
   # Schemas (Tenant Specific - Admin or JWT)
