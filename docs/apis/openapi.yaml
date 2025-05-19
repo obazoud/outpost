@@ -709,7 +709,6 @@ components:
     PublishRequest:
       type: object
       required:
-        - topic
         - data
       properties:
         id:
@@ -1410,6 +1409,8 @@ paths:
           description: Unauthorized (Admin API Key missing or invalid).
         "409":
           description: Conflict. An event with the provided `id` already exists.
+        "422":
+          description: Unprocessable Entity. The event topic was either required or was invalid.
         # Add other error responses
 
   # Schemas (Tenant Specific - Admin or JWT)
