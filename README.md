@@ -10,11 +10,21 @@
 <br>
 
 <div align="center">
-
+  
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue)](#license)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hookdeck/outpost)](https://goreportcard.com/report/github.com/hookdeck/outpost)
 [![Issues - Outpost](https://img.shields.io/github/issues/hookdeck/outpost)](https://github.com/hookdeck/outpost/issues)
 ![GitHub Release](https://img.shields.io/github/v/release/hookdeck/outpost)
+  
+</div>
+
+<div align="center">
+SDKs:
+
+![Go SDK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hookdeck/outpost/refs/heads/main/sdks/outpost-go/shields.json)
+![TypeScript SDK](https://img.shields.io/npm/v/%40hookdeck%2Foutpost-sdk)
+![Python SDK](https://img.shields.io/pypi/v/outpost-sdk)
+
 
 </div>
 

@@ -6,12 +6,13 @@ permissions:
   statuses: write
   id-token: write
 "on":
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - sdks/go/.speakeasy/gen.lock
+  push:
+    branches:
+      - main
+    paths:
+      - sdks/go/.speakeasy/gen.lock
   workflow_dispatch: {}
+
 jobs:
   publish:
     uses: speakeasy-api/sdk-generation-action/.github/workflows/sdk-publish.yaml@v15
@@ -20,3 +21,116 @@ jobs:
     secrets:
       github_access_token: ${{ secrets.GITHUB_TOKEN }}
       speakeasy_api_key: ${{ secrets.SPEAKEASY_API_KEY }}
+
+  update_shields_and_commit:
+    needs: publish
+    if: needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Ensure all tags are fetched
+
+      - name: Get Latest Tag for Go SDK
+        id: get_tag
+        run: |
+          # Match tags like sdks/go/v0.1.0
+          LATEST_TAG=$(git describe --tags --match="sdks/go/v*" --abbrev=0)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "Error: No matching Go SDK tag (sdks/go/v*) found."
+            exit 1
+          fi
+          echo "Latest Go SDK tag: $LATEST_TAG"
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Debug Information
+        env:
+          PUBLISH_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+        run: |
+          echo "Assumed latest Go SDK version (tag): $PUBLISH_VERSION"
+
+      - name: Update shields.json
+        env:
+          NEW_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+        run: |
+          echo "Updating shields.json with version: $NEW_VERSION"
+          
+          # Extract the version part if the tag is like sdks/go/v1.0.0
+          SHIELD_VERSION_VALUE=$(echo "$NEW_VERSION" | sed 's#^sdks/go/##')
+
+          if [[ ! $SHIELD_VERSION_VALUE == v* ]]; then
+            SHIELD_VERSION_VALUE="v$SHIELD_VERSION_VALUE"
+          fi
+          echo "Formatted shield version for JSON: $SHIELD_VERSION_VALUE"
+          
+          SHIELDS_FILE="sdks/outpost-go/shields.json"
+          TEMP_SHIELDS_FILE=$(mktemp)
+          
+          if [ ! -f "$SHIELDS_FILE" ]; then
+            echo "Error: $SHIELDS_FILE not found."
+            exit 1
+          fi
+          
+          jq --arg version "$SHIELD_VERSION_VALUE" '.message = $version' "$SHIELDS_FILE" > "$TEMP_SHIELDS_FILE"
+          
+          if [ $? -ne 0 ] || [ ! -s "$TEMP_SHIELDS_FILE" ]; then
+            echo "Error: jq command failed or produced an empty file."
+            echo "Original $SHIELDS_FILE content:"
+            cat "$SHIELDS_FILE"
+            echo "Temporary file content (if any):"
+            cat "$TEMP_SHIELDS_FILE"
+            rm -f "$TEMP_SHIELDS_FILE"
+            exit 1
+          fi
+          
+          mv "$TEMP_SHIELDS_FILE" "$SHIELDS_FILE"
+          echo "Updated $SHIELDS_FILE content:"
+          cat "$SHIELDS_FILE"
+
+      - name: Commit and push shields.json update
+        env:
+          NEW_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          SHIELDS_FILE="sdks/outpost-go/shields.json"
+          
+          if [ ! -f "$SHIELDS_FILE" ]; then
+            echo "Error: $SHIELDS_FILE not found during commit step."
+            exit 1
+          fi
+          
+          git add "$SHIELDS_FILE"
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit in $SHIELDS_FILE."
+          else
+            echo "Committing and pushing changes to $SHIELDS_FILE..."
+            # Extract the version part if the tag is like sdks/go/v1.0.0 for the commit message
+            COMMIT_MSG_VERSION_FULL=$NEW_VERSION
+            COMMIT_MSG_VERSION_PART=$(echo "$COMMIT_MSG_VERSION_FULL" | sed 's#^sdks/go/##')
+
+            if [[ ! $COMMIT_MSG_VERSION_PART == v* ]]; then
+              COMMIT_MSG_VERSION_PART="v$COMMIT_MSG_VERSION_PART"
+            fi
+            git commit -m "chore(sdk): update outpost-go shields.json to version $COMMIT_MSG_VERSION_PART"
+            
+            for attempt in 1 2 3; do
+              if git push; then
+                echo "Changes pushed successfully on attempt $attempt."
+                exit 0 
+              fi
+              echo "Push attempt $attempt failed."
+              if [ $attempt -lt 3 ]; then
+                echo "Retrying in 10 seconds..."
+                sleep 10
+              fi
+            done
+            
+            echo "Failed to push changes after multiple attempts."
+            exit 1
+          fi
