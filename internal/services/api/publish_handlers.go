@@ -61,7 +61,7 @@ func (h *PublishHandlers) Ingest(c *gin.Context) {
 		}
 		return
 	}
-	c.Status(http.StatusAccepted)
+	c.JSON(http.StatusAccepted, gin.H{"id": event.ID})
 }
 
 type PublishedEvent struct {
