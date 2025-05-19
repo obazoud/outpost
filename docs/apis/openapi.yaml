@@ -709,9 +709,7 @@ components:
     PublishRequest:
       type: object
       required:
-        - tenant_id
         - topic
-        - eligible_for_retry
         - data
       properties:
         id:
