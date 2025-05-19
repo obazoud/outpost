@@ -26,10 +26,10 @@ const outpost = new Outpost({
 
 async function run() {
   await outpost.publish.event({
+    id: "evt_custom_123",
     tenantId: "<TENANT_ID>",
     destinationId: "<DESTINATION_ID>",
     topic: "topic.name",
-    eligibleForRetry: false,
     metadata: {
       "source": "crm",
     },
@@ -63,10 +63,10 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await publishEvent(outpost, {
+    id: "evt_custom_123",
     tenantId: "<TENANT_ID>",
     destinationId: "<DESTINATION_ID>",
     topic: "topic.name",
-    eligibleForRetry: false,
     metadata: {
       "source": "crm",
     },

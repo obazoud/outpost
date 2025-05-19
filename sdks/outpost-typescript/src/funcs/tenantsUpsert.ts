@@ -210,7 +210,7 @@ async function $do(
     | RequestTimeoutError
     | ConnectionError
   >(
-    M.json(200, components.Tenant$inboundSchema),
+    M.json([200, 201], components.Tenant$inboundSchema),
     M.jsonErr(404, errors.NotFoundError$inboundSchema),
     M.jsonErr([401, 403, 407], errors.UnauthorizedError$inboundSchema),
     M.jsonErr(408, errors.TimeoutError$inboundSchema),

@@ -10,21 +10,25 @@ import { SDKValidationError } from "../errors/sdkvalidationerror.js";
 
 export type PublishRequest = {
   /**
+   * Optional. A unique identifier for the event. If not provided, a UUID will be generated.
+   */
+  id?: string | undefined;
+  /**
    * The ID of the tenant to publish for.
    */
-  tenantId: string;
+  tenantId?: string | undefined;
   /**
    * Optional. Route event to a specific destination.
    */
   destinationId?: string | undefined;
   /**
-   * Topic name for the event.
+   * Topic name for the event. Required if Outpost has been configured with topics.
    */
-  topic: string;
+  topic?: string | undefined;
   /**
    * Should event delivery be retried on failure.
    */
-  eligibleForRetry: boolean;
+  eligibleForRetry?: boolean | undefined;
   /**
    * Any key-value string pairs for metadata.
    */
@@ -41,10 +45,11 @@ export const PublishRequest$inboundSchema: z.ZodType<
   z.ZodTypeDef,
   unknown
 > = z.object({
-  tenant_id: z.string(),
+  id: z.string().optional(),
+  tenant_id: z.string().optional(),
   destination_id: z.string().optional(),
-  topic: z.string(),
-  eligible_for_retry: z.boolean(),
+  topic: z.string().optional(),
+  eligible_for_retry: z.boolean().optional(),
   metadata: z.record(z.string()).optional(),
   data: z.record(z.any()),
 }).transform((v) => {
@@ -57,10 +62,11 @@ export const PublishRequest$inboundSchema: z.ZodType<
 
 /** @internal */
 export type PublishRequest$Outbound = {
-  tenant_id: string;
+  id?: string | undefined;
+  tenant_id?: string | undefined;
   destination_id?: string | undefined;
-  topic: string;
-  eligible_for_retry: boolean;
+  topic?: string | undefined;
+  eligible_for_retry?: boolean | undefined;
   metadata?: { [k: string]: string } | undefined;
   data: { [k: string]: any };
 };
@@ -71,10 +77,11 @@ export const PublishRequest$outboundSchema: z.ZodType<
   z.ZodTypeDef,
   PublishRequest
 > = z.object({
-  tenantId: z.string(),
+  id: z.string().optional(),
+  tenantId: z.string().optional(),
   destinationId: z.string().optional(),
-  topic: z.string(),
-  eligibleForRetry: z.boolean(),
+  topic: z.string().optional(),
+  eligibleForRetry: z.boolean().optional(),
   metadata: z.record(z.string()).optional(),
   data: z.record(z.any()),
 }).transform((v) => {

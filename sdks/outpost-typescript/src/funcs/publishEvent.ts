@@ -151,6 +151,7 @@ async function $do(
       "404",
       "407",
       "408",
+      "409",
       "413",
       "414",
       "415",
@@ -217,7 +218,7 @@ async function $do(
     ),
     M.jsonErr(510, errors.BadRequestError$inboundSchema),
     M.jsonErr(511, errors.UnauthorizedError$inboundSchema),
-    M.fail([400, 401, "4XX"]),
+    M.fail([400, 401, 409, "4XX"]),
     M.fail("5XX"),
   )(response, { extraFields: responseFields });
   if (!result.ok) {
