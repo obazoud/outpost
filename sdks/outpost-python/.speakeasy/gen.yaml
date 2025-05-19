@@ -43,8 +43,10 @@ python:
   inputModelSuffix: input
   maxMethodParams: 999
   methodArguments: infer-optional-args
+  moduleName: ""
   outputModelSuffix: output
   packageName: outpost_sdk
+  pytestFilterWarnings: []
   pytestTimeout: 0
   responseFormat: flat
   templateVersion: v2
