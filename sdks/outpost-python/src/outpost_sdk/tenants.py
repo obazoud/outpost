@@ -113,7 +113,7 @@ class Tenants(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "200", "application/json"):
+        if utils.match_response(http_res, ["200", "201"], "application/json"):
             return utils.unmarshal_json(http_res.text, models.Tenant)
         if utils.match_response(http_res, "404", "application/json"):
             response_data = utils.unmarshal_json(
@@ -288,7 +288,7 @@ class Tenants(BaseSDK):
         )
 
         response_data: Any = None
-        if utils.match_response(http_res, "200", "application/json"):
+        if utils.match_response(http_res, ["200", "201"], "application/json"):
             return utils.unmarshal_json(http_res.text, models.Tenant)
         if utils.match_response(http_res, "404", "application/json"):
             response_data = utils.unmarshal_json(
