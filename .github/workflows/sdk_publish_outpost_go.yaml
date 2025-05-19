@@ -10,7 +10,7 @@ permissions:
     branches:
       - main
     paths:
-      - sdks/go/.speakeasy/gen.lock
+      - sdks/outpost-go/.speakeasy/gen.lock
   workflow_dispatch: {}
 
 jobs:
