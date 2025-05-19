@@ -221,15 +221,13 @@ with Outpost(
     res = outpost.destinations.update(destination_id="<id>", destination_update={
         "topics": models.TopicsEnum.WILDCARD_,
         "config": {
-            "stream_name": "my-data-stream",
-            "region": "us-east-1",
-            "endpoint": "https://kinesis.us-east-1.amazonaws.com",
-            "partition_key_template": "data.\"user_id\"",
+            "server_url": "localhost:5672",
+            "exchange": "my-exchange",
+            "tls": models.TLS.FALSE,
         },
         "credentials": {
-            "key": "AKIAIOSFODNN7EXAMPLE",
-            "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-            "session": "AQoDYXdzEPT//////////wEXAMPLE...",
+            "username": "guest",
+            "password": "guest",
         },
     }, tenant_id="<id>")
 

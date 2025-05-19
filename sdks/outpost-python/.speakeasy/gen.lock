@@ -1,18 +1,21 @@
 lockVersion: 2.0.0
 id: da774284-22d9-4b6c-bb26-1c3fc9f2c7ee
 management:
-  docChecksum: facaffd173e65f9c7d9b42e7d5d4f736
+  docChecksum: 9d08f718ce55c534f292ba05af3425db
   docVersion: 0.0.1
-  speakeasyVersion: 1.543.4
-  generationVersion: 2.598.22
-  releaseVersion: 0.1.1
-  configChecksum: ed7a61d738574948f1613efb5d2620a7
+  speakeasyVersion: 1.548.1
+  generationVersion: 2.605.0
+  releaseVersion: 0.2.0
+  configChecksum: 69ffbd3cdb2c5ff26968adc0dac0491c
+  repoURL: https://github.com/hookdeck/outpost.git
+  repoSubDirectory: sdks/outpost-python
+  installationURL: https://github.com/hookdeck/outpost.git#subdirectory=sdks/outpost-python
   published: true
 features:
   python:
     additionalDependencies: 1.0.0
     additionalProperties: 1.0.1
-    core: 5.17.1
+    core: 5.18.1
     defaultEnabledRetries: 0.2.0
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.3.2
@@ -277,25 +280,25 @@ examples:
         "200":
           text/plain: "<value>"
         "404":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "401":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "408":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "429":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "400":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "504":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "501":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "500":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "510":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "511":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
   upsertTenant:
     TenantExample:
       parameters:
@@ -372,10 +375,10 @@ examples:
           tenant_id: "<id>"
           destination_id: "<id>"
       requestBody:
-        application/json: {"topics": "*", "config": {"stream_name": "my-data-stream", "region": "us-east-1", "endpoint": "https://kinesis.us-east-1.amazonaws.com", "partition_key_template": "data.\"user_id\""}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY", "session": "AQoDYXdzEPT//////////wEXAMPLE..."}}
+        application/json: {"topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
       responses:
         "200":
-          application/json: {"id": "des_rmq_789", "type": "rabbitmq", "topics": ["inventory.updated"], "disabled_at": null, "created_at": "2024-01-10T09:00:00Z", "config": {"server_url": "amqp.cloudamqp.com:5671", "exchange": "events-exchange", "tls": "true"}, "credentials": {"username": "app_user", "password": "secure_password_123"}}
+          application/json: {"id": "des_kns_xyz", "type": "aws_kinesis", "topics": ["user.created", "user.updated"], "disabled_at": null, "created_at": "2024-03-10T15:30:00Z", "config": {"stream_name": "production-events", "region": "eu-west-1"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}
   deleteTenantDestination:
     SuccessExample:
       parameters:
@@ -406,28 +409,28 @@ examples:
   publishEvent:
     speakeasy-default-publish-event:
       requestBody:
-        application/json: {"tenant_id": "<TENANT_ID>", "destination_id": "<DESTINATION_ID>", "topic": "topic.name", "eligible_for_retry": false, "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
+        application/json: {"id": "evt_custom_123", "tenant_id": "<TENANT_ID>", "destination_id": "<DESTINATION_ID>", "topic": "topic.name", "metadata": {"source": "crm"}, "data": {"user_id": "userid", "status": "active"}}
       responses:
         "404":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "403":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "408":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "429":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "413":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "504":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "501":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "500":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "510":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "511":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
   listTenantDestinationTypeSchemas:
     DestinationTypesExample:
       parameters:
@@ -454,7 +457,7 @@ examples:
     WebhookSchemaExample:
       parameters:
         path:
-          type: "aws_kinesis"
+          type: "rabbitmq"
       responses:
         "200":
           application/json: {"type": "webhook", "label": "Webhook", "description": "Send event via an HTTP POST request to a URL", "icon": "<svg />", "instructions": "Enter the URL...", "config_fields": [{"type": "text", "label": "URL", "description": "The URL to send the webhook to.", "required": true, "pattern": "^https?://.*"}], "credential_fields": [{"type": "text", "label": "Secret", "description": "Optional signing secret.", "required": false, "sensitive": true}]}
@@ -527,22 +530,22 @@ examples:
           event_id: "<id>"
       responses:
         "401":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "408":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "429":
-          application/json: {"key": "<value>", "key1": "<value>", "key2": "<value>"}
+          application/json: {}
         "400":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "504":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "501":
-          application/json: {"key": "<value>"}
+          application/json: {}
         "500":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "510":
-          application/json: {"key": "<value>", "key1": "<value>"}
+          application/json: {}
         "511":
-          application/json: {"key": "<value>"}
-examplesVersion: 1.0.1
+          application/json: {}
+examplesVersion: 1.0.2
 generatedTests: {}
