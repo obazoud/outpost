@@ -725,7 +725,7 @@ components:
           example: "<DESTINATION_ID>"
         topic:
           type: string
-          description: Topic name for the event.
+          description: Topic name for the event. Required if Outpost has been configured with topics.
           example: "topic.name"
         eligible_for_retry:
           type: boolean
