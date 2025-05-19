@@ -3,7 +3,7 @@ name: Unit Tests
 on:
   push:
     branches:
-      - main # Adjust 'main' if your primary branch is named differently (e.g., master)
+      - main
   pull_request:
 
 jobs:
