@@ -1,6 +1,10 @@
 name: Unit Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main # Adjust 'main' if your primary branch is named differently (e.g., master)
+  pull_request:
 
 jobs:
   test:
