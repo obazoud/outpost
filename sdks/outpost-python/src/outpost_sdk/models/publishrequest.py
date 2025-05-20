@@ -7,35 +7,40 @@ from typing_extensions import NotRequired, TypedDict
 
 
 class PublishRequestTypedDict(TypedDict):
-    tenant_id: str
-    r"""The ID of the tenant to publish for."""
-    topic: str
-    r"""Topic name for the event."""
-    eligible_for_retry: bool
-    r"""Should event delivery be retried on failure."""
     data: Dict[str, Any]
     r"""Any JSON payload for the event data."""
+    id: NotRequired[str]
+    r"""Optional. A unique identifier for the event. If not provided, a UUID will be generated."""
+    tenant_id: NotRequired[str]
+    r"""The ID of the tenant to publish for."""
     destination_id: NotRequired[str]
     r"""Optional. Route event to a specific destination."""
+    topic: NotRequired[str]
+    r"""Topic name for the event. Required if Outpost has been configured with topics."""
+    eligible_for_retry: NotRequired[bool]
+    r"""Should event delivery be retried on failure."""
     metadata: NotRequired[Dict[str, str]]
     r"""Any key-value string pairs for metadata."""
 
 
 class PublishRequest(BaseModel):
-    tenant_id: str
-    r"""The ID of the tenant to publish for."""
-
-    topic: str
-    r"""Topic name for the event."""
-
-    eligible_for_retry: bool
-    r"""Should event delivery be retried on failure."""
-
     data: Dict[str, Any]
     r"""Any JSON payload for the event data."""
 
+    id: Optional[str] = None
+    r"""Optional. A unique identifier for the event. If not provided, a UUID will be generated."""
+
+    tenant_id: Optional[str] = None
+    r"""The ID of the tenant to publish for."""
+
     destination_id: Optional[str] = None
     r"""Optional. Route event to a specific destination."""
+
+    topic: Optional[str] = None
+    r"""Topic name for the event. Required if Outpost has been configured with topics."""
+
+    eligible_for_retry: Optional[bool] = None
+    r"""Should event delivery be retried on failure."""
 
     metadata: Optional[Dict[str, str]] = None
     r"""Any key-value string pairs for metadata."""

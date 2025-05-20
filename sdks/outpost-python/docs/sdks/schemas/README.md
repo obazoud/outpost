@@ -176,7 +176,7 @@ with Outpost(
     ),
 ) as outpost:
 
-    res = outpost.schemas.get_destination_type_jwt(type_=models.GetDestinationTypeSchemaType.AWS_KINESIS)
+    res = outpost.schemas.get_destination_type_jwt(type_=models.GetDestinationTypeSchemaType.RABBITMQ)
 
     # Handle response
     print(res)

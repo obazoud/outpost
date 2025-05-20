@@ -13,11 +13,12 @@ class Publish(BaseSDK):
     def event(
         self,
         *,
-        tenant_id: str,
-        topic: str,
-        eligible_for_retry: bool,
         data: Dict[str, Any],
+        id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
         destination_id: Optional[str] = None,
+        topic: Optional[str] = None,
+        eligible_for_retry: Optional[bool] = None,
         metadata: Optional[Dict[str, str]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -28,11 +29,12 @@ class Publish(BaseSDK):
 
         Publishes an event to the specified topic, potentially routed to a specific destination. Requires Admin API Key.
 
-        :param tenant_id: The ID of the tenant to publish for.
-        :param topic: Topic name for the event.
-        :param eligible_for_retry: Should event delivery be retried on failure.
         :param data: Any JSON payload for the event data.
+        :param id: Optional. A unique identifier for the event. If not provided, a UUID will be generated.
+        :param tenant_id: The ID of the tenant to publish for.
         :param destination_id: Optional. Route event to a specific destination.
+        :param topic: Topic name for the event. Required if Outpost has been configured with topics.
+        :param eligible_for_retry: Should event delivery be retried on failure.
         :param metadata: Any key-value string pairs for metadata.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -50,6 +52,7 @@ class Publish(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.PublishRequest(
+            id=id,
             tenant_id=tenant_id,
             destination_id=destination_id,
             topic=topic,
@@ -100,6 +103,7 @@ class Publish(BaseSDK):
                 "404",
                 "407",
                 "408",
+                "409",
                 "413",
                 "414",
                 "415",
@@ -180,7 +184,7 @@ class Publish(BaseSDK):
                 http_res.text, errors.UnauthorizedErrorData
             )
             raise errors.UnauthorizedError(data=response_data)
-        if utils.match_response(http_res, ["400", "401", "4XX"], "*"):
+        if utils.match_response(http_res, ["400", "401", "409", "4XX"], "*"):
             http_res_text = utils.stream_to_text(http_res)
             raise errors.APIError(
                 "API error occurred", http_res.status_code, http_res_text, http_res
@@ -203,11 +207,12 @@ class Publish(BaseSDK):
     async def event_async(
         self,
         *,
-        tenant_id: str,
-        topic: str,
-        eligible_for_retry: bool,
         data: Dict[str, Any],
+        id: Optional[str] = None,
+        tenant_id: Optional[str] = None,
         destination_id: Optional[str] = None,
+        topic: Optional[str] = None,
+        eligible_for_retry: Optional[bool] = None,
         metadata: Optional[Dict[str, str]] = None,
         retries: OptionalNullable[utils.RetryConfig] = UNSET,
         server_url: Optional[str] = None,
@@ -218,11 +223,12 @@ class Publish(BaseSDK):
 
         Publishes an event to the specified topic, potentially routed to a specific destination. Requires Admin API Key.
 
-        :param tenant_id: The ID of the tenant to publish for.
-        :param topic: Topic name for the event.
-        :param eligible_for_retry: Should event delivery be retried on failure.
         :param data: Any JSON payload for the event data.
+        :param id: Optional. A unique identifier for the event. If not provided, a UUID will be generated.
+        :param tenant_id: The ID of the tenant to publish for.
         :param destination_id: Optional. Route event to a specific destination.
+        :param topic: Topic name for the event. Required if Outpost has been configured with topics.
+        :param eligible_for_retry: Should event delivery be retried on failure.
         :param metadata: Any key-value string pairs for metadata.
         :param retries: Override the default retry configuration for this method
         :param server_url: Override the default server URL for this method
@@ -240,6 +246,7 @@ class Publish(BaseSDK):
             base_url = self._get_url(base_url, url_variables)
 
         request = models.PublishRequest(
+            id=id,
             tenant_id=tenant_id,
             destination_id=destination_id,
             topic=topic,
@@ -290,6 +297,7 @@ class Publish(BaseSDK):
                 "404",
                 "407",
                 "408",
+                "409",
                 "413",
                 "414",
                 "415",
@@ -370,7 +378,7 @@ class Publish(BaseSDK):
                 http_res.text, errors.UnauthorizedErrorData
             )
             raise errors.UnauthorizedError(data=response_data)
-        if utils.match_response(http_res, ["400", "401", "4XX"], "*"):
+        if utils.match_response(http_res, ["400", "401", "409", "4XX"], "*"):
             http_res_text = await utils.stream_to_text_async(http_res)
             raise errors.APIError(
                 "API error occurred", http_res.status_code, http_res_text, http_res
