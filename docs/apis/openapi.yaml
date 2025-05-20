@@ -721,6 +721,15 @@ components:
           description: Any JSON payload for the event data.
           additionalProperties: true
           example: { "user_id": "userid", "status": "active" }
+    PublishResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: The ID of the event that was accepted for publishing. This will be the ID provided in the request's `id` field if present, otherwise it's a server-generated UUID.
+          example: "evt_abc123xyz789"
     Event:
       type: object
       properties:
@@ -1382,7 +1391,11 @@ paths:
               $ref: "#/components/schemas/PublishRequest"
       responses:
         "202":
-          description: Event accepted for publishing. Empty body.
+          description: Event accepted for publishing. Returns the event ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishResponse"
         "400":
           description: Invalid request body.
         "401":
