@@ -33,36 +33,45 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Ensure all tags are fetched
 
-      - name: Get Latest Tag for Go SDK
-        id: get_tag
+      - name: Get Go SDK Version from gen.yaml
+        id: get_version
         run: |
-          # Match tags like sdks/go/v0.1.0
-          LATEST_TAG=$(git describe --tags --match="sdks/go/v*" --abbrev=0)
-          if [ -z "$LATEST_TAG" ]; then
-            echo "Error: No matching Go SDK tag (sdks/go/v*) found."
+          # This step assumes 'yq' is available on the runner.
+          # If not, you might need to add a setup step for yq, e.g.:
+          # sudo apt-get update && sudo apt-get install -y yq
+          GEN_YAML_PATH="sdks/outpost-go/.speakeasy/gen.yaml"
+          if [ ! -f "$GEN_YAML_PATH" ]; then
+            echo "Error: $GEN_YAML_PATH not found."
             exit 1
           fi
-          echo "Latest Go SDK tag: $LATEST_TAG"
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          # Read the version using yq; ensure it's not empty or literal "null"
+          SDK_VERSION_RAW=$(yq -r '.go.version' "$GEN_YAML_PATH")
+          if [ -z "$SDK_VERSION_RAW" ] || [ "$SDK_VERSION_RAW" == "null" ]; then
+            echo "Error: Could not read .go.version from $GEN_YAML_PATH, or version is null/empty."
+            echo "Content of $GEN_YAML_PATH:"
+            cat "$GEN_YAML_PATH"
+            exit 1
+          fi
+          echo "Go SDK version from $GEN_YAML_PATH: $SDK_VERSION_RAW"
+          echo "sdk_version=$SDK_VERSION_RAW" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Debug Information
         env:
-          PUBLISH_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+          PUBLISH_VERSION: ${{ steps.get_version.outputs.sdk_version }}
         run: |
-          echo "Assumed latest Go SDK version (tag): $PUBLISH_VERSION"
+          echo "Go SDK version from gen.yaml: $PUBLISH_VERSION"
 
       - name: Update shields.json
         env:
-          NEW_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+          NEW_VERSION: ${{ steps.get_version.outputs.sdk_version }} # This will be like "0.2.1"
         run: |
-          echo "Updating shields.json with version: $NEW_VERSION"
+          echo "Updating shields.json with version from gen.yaml: $NEW_VERSION"
           
-          # Extract the version part if the tag is like sdks/go/v1.0.0
-          SHIELD_VERSION_VALUE=$(echo "$NEW_VERSION" | sed 's#^sdks/go/##')
-
+          SHIELD_VERSION_VALUE=$NEW_VERSION # e.g., 0.2.1
+          # Ensure it starts with 'v' for the shield
           if [[ ! $SHIELD_VERSION_VALUE == v* ]]; then
-            SHIELD_VERSION_VALUE="v$SHIELD_VERSION_VALUE"
+            SHIELD_VERSION_VALUE="v$SHIELD_VERSION_VALUE" # e.g., v0.2.1
           fi
           echo "Formatted shield version for JSON: $SHIELD_VERSION_VALUE"
           
@@ -92,7 +101,7 @@ jobs:
 
       - name: Create Pull Request for shields.json update
         env:
-          NEW_VERSION: ${{ steps.get_tag.outputs.latest_tag }}
+          NEW_VERSION: ${{ steps.get_version.outputs.sdk_version }} # This will be like "0.2.1"
           GH_TOKEN: ${{ github.token }}
         run: |
           git config --global user.name 'github-actions[bot]'
@@ -105,12 +114,11 @@ jobs:
           fi
 
           # Determine version for commit message and branch name
-          COMMIT_MSG_VERSION_FULL=$NEW_VERSION
-          # Extract version part like "v0.1.0" from "sdks/go/v0.1.0"
-          COMMIT_MSG_VERSION_PART=$(echo "$COMMIT_MSG_VERSION_FULL" | sed 's#^sdks/go/##')
-          # Ensure it starts with 'v'
+          # NEW_VERSION is the raw version from gen.yaml, e.g., "0.2.1"
+          COMMIT_MSG_VERSION_PART=$NEW_VERSION
+          # Ensure it starts with 'v' for commit messages, branch names, PR titles
           if [[ ! $COMMIT_MSG_VERSION_PART == v* ]]; then
-            COMMIT_MSG_VERSION_PART="v$COMMIT_MSG_VERSION_PART"
+            COMMIT_MSG_VERSION_PART="v$COMMIT_MSG_VERSION_PART" # e.g., v0.2.1
           fi
           
           BRANCH_NAME="chore/update-go-shields-$COMMIT_MSG_VERSION_PART"
@@ -119,11 +127,12 @@ jobs:
           PR_BODY=$(cat <<EOF
           This PR updates the \`sdks/outpost-go/shields.json\` file to version $COMMIT_MSG_VERSION_PART.
 
-          This change was triggered by the automated workflow due to a new Go SDK tag: \`$NEW_VERSION\`.
+          This change was triggered by the automated workflow based on the version in \`sdks/outpost-go/.speakeasy/gen.yaml\`: \`$NEW_VERSION\`.
           EOF
           )
 
-          git checkout -b "$BRANCH_NAME"
+          # Create a new branch or reset if it already exists locally
+          git checkout -B "$BRANCH_NAME"
           git add "$SHIELDS_FILE"
 
           if git diff --staged --quiet; then
