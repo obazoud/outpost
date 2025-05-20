@@ -1,6 +1,9 @@
 ## Outpost Go SDK Example
 
-This example demonstrates using the Outpost Go SDK.
+This example demonstrates using the Outpost Go SDK. It is structured into a few files:
+*   `main.go`: Handles command-line arguments to select which example to run.
+*   `auth.go`: Contains examples related to authentication and tenant JWTs.
+*   `resources.go`: Contains examples for managing Outpost resources like tenants and destinations.
 
 The source code for the Go SDK can be found in the [`sdks/outpost-go/`](../../sdks/outpost-go/) directory.
 
@@ -19,20 +22,36 @@ The source code for the Go SDK can be found in the [`sdks/outpost-go/`](../../sd
     go mod tidy
     ```
 
-### Running the Example
+### Running the Examples
 
 1.  **Configure environment variables:**
     Create a `.env` file in this directory (`examples/sdk-go`) with the following:
     ```dotenv
-    SERVER_URL="your_server_url"
+    SERVER_URL="your_outpost_server_url"
     ADMIN_API_KEY="your_admin_api_key"
     TENANT_ID="your_tenant_id"
     ```
-    Replace the placeholder values with your Outpost server URL, Admin API key, and Tenant ID. (Note: You'll need to create a `.gitignore` file if you don't want to commit `.env`).
+    Replace the placeholder values with your Outpost server URL, Admin API key, and a Tenant ID to use for the examples.
+    (Note: You'll need to create a `.gitignore` file if you don't want to commit `.env`).
 
-2.  **Run the example:**
-    ```bash
-    go run main.go
-    ```
+    *   `SERVER_URL`: The base URL of your Outpost server (e.g., `http://localhost:3333`).
+    *   `ADMIN_API_KEY`: Your Outpost Admin API key.
+    *   `TENANT_ID`: An identifier for a tenant (e.g., `my_organization`). This is used by the `auth` example and parts of the `manage` example.
 
-    This executes `main.go`, which loads configuration from `.env` and performs a health check using the SDK. Review `main.go` for details.
+2.  **Run a specific example:**
+    The `main.go` program now accepts an argument to specify which example to run.
+
+    *   **To run the resource management example (from `resources.go`):**
+        This example demonstrates creating tenants, destinations, and publishing events.
+        ```bash
+        go run . manage
+        ```
+
+    *   **To run the authentication example (from `auth.go`):**
+        This example demonstrates using the Admin API key to fetch a tenant JWT and then using that JWT.
+        ```bash
+        go run . auth
+        ```
+
+    If you run `go run .` without an argument, or with an unknown argument, it will display a usage message.
+    Review the respective `.go` files (`auth.go`, `resources.go`, `main.go`) for details on what each example does.
