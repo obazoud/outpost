@@ -21,9 +21,9 @@
 <div align="center">
 SDKs:
 
-![Go SDK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hookdeck/outpost/refs/heads/main/sdks/outpost-go/shields.json)
-![TypeScript SDK](https://img.shields.io/npm/v/%40hookdeck%2Foutpost-sdk)
-![Python SDK](https://img.shields.io/pypi/v/outpost-sdk)
+[![Go SDK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/hookdeck/outpost/refs/heads/main/sdks/outpost-go/shields.json)](sdks/outpost-go/README.md)
+[![TypeScript SDK](https://img.shields.io/npm/v/%40hookdeck%2Foutpost-sdk)](sdks/outpost-typescript/README.md)
+[![Python SDK](https://img.shields.io/pypi/v/outpost-sdk)](sdks/outpost-python/README.md)
 
 
 </div>
