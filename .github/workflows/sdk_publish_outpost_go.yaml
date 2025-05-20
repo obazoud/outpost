@@ -33,12 +33,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # Ensure all tags are fetched
 
+      - name: Install yq
+        run: |
+          sudo apt-get update && sudo apt-get install -y yq
+        shell: bash
+
       - name: Get Go SDK Version from gen.yaml
         id: get_version
         run: |
-          # This step assumes 'yq' is available on the runner.
-          # If not, you might need to add a setup step for yq, e.g.:
-          # sudo apt-get update && sudo apt-get install -y yq
           GEN_YAML_PATH="sdks/outpost-go/.speakeasy/gen.yaml"
           if [ ! -f "$GEN_YAML_PATH" ]; then
             echo "Error: $GEN_YAML_PATH not found."
