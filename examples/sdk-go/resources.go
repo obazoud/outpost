@@ -89,22 +89,18 @@ func manageOutpostResources(adminAPIKey string, serverURL string) {
 		log.Fatalf("Failed to publish event: %v\n", err)
 	}
 
-	if err == nil {
-		log.Println("Event published successfully")
-		// TODO: result should have an ID property
-		if publishRes != nil && publishRes.HTTPMeta.Response != nil && publishRes.HTTPMeta.Response.Body != nil {
-			bodyBytes, err := io.ReadAll(publishRes.HTTPMeta.Response.Body)
-			if err != nil {
-				log.Printf("Error reading publish response body: %v", err)
-			} else {
-				log.Printf("Publish response body: %s", string(bodyBytes))
-			}
-			_ = publishRes.HTTPMeta.Response.Body.Close()
-		} else if publishRes != nil {
-			log.Printf("Publish response (raw SDK response struct): %+v", publishRes)
+	log.Println("Event published successfully")
+	// TODO: result should have an ID property
+	if publishRes != nil && publishRes.HTTPMeta.Response != nil && publishRes.HTTPMeta.Response.Body != nil {
+		bodyBytes, err := io.ReadAll(publishRes.HTTPMeta.Response.Body)
+		if err != nil {
+			log.Printf("Error reading publish response body: %v", err)
+		} else {
+			log.Printf("Publish response body: %s", string(bodyBytes))
 		}
-	} else {
-		log.Printf("Event publishing failed: %v\n", err)
+		_ = publishRes.HTTPMeta.Response.Body.Close()
+	} else if publishRes != nil {
+		log.Printf("Publish response (raw SDK response struct): %+v", publishRes)
 	}
 
 	log.Println("--- Example finished ---")
