@@ -8,6 +8,8 @@ import (
 
 type PublishEventResponse struct {
 	HTTPMeta components.HTTPMetadata `json:"-"`
+	// Event accepted for publishing. Returns the event ID.
+	PublishResponse *components.PublishResponse
 }
 
 func (o *PublishEventResponse) GetHTTPMeta() components.HTTPMetadata {
@@ -15,4 +17,11 @@ func (o *PublishEventResponse) GetHTTPMeta() components.HTTPMetadata {
 		return components.HTTPMetadata{}
 	}
 	return o.HTTPMeta
+}
+
+func (o *PublishEventResponse) GetPublishResponse() *components.PublishResponse {
+	if o == nil {
+		return nil
+	}
+	return o.PublishResponse
 }

@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: f0627709-5a00-43ac-8678-ca716d6f379c
 management:
-  docChecksum: 9d08f718ce55c534f292ba05af3425db
+  docChecksum: 09a46accc53e3497235bb404b206f5b1
   docVersion: 0.0.1
   speakeasyVersion: 1.548.1
   generationVersion: 2.605.0
-  releaseVersion: 0.2.0
-  configChecksum: ac86570f480e507eb458dfda92d612aa
+  releaseVersion: 0.2.1
+  configChecksum: 39ed4c8c2c8738d9dcd5b67deb776110
   repoURL: https://github.com/hookdeck/outpost.git
   repoSubDirectory: sdks/outpost-go
   installationURL: https://github.com/hookdeck/outpost/sdks/outpost-go
@@ -67,6 +67,7 @@ generatedFiles:
   - /models/components/httpmetadata.go
   - /models/components/portalredirect.go
   - /models/components/publishrequest.go
+  - /models/components/publishresponse.go
   - /models/components/rabbitmqconfig.go
   - /models/components/rabbitmqcredentials.go
   - /models/components/security.go
@@ -152,6 +153,7 @@ generatedFiles:
   - docs/models/components/httpmetadata.md
   - docs/models/components/portalredirect.md
   - docs/models/components/publishrequest.md
+  - docs/models/components/publishresponse.md
   - docs/models/components/rabbitmqconfig.md
   - docs/models/components/rabbitmqcredentials.md
   - docs/models/components/security.md
@@ -441,6 +443,8 @@ examples:
           application/json: {}
         "511":
           application/json: {}
+        "202":
+          application/json: {"id": "evt_abc123xyz789"}
   listTenantDestinationTypeSchemas:
     DestinationTypesExample:
       parameters:
