@@ -48,7 +48,7 @@ jobs:
           fi
           # Read the version using yq; ensure it's not empty or literal "null"
           SDK_VERSION_RAW=$(yq -r '.go.version' "$GEN_YAML_PATH")
-          if [ -z "$SDK_VERSION_RAW" ] || [ "$SDK_VERSION_RAW" == "null" ]; then
+          if [ -z "$SDK_VERSION_RAW" ] || [ "$SDK_VERSION_RAW" = "null" ]; then
             echo "Error: Could not read .go.version from $GEN_YAML_PATH, or version is null/empty."
             echo "Content of $GEN_YAML_PATH:"
             cat "$GEN_YAML_PATH"
