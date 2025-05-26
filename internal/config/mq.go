@@ -12,24 +12,24 @@ type AWSSQSConfig struct {
 	SecretAccessKey string `yaml:"secret_access_key" env:"AWS_SQS_SECRET_ACCESS_KEY" desc:"AWS Secret Access Key for SQS. Required if AWS SQS is the chosen MQ provider." required:"C"`
 	Region          string `yaml:"region" env:"AWS_SQS_REGION" desc:"AWS Region for SQS. Required if AWS SQS is the chosen MQ provider." required:"C"`
 	Endpoint        string `yaml:"endpoint" env:"AWS_SQS_ENDPOINT" desc:"Custom AWS SQS endpoint URL. Optional, typically used for local testing (e.g., LocalStack)." required:"N"`
-	DeliveryQueue   string `yaml:"delivery_queue" env:"AWS_SQS_DELIVERY_QUEUE" desc:"Name of the SQS queue for delivery events. Defaults to 'outpost-delivery'." required:"N"`
-	LogQueue        string `yaml:"log_queue" env:"AWS_SQS_LOG_QUEUE" desc:"Name of the SQS queue for log events. Defaults to 'outpost-log'." required:"N"`
+	DeliveryQueue   string `yaml:"delivery_queue" env:"AWS_SQS_DELIVERY_QUEUE" desc:"Name of the SQS queue for delivery events." required:"N"`
+	LogQueue        string `yaml:"log_queue" env:"AWS_SQS_LOG_QUEUE" desc:"Name of the SQS queue for log events." required:"N"`
 }
 
 type GCPPubSubConfig struct {
 	Project                   string `yaml:"project" env:"GCP_PUBSUB_PROJECT" desc:"GCP Project ID for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider." required:"C"`
 	ServiceAccountCredentials string `yaml:"service_account_credentials" env:"GCP_PUBSUB_SERVICE_ACCOUNT_CREDENTIALS" desc:"JSON string or path to a file containing GCP service account credentials for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider and not running in an environment with implicit credentials (e.g., GCE, GKE)." required:"C"`
-	DeliveryTopic             string `yaml:"delivery_topic" env:"GCP_PUBSUB_DELIVERY_TOPIC" desc:"Name of the GCP Pub/Sub topic for delivery events. Defaults to 'outpost-delivery'." required:"N"`
-	DeliverySubscription      string `yaml:"delivery_subscription" env:"GCP_PUBSUB_DELIVERY_SUBSCRIPTION" desc:"Name of the GCP Pub/Sub subscription for delivery events. Defaults to 'outpost-delivery-sub'." required:"N"`
-	LogTopic                  string `yaml:"log_topic" env:"GCP_PUBSUB_LOG_TOPIC" desc:"Name of the GCP Pub/Sub topic for log events. Defaults to 'outpost-log'." required:"N"`
-	LogSubscription           string `yaml:"log_subscription" env:"GCP_PUBSUB_LOG_SUBSCRIPTION" desc:"Name of the GCP Pub/Sub subscription for log events. Defaults to 'outpost-log-sub'." required:"N"`
+	DeliveryTopic             string `yaml:"delivery_topic" env:"GCP_PUBSUB_DELIVERY_TOPIC" desc:"Name of the GCP Pub/Sub topic for delivery events." required:"N"`
+	DeliverySubscription      string `yaml:"delivery_subscription" env:"GCP_PUBSUB_DELIVERY_SUBSCRIPTION" desc:"Name of the GCP Pub/Sub subscription for delivery events." required:"N"`
+	LogTopic                  string `yaml:"log_topic" env:"GCP_PUBSUB_LOG_TOPIC" desc:"Name of the GCP Pub/Sub topic for log events." required:"N"`
+	LogSubscription           string `yaml:"log_subscription" env:"GCP_PUBSUB_LOG_SUBSCRIPTION" desc:"Name of the GCP Pub/Sub subscription for log events." required:"N"`
 }
 
 type RabbitMQConfig struct {
 	ServerURL     string `yaml:"server_url" env:"RABBITMQ_SERVER_URL" desc:"RabbitMQ server connection URL (e.g., 'amqp://user:pass@host:port/vhost'). Required if RabbitMQ is the chosen MQ provider." required:"C"`
-	Exchange      string `yaml:"exchange" env:"RABBITMQ_EXCHANGE" desc:"Name of the RabbitMQ exchange to use. Defaults to 'outpost'." required:"N"`
-	DeliveryQueue string `yaml:"delivery_queue" env:"RABBITMQ_DELIVERY_QUEUE" desc:"Name of the RabbitMQ queue for delivery events. Defaults to 'outpost-delivery'." required:"N"`
-	LogQueue      string `yaml:"log_queue" env:"RABBITMQ_LOG_QUEUE" desc:"Name of the RabbitMQ queue for log events. Defaults to 'outpost-log'." required:"N"`
+	Exchange      string `yaml:"exchange" env:"RABBITMQ_EXCHANGE" desc:"Name of the RabbitMQ exchange to use." required:"N"`
+	DeliveryQueue string `yaml:"delivery_queue" env:"RABBITMQ_DELIVERY_QUEUE" desc:"Name of the RabbitMQ queue for delivery events." required:"N"`
+	LogQueue      string `yaml:"log_queue" env:"RABBITMQ_LOG_QUEUE" desc:"Name of the RabbitMQ queue for log events." required:"N"`
 }
 
 type MQsConfig struct {

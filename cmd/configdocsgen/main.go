@@ -1,3 +1,7 @@
+// Known Limitations/Further Improvements:
+// Embedded Structs (AST): Fields from anonymously embedded structs are not fully resolved during AST parsing for documentation as part of the parent struct.
+// Complex Slice/Map YAML Formatting: Default value formatting for slices is basic. Maps are not explicitly formatted for YAML beyond their default string representation.
+
 package main
 
 import (
@@ -58,22 +62,22 @@ func main() {
 		log.Printf("Found config struct: %s in file %s", cfg.Name, cfg.FileName)
 	}
 
-	err = generateDocs(parsedConfigs, outputFile) // Corrected: use outputFile
-	if err != nil {
-		log.Fatalf("Error generating docs: %v", err)
-	}
-
-	// Attempt to get and print default values
-	// This is a preliminary step to verify type loading and reflection.
+	// Attempt to get default values and integrate them BEFORE generating docs
 	log.Println("Attempting to load and reflect on config.Config for default values...")
 	defaults, err := getConfigDefaults()
 	if err != nil {
 		log.Printf("Warning: Could not get config defaults: %v", err)
-		log.Println("Default values will be missing from the generated documentation.")
+		log.Println("Default values will be missing or incorrect in the generated documentation.")
 	} else {
 		log.Printf("Successfully reflected on config.Config. Total default keys found: %d", len(defaults))
 		// Integrate defaults into parsedConfigs
-		integrateDefaults(parsedConfigs, defaults) // Call the integration function
+		integrateDefaults(parsedConfigs, defaults) // This modifies parsedConfigs in place
+	}
+
+	// Now generate docs with populated defaults
+	err = generateDocs(parsedConfigs, outputFile)
+	if err != nil {
+		log.Fatalf("Error generating docs: %v", err)
 	}
 
 	fmt.Printf("Successfully generated documentation to %s\n", outputFile)
@@ -411,9 +415,9 @@ func integrateDefaults(parsedConfigs []ParsedConfig, defaults map[string]interfa
 				// The path prefix for fields of RedisConfig would be "Redis".
 
 				if nestedStructInfo, isStruct := otherConfigs[field.Type]; isStruct {
-					log.Printf("Recursing for nested struct field %s (type %s) with path prefix %s", field.Name, field.Type, field.Name)
-					// The prefix for the children of this field is the field's own name.
-					assignDefaults(&nestedStructInfo.Fields, field.Name)
+					log.Printf("Recursing for nested struct field %s (type %s) with path prefix %s", field.Name, field.Type, defaultPathKey)
+					// The prefix for the children of this field is the full path to this field.
+					assignDefaults(&nestedStructInfo.Fields, defaultPathKey)
 				} else {
 					log.Printf("No direct default found for %s (path key: %s)", field.Name, defaultPathKey)
 				}
@@ -451,9 +455,20 @@ func generateDocs(parsedConfigs []ParsedConfig, outputPath string) error {
 		defaultValueText := field.DefaultValue
 		if defaultValueText == "" || defaultValueText == "<nil>" { // Handle <nil> from Sprintf as well
 			defaultValueText = "`nil`"
+		} else {
+			// Escape special characters for Markdown table cells
+			defaultValueText = strings.ReplaceAll(defaultValueText, "|", "\\|")
+			// defaultValueText = strings.ReplaceAll(defaultValueText, "{", "\\{")
+			// defaultValueText = strings.ReplaceAll(defaultValueText, "}", "\\}")
+			// Enclose in backticks if not already `nil`
+			defaultValueText = fmt.Sprintf("`%s`", defaultValueText)
 		}
+
 		descriptionText := strings.ReplaceAll(field.Description, "|", "\\|")
 		descriptionText = strings.ReplaceAll(descriptionText, "\n", " ") // Ensure description is single line for table
+		// Escape curly braces for MDX in descriptions
+		descriptionText = strings.ReplaceAll(descriptionText, "{", "\\{")
+		descriptionText = strings.ReplaceAll(descriptionText, "}", "\\}")
 
 		envVarsBuilder.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s |\n",
 			field.EnvName,
@@ -463,7 +478,6 @@ func generateDocs(parsedConfigs []ParsedConfig, outputPath string) error {
 		))
 	}
 	envVarsContent := strings.TrimRight(envVarsBuilder.String(), "\n")
-
 	// --- Generate YAML Content (including fences) ---
 	var yamlBuilder strings.Builder
 	// The "## YAML" header should be manually placed in the MDX file.

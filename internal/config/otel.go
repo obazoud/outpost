@@ -10,7 +10,7 @@ import (
 
 type OpenTelemetryTypeConfig struct {
 	Exporter string `yaml:"exporter" env:"OTEL_EXPORTER" desc:"Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT." required:"C"`
-	Protocol string `yaml:"protocol" env:"OTEL_PROTOCOL" desc:"Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Defaults to 'grpc'. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL." required:"C"`
+	Protocol string `yaml:"protocol" env:"OTEL_PROTOCOL" desc:"Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL." required:"C"`
 }
 
 type OpenTelemetryConfig struct {
