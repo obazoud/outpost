@@ -370,8 +370,8 @@ func integrateDefaults(parsedConfigs []ParsedConfig, defaults map[string]interfa
 	}
 
 	// Recursive function to build paths and assign defaults
-	var assignDefaults func(currentFields *[]ConfigField, currentPathPrefix string, currentStructName string)
-	assignDefaults = func(currentFields *[]ConfigField, currentPathPrefix string, currentStructName string) {
+	var assignDefaults func(currentFields *[]ConfigField, currentPathPrefix string)
+	assignDefaults = func(currentFields *[]ConfigField, currentPathPrefix string) {
 		for i := range *currentFields {
 			field := &(*currentFields)[i] // Pointer to modify the field
 
@@ -413,7 +413,7 @@ func integrateDefaults(parsedConfigs []ParsedConfig, defaults map[string]interfa
 				if nestedStructInfo, isStruct := otherConfigs[field.Type]; isStruct {
 					log.Printf("Recursing for nested struct field %s (type %s) with path prefix %s", field.Name, field.Type, field.Name)
 					// The prefix for the children of this field is the field's own name.
-					assignDefaults(&nestedStructInfo.Fields, field.Name, field.Type)
+					assignDefaults(&nestedStructInfo.Fields, field.Name)
 				} else {
 					log.Printf("No direct default found for %s (path key: %s)", field.Name, defaultPathKey)
 				}
@@ -422,7 +422,7 @@ func integrateDefaults(parsedConfigs []ParsedConfig, defaults map[string]interfa
 	}
 
 	// Start with the top-level config, no prefix for its direct fields
-	assignDefaults(&topLevelConfig.Fields, "", topLevelConfig.GoStructName)
+	assignDefaults(&topLevelConfig.Fields, "")
 
 	// After processing top-level, some nested structs might have had their defaults assigned
 	// by the recursion above if their parent field was processed.
