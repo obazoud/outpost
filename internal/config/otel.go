@@ -9,15 +9,15 @@ import (
 )
 
 type OpenTelemetryTypeConfig struct {
-	Exporter string `yaml:"exporter" env:"OTEL_EXPORTER"`
-	Protocol string `yaml:"protocol" env:"OTEL_PROTOCOL"`
+	Exporter string `yaml:"exporter" env:"OTEL_EXPORTER" desc:"Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT." required:"C"`
+	Protocol string `yaml:"protocol" env:"OTEL_PROTOCOL" desc:"Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL." required:"C"`
 }
 
 type OpenTelemetryConfig struct {
-	ServiceName string                  `yaml:"service_name" env:"OTEL_SERVICE_NAME"`
-	Traces      OpenTelemetryTypeConfig `yaml:"traces"`
-	Metrics     OpenTelemetryTypeConfig `yaml:"metrics"`
-	Logs        OpenTelemetryTypeConfig `yaml:"logs"`
+	ServiceName string                  `yaml:"service_name" env:"OTEL_SERVICE_NAME" desc:"The service name reported to OpenTelemetry. If set, OpenTelemetry will be enabled." required:"N"`
+	Traces      OpenTelemetryTypeConfig `yaml:"traces" desc:"OpenTelemetry configuration specific to traces."`
+	Metrics     OpenTelemetryTypeConfig `yaml:"metrics" desc:"OpenTelemetry configuration specific to metrics."`
+	Logs        OpenTelemetryTypeConfig `yaml:"logs" desc:"OpenTelemetry configuration specific to logs."`
 }
 
 const (
