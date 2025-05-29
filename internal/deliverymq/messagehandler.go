@@ -284,8 +284,16 @@ func (h *messageHandler) handleAlertAttempt(ctx context.Context, deliveryEvent *
 	attempt := alert.DeliveryAttempt{
 		Success:       deliveryEvent.Delivery.Status == models.DeliveryStatusSuccess,
 		DeliveryEvent: deliveryEvent,
-		Destination:   destination,
-		Timestamp:     deliveryEvent.Delivery.Time,
+		Destination: &alert.AlertDestination{
+			ID:         destination.ID,
+			TenantID:   destination.TenantID,
+			Type:       destination.Type,
+			Topics:     destination.Topics,
+			Config:     destination.Config,
+			CreatedAt:  destination.CreatedAt,
+			DisabledAt: destination.DisabledAt,
+		},
+		Timestamp: deliveryEvent.Delivery.Time,
 	}
 
 	if !attempt.Success && err != nil {
