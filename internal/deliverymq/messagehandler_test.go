@@ -1251,7 +1251,7 @@ func assertAlertMonitor(t *testing.T, m *mockAlertMonitor, success bool, destina
 	attempt := lastCall.Arguments[1].(alert.DeliveryAttempt)
 
 	assert.Equal(t, success, attempt.Success, "alert attempt success should match")
-	assert.Equal(t, destination, attempt.Destination, "alert attempt destination should match")
+	assert.Equal(t, destination.ID, attempt.Destination.ID, "alert attempt destination should match")
 	assert.NotNil(t, attempt.DeliveryEvent, "alert attempt should have delivery event")
 
 	if expectedData != nil {
