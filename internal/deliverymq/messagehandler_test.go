@@ -1123,7 +1123,7 @@ func TestMessageHandler_PublishSuccess(t *testing.T) {
 	// Setup alert monitor expectations
 	alertMonitor.On("HandleAttempt", mock.Anything, mock.MatchedBy(func(attempt alert.DeliveryAttempt) bool {
 		return attempt.Success && // Should be a successful attempt
-			attempt.Destination == &destination && // Should have correct destination
+			attempt.Destination.ID == destination.ID && // Should have correct destination
 			attempt.DeliveryEvent != nil && // Should have delivery event
 			attempt.Data == nil // No error data for success
 	})).Return(nil)

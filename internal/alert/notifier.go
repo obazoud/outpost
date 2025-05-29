@@ -42,12 +42,22 @@ func NotifierWithBearerToken(token string) NotifierOption {
 	}
 }
 
+type AlertDestination struct {
+	ID         string        `json:"id" redis:"id"`
+	TenantID   string        `json:"tenant_id" redis:"-"`
+	Type       string        `json:"type" redis:"type"`
+	Topics     models.Topics `json:"topics" redis:"-"`
+	Config     models.Config `json:"config" redis:"-"`
+	CreatedAt  time.Time     `json:"created_at" redis:"created_at"`
+	DisabledAt *time.Time    `json:"disabled_at" redis:"disabled_at"`
+}
+
 // ConsecutiveFailureData represents the data needed for a consecutive failure alert
 type ConsecutiveFailureData struct {
 	MaxConsecutiveFailures int                    `json:"max_consecutive_failures"`
 	ConsecutiveFailures    int                    `json:"consecutive_failures"`
 	WillDisable            bool                   `json:"will_disable"`
-	Destination            *models.Destination    `json:"destination"`
+	Destination            *AlertDestination      `json:"destination"`
 	Data                   map[string]interface{} `json:"data"`
 }
 
