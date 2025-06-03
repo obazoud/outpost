@@ -16,6 +16,10 @@ spec:
         app: outpost-api
         {{- include "outpost.labels" . | nindent 8 }}
     spec:
+      {{- with .Values.outpost.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "outpost.name" . }}-api
           image: {{ .Values.outpost.image.repository }}:{{ .Values.outpost.image.tag }}
@@ -64,6 +68,10 @@ spec:
         app: outpost-delivery
         {{- include "outpost.labels" . | nindent 8 }}
     spec:
+      {{- with .Values.outpost.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "outpost.name" . }}-delivery
           image: {{ .Values.outpost.image.repository }}:{{ .Values.outpost.image.tag }}
@@ -100,6 +108,10 @@ spec:
         app: outpost-log
         {{- include "outpost.labels" . | nindent 8 }}
     spec:
+      {{- with .Values.outpost.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "outpost.name" . }}-log
           image: {{ .Values.outpost.image.repository }}:{{ .Values.outpost.image.tag }}
