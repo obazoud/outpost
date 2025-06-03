@@ -208,6 +208,33 @@ func ParseQueueURL(queueURL string) (baseURL string, region string, err error) {
 func (d *AWSSQSDestination) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
 	return destregistry.DestinationTarget{
 		Target:    destination.Config["queue_url"],
-		TargetURL: destination.Config["queue_url"],
+		TargetURL: makeAWSSQSConsoleURL(destination.Config["queue_url"]),
 	}
+}
+
+func makeAWSSQSConsoleURL(queueURL string) string {
+	// Check if it's a valid AWS SQS URL
+	if !strings.Contains(queueURL, ".amazonaws.com/") || !strings.Contains(queueURL, "sqs.") {
+		return ""
+	}
+
+	// Parse the URL to extract region
+	u, err := url.Parse(queueURL)
+	if err != nil {
+		return ""
+	}
+
+	// Extract region from hostname (e.g., sqs.us-east-1.amazonaws.com)
+	parts := strings.Split(u.Host, ".")
+	if len(parts) < 3 || parts[0] != "sqs" {
+		return ""
+	}
+	region := parts[1]
+
+	// URL encode the queue URL for the fragment
+	encodedQueueURL := url.QueryEscape(queueURL)
+
+	// Construct console URL with region subdomain
+	return fmt.Sprintf("https://%s.console.aws.amazon.com/sqs/v3/home?region=%s#/queues/%s",
+		region, region, encodedQueueURL)
 }
