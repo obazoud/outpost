@@ -42,13 +42,31 @@ func NotifierWithBearerToken(token string) NotifierOption {
 	}
 }
 
+type AlertedEvent struct {
+	ID       string                 `json:"id"`
+	Topic    string                 `json:"topic"`    // event topic
+	Metadata map[string]string      `json:"metadata"` // event metadata
+	Data     map[string]interface{} `json:"data"`     // event payload
+}
+
+type AlertDestination struct {
+	ID         string        `json:"id" redis:"id"`
+	TenantID   string        `json:"tenant_id" redis:"-"`
+	Type       string        `json:"type" redis:"type"`
+	Topics     models.Topics `json:"topics" redis:"-"`
+	Config     models.Config `json:"config" redis:"-"`
+	CreatedAt  time.Time     `json:"created_at" redis:"created_at"`
+	DisabledAt *time.Time    `json:"disabled_at" redis:"disabled_at"`
+}
+
 // ConsecutiveFailureData represents the data needed for a consecutive failure alert
 type ConsecutiveFailureData struct {
+	Event                  AlertedEvent           `json:"event"`
 	MaxConsecutiveFailures int                    `json:"max_consecutive_failures"`
 	ConsecutiveFailures    int                    `json:"consecutive_failures"`
 	WillDisable            bool                   `json:"will_disable"`
-	Destination            *models.Destination    `json:"destination"`
-	Data                   map[string]interface{} `json:"data"`
+	Destination            *AlertDestination      `json:"destination"`
+	DeliveryResponse       map[string]interface{} `json:"delivery_response"`
 }
 
 // ConsecutiveFailureAlert represents an alert for consecutive failures
@@ -67,7 +85,7 @@ func (a ConsecutiveFailureAlert) MarshalJSON() ([]byte, error) {
 // NewConsecutiveFailureAlert creates a new consecutive failure alert with defaults
 func NewConsecutiveFailureAlert(data ConsecutiveFailureData) ConsecutiveFailureAlert {
 	return ConsecutiveFailureAlert{
-		Topic:     "alert.consecutive-failure",
+		Topic:     "alert.consecutive_failure",
 		Timestamp: time.Now(),
 		Data:      data,
 	}

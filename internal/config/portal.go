@@ -8,15 +8,15 @@ import (
 )
 
 type PortalConfig struct {
-	ProxyURL               string `yaml:"proxy_url" env:"PORTAL_PROXY_URL"`
-	RefererURL             string `yaml:"referer_url" env:"PORTAL_REFERER_URL"`
-	FaviconURL             string `yaml:"favicon_url" env:"PORTAL_FAVICON_URL"`
-	BrandColor             string `yaml:"brand_color" env:"PORTAL_BRAND_COLOR"`
-	Logo                   string `yaml:"logo" env:"PORTAL_LOGO"`
-	LogoDark               string `yaml:"logo_dark" env:"PORTAL_LOGO_DARK"`
-	OrgName                string `yaml:"org_name" env:"PORTAL_ORGANIZATION_NAME"`
-	ForceTheme             string `yaml:"force_theme" env:"PORTAL_FORCE_THEME"`
-	DisableOutpostBranding bool   `yaml:"disable_outpost_branding" env:"PORTAL_DISABLE_OUTPOST_BRANDING"`
+	ProxyURL               string `yaml:"proxy_url" env:"PORTAL_PROXY_URL" desc:"URL to proxy the Outpost Portal through. If set, Outpost serves the portal assets, and this URL is used as the base. Must be a valid URL." required:"N"`
+	RefererURL             string `yaml:"referer_url" env:"PORTAL_REFERER_URL" desc:"The expected Referer URL for accessing the portal. This is a security measure. Required if the Outpost Portal is enabled/used. Example: 'https://admin.example.com'." required:"C"`
+	FaviconURL             string `yaml:"favicon_url" env:"PORTAL_FAVICON_URL" desc:"URL for the favicon to be used in the Outpost Portal." required:"N"`
+	BrandColor             string `yaml:"brand_color" env:"PORTAL_BRAND_COLOR" desc:"Primary brand color (hex code) for theming the Outpost Portal (e.g., '#6122E7'). Also referred to as Accent Color in some contexts." required:"N"`
+	Logo                   string `yaml:"logo" env:"PORTAL_LOGO" desc:"URL for the light-mode logo to be displayed in the Outpost Portal." required:"N"`
+	LogoDark               string `yaml:"logo_dark" env:"PORTAL_LOGO_DARK" desc:"URL for the dark-mode logo to be displayed in the Outpost Portal." required:"N"`
+	OrgName                string `yaml:"org_name" env:"PORTAL_ORGANIZATION_NAME" desc:"Organization name displayed in the Outpost Portal." required:"N"`
+	ForceTheme             string `yaml:"force_theme" env:"PORTAL_FORCE_THEME" desc:"Force a specific theme for the Outpost Portal (e.g., 'light', 'dark')." required:"N"`
+	DisableOutpostBranding bool   `yaml:"disable_outpost_branding" env:"PORTAL_DISABLE_OUTPOST_BRANDING" desc:"If true, disables Outpost branding in the portal." required:"N"`
 }
 
 // GetPortalConfig returns the portal configuration with all necessary fields

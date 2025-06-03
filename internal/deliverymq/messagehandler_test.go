@@ -1123,9 +1123,9 @@ func TestMessageHandler_PublishSuccess(t *testing.T) {
 	// Setup alert monitor expectations
 	alertMonitor.On("HandleAttempt", mock.Anything, mock.MatchedBy(func(attempt alert.DeliveryAttempt) bool {
 		return attempt.Success && // Should be a successful attempt
-			attempt.Destination == &destination && // Should have correct destination
+			attempt.Destination.ID == destination.ID && // Should have correct destination
 			attempt.DeliveryEvent != nil && // Should have delivery event
-			attempt.Data == nil // No error data for success
+			attempt.DeliveryResponse == nil // No error data for success
 	})).Return(nil)
 
 	// Setup message handler
@@ -1251,12 +1251,12 @@ func assertAlertMonitor(t *testing.T, m *mockAlertMonitor, success bool, destina
 	attempt := lastCall.Arguments[1].(alert.DeliveryAttempt)
 
 	assert.Equal(t, success, attempt.Success, "alert attempt success should match")
-	assert.Equal(t, destination, attempt.Destination, "alert attempt destination should match")
+	assert.Equal(t, destination.ID, attempt.Destination.ID, "alert attempt destination should match")
 	assert.NotNil(t, attempt.DeliveryEvent, "alert attempt should have delivery event")
 
 	if expectedData != nil {
-		assert.Equal(t, expectedData, attempt.Data, "alert attempt data should match")
+		assert.Equal(t, expectedData, attempt.DeliveryResponse, "alert attempt data should match")
 	} else {
-		assert.Nil(t, attempt.Data, "alert attempt should not have data")
+		assert.Nil(t, attempt.DeliveryResponse, "alert attempt should not have data")
 	}
 }
