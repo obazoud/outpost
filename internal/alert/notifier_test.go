@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hookdeck/outpost/internal/alert"
-	"github.com/hookdeck/outpost/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -97,7 +96,7 @@ func TestAlertNotifier_Notify(t *testing.T) {
 			notifier := alert.NewHTTPAlertNotifier(ts.URL, tt.notifierOpts...)
 
 			// Create test alert
-			dest := &models.Destination{ID: "dest_123", TenantID: "tenant_123"}
+			dest := &alert.AlertDestination{ID: "dest_123", TenantID: "tenant_123"}
 			testAlert := alert.NewConsecutiveFailureAlert(alert.ConsecutiveFailureData{
 				MaxConsecutiveFailures: 10,
 				ConsecutiveFailures:    5,

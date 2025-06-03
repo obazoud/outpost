@@ -77,7 +77,7 @@ func WithLogger(logger *logging.Logger) AlertOption {
 type DeliveryAttempt struct {
 	Success       bool
 	DeliveryEvent *models.DeliveryEvent
-	Destination   *models.Destination
+	Destination   *AlertDestination
 	Timestamp     time.Time
 	Data          map[string]interface{}
 }

@@ -51,7 +51,7 @@ func TestAlertMonitor_ConsecutiveFailures_MaxFailures(t *testing.T) {
 		alert.WithAlertThresholds([]int{50, 66, 90, 100}), // use 66% to test rounding logic
 	)
 
-	dest := &models.Destination{ID: "dest_1", TenantID: "tenant_1"}
+	dest := &alert.AlertDestination{ID: "dest_1", TenantID: "tenant_1"}
 	event := &models.Event{Topic: "test.event"}
 	deliveryEvent := &models.DeliveryEvent{Event: *event}
 	attempt := alert.DeliveryAttempt{
@@ -118,7 +118,7 @@ func TestAlertMonitor_ConsecutiveFailures_Reset(t *testing.T) {
 		alert.WithAlertThresholds([]int{50, 66, 90, 100}),
 	)
 
-	dest := &models.Destination{ID: "dest_1", TenantID: "tenant_1"}
+	dest := &alert.AlertDestination{ID: "dest_1", TenantID: "tenant_1"}
 	event := &models.Event{Topic: "test.event"}
 	deliveryEvent := &models.DeliveryEvent{Event: *event}
 	failedAttempt := alert.DeliveryAttempt{

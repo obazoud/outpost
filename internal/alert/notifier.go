@@ -49,14 +49,24 @@ type AlertedEvent struct {
 	Data     map[string]interface{} `json:"data"`     // event payload
 }
 
+type AlertDestination struct {
+	ID         string        `json:"id" redis:"id"`
+	TenantID   string        `json:"tenant_id" redis:"-"`
+	Type       string        `json:"type" redis:"type"`
+	Topics     models.Topics `json:"topics" redis:"-"`
+	Config     models.Config `json:"config" redis:"-"`
+	CreatedAt  time.Time     `json:"created_at" redis:"created_at"`
+	DisabledAt *time.Time    `json:"disabled_at" redis:"disabled_at"`
+}
+
 // ConsecutiveFailureData represents the data needed for a consecutive failure alert
 type ConsecutiveFailureData struct {
 	Event                  AlertedEvent           `json:"event"`
 	MaxConsecutiveFailures int                    `json:"max_consecutive_failures"`
 	ConsecutiveFailures    int                    `json:"consecutive_failures"`
 	WillDisable            bool                   `json:"will_disable"`
-	Destination            *models.Destination    `json:"destination"`
-	Data                   map[string]interface{} `json:"data"` // alert data, i.e. error message, etc.
+	Destination            *AlertDestination      `json:"destination"`
+	Data                   map[string]interface{} `json:"data"`
 }
 
 // ConsecutiveFailureAlert represents an alert for consecutive failures
