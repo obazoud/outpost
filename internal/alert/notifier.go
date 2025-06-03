@@ -85,7 +85,7 @@ func (a ConsecutiveFailureAlert) MarshalJSON() ([]byte, error) {
 // NewConsecutiveFailureAlert creates a new consecutive failure alert with defaults
 func NewConsecutiveFailureAlert(data ConsecutiveFailureData) ConsecutiveFailureAlert {
 	return ConsecutiveFailureAlert{
-		Topic:     "alert.consecutive-failure",
+		Topic:     "alert.consecutive_failure",
 		Timestamp: time.Now(),
 		Data:      data,
 	}
