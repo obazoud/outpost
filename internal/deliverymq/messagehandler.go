@@ -302,14 +302,14 @@ func (h *messageHandler) handleAlertAttempt(ctx context.Context, deliveryEvent *
 		if errors.As(err, &delErr) {
 			var pubErr *destregistry.ErrDestinationPublishAttempt
 			if errors.As(delErr.err, &pubErr) {
-				attempt.Data = pubErr.Data
+				attempt.DeliveryResponse = pubErr.Data
 			} else {
-				attempt.Data = map[string]interface{}{
+				attempt.DeliveryResponse = map[string]interface{}{
 					"error": delErr.err.Error(),
 				}
 			}
 		} else {
-			attempt.Data = map[string]interface{}{
+			attempt.DeliveryResponse = map[string]interface{}{
 				"error":   "unexpected",
 				"message": err.Error(),
 			}

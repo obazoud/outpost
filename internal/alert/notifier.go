@@ -66,7 +66,7 @@ type ConsecutiveFailureData struct {
 	ConsecutiveFailures    int                    `json:"consecutive_failures"`
 	WillDisable            bool                   `json:"will_disable"`
 	Destination            *AlertDestination      `json:"destination"`
-	Data                   map[string]interface{} `json:"data"`
+	DeliveryResponse       map[string]interface{} `json:"delivery_response"`
 }
 
 // ConsecutiveFailureAlert represents an alert for consecutive failures

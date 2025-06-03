@@ -75,11 +75,11 @@ func WithLogger(logger *logging.Logger) AlertOption {
 
 // DeliveryAttempt represents a single delivery attempt
 type DeliveryAttempt struct {
-	Success       bool
-	DeliveryEvent *models.DeliveryEvent
-	Destination   *AlertDestination
-	Timestamp     time.Time
-	Data          map[string]interface{}
+	Success          bool
+	DeliveryEvent    *models.DeliveryEvent
+	Destination      *AlertDestination
+	Timestamp        time.Time
+	DeliveryResponse map[string]interface{}
 }
 
 type alertMonitor struct {
@@ -157,7 +157,7 @@ func (m *alertMonitor) HandleAttempt(ctx context.Context, attempt DeliveryAttemp
 		ConsecutiveFailures:    count,
 		WillDisable:            m.disabler != nil && level == 100,
 		Destination:            attempt.Destination,
-		Data:                   attempt.Data,
+		DeliveryResponse:       attempt.DeliveryResponse,
 	})
 
 	// If we've hit 100% and have a disabler configured, disable the destination

@@ -34,7 +34,7 @@ func TestAlertNotifier_Notify(t *testing.T) {
 				err := json.NewDecoder(r.Body).Decode(&body)
 				require.NoError(t, err)
 
-				assert.Equal(t, "alert.consecutive-failure", body["topic"])
+				assert.Equal(t, "alert.consecutive_failure", body["topic"])
 				data := body["data"].(map[string]interface{})
 				assert.Equal(t, float64(10), data["max_consecutive_failures"])
 				assert.Equal(t, float64(5), data["consecutive_failures"])
@@ -102,7 +102,7 @@ func TestAlertNotifier_Notify(t *testing.T) {
 				ConsecutiveFailures:    5,
 				WillDisable:            true,
 				Destination:            dest,
-				Data: map[string]interface{}{
+				DeliveryResponse: map[string]interface{}{
 					"status": "error",
 					"data":   map[string]any{"code": "ETIMEDOUT"},
 				},

@@ -1125,7 +1125,7 @@ func TestMessageHandler_PublishSuccess(t *testing.T) {
 		return attempt.Success && // Should be a successful attempt
 			attempt.Destination.ID == destination.ID && // Should have correct destination
 			attempt.DeliveryEvent != nil && // Should have delivery event
-			attempt.Data == nil // No error data for success
+			attempt.DeliveryResponse == nil // No error data for success
 	})).Return(nil)
 
 	// Setup message handler
@@ -1255,8 +1255,8 @@ func assertAlertMonitor(t *testing.T, m *mockAlertMonitor, success bool, destina
 	assert.NotNil(t, attempt.DeliveryEvent, "alert attempt should have delivery event")
 
 	if expectedData != nil {
-		assert.Equal(t, expectedData, attempt.Data, "alert attempt data should match")
+		assert.Equal(t, expectedData, attempt.DeliveryResponse, "alert attempt data should match")
 	} else {
-		assert.Nil(t, attempt.Data, "alert attempt should not have data")
+		assert.Nil(t, attempt.DeliveryResponse, "alert attempt should not have data")
 	}
 }
