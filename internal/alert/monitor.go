@@ -148,6 +148,7 @@ func (m *alertMonitor) HandleAttempt(ctx context.Context, attempt DeliveryAttemp
 
 	alert := NewConsecutiveFailureAlert(ConsecutiveFailureData{
 		Event: AlertedEvent{
+			ID:       attempt.DeliveryEvent.Event.ID,
 			Topic:    attempt.DeliveryEvent.Event.Topic,
 			Metadata: attempt.DeliveryEvent.Event.Metadata,
 			Data:     attempt.DeliveryEvent.Event.Data,
