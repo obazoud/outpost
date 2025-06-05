@@ -16,18 +16,22 @@ The `ALERT_CONSECUTIVE_FAILURE_COUNT` variable triggers an alert when the consec
 
 ```json
 {
-  "topic": "alert.consecutive-failure",
-  "timestamp": "2024-01-01T00:00:00Z",
+  "topic": "alert.consecutive_failure",
+  "timestamp": "2025-05-29T05:07:09.269672003Z",
   "data": {
-    "max_consecutive_failures": 20,
-    "consecutive_failures": 5,
-    "will_disable": true,
-    "destination": DestinationObject,
-    "response": {
-      "status": "500",
-      "data": {
-        "some": "value"
-      }
+    "event": {
+      "id": "evt_id",
+      "topic": "user.created",
+      "metadata": {},
+      "data": {}
+    },
+    "max_consecutive_failures": 3,
+    "consecutive_failures": 3,
+    "will_disable": false,
+    "destination": {},
+    "delivery_response": {
+      "body": "{\"success\":false,\"verified\":false,\"payload\":{\"user_id\":\"userid\"}}",
+      "status": 400
     }
   }
 }
