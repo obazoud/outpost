@@ -24,13 +24,13 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `API_KEY` | API key for authenticating requests to the Outpost API. | `nil` | Yes |
 | `API_PORT` | Port number for the API server to listen on. | `3333` | No |
 | `AUDIT_LOG` | Enables or disables audit logging for significant events. | `true` | No |
-| `AWS_SQS_ACCESS_KEY_ID` | AWS Access Key ID for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional (see description) |
+| `AWS_SQS_ACCESS_KEY_ID` | AWS Access Key ID for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional |
 | `AWS_SQS_DELIVERY_QUEUE` | Name of the SQS queue for delivery events. | `outpost-delivery` | No |
 | `AWS_SQS_ENDPOINT` | Custom AWS SQS endpoint URL. Optional, typically used for local testing (e.g., LocalStack). | `nil` | No |
 | `AWS_SQS_LOG_QUEUE` | Name of the SQS queue for log events. | `outpost-log` | No |
-| `AWS_SQS_REGION` | AWS Region for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional (see description) |
-| `AWS_SQS_SECRET_ACCESS_KEY` | AWS Secret Access Key for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional (see description) |
-| `CLICKHOUSE_ADDR` | Address (host:port) of the ClickHouse server. Example: 'localhost:9000'. Required if ClickHouse is used for log storage. | `nil` | Conditional (see description) |
+| `AWS_SQS_REGION` | AWS Region for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional |
+| `AWS_SQS_SECRET_ACCESS_KEY` | AWS Secret Access Key for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional |
+| `CLICKHOUSE_ADDR` | Address (host:port) of the ClickHouse server. Example: 'localhost:9000'. Required if ClickHouse is used for log storage. | `nil` | Conditional |
 | `CLICKHOUSE_DATABASE` | Database name in ClickHouse to use. | `outpost` | No |
 | `CLICKHOUSE_PASSWORD` | Password for ClickHouse authentication. | `nil` | No |
 | `CLICKHOUSE_USERNAME` | Username for ClickHouse authentication. | `nil` | No |
@@ -53,8 +53,8 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `GCP_PUBSUB_DELIVERY_TOPIC` | Name of the GCP Pub/Sub topic for delivery events. | `outpost-delivery` | No |
 | `GCP_PUBSUB_LOG_SUBSCRIPTION` | Name of the GCP Pub/Sub subscription for log events. | `outpost-log-sub` | No |
 | `GCP_PUBSUB_LOG_TOPIC` | Name of the GCP Pub/Sub topic for log events. | `outpost-log` | No |
-| `GCP_PUBSUB_PROJECT` | GCP Project ID for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider. | `nil` | Conditional (see description) |
-| `GCP_PUBSUB_SERVICE_ACCOUNT_CREDENTIALS` | JSON string or path to a file containing GCP service account credentials for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider and not running in an environment with implicit credentials (e.g., GCE, GKE). | `nil` | Conditional (see description) |
+| `GCP_PUBSUB_PROJECT` | GCP Project ID for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider. | `nil` | Conditional |
+| `GCP_PUBSUB_SERVICE_ACCOUNT_CREDENTIALS` | JSON string or path to a file containing GCP service account credentials for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider and not running in an environment with implicit credentials (e.g., GCE, GKE). | `nil` | Conditional |
 | `GIN_MODE` | Sets the Gin framework mode (e.g., 'debug', 'release', 'test'). See Gin documentation for details. | `release` | No |
 | `HTTP_USER_AGENT` | Custom HTTP User-Agent string for outgoing webhook deliveries. If unset, a default (OrganizationName/Version) is used. | `nil` | No |
 | `LOG_BATCH_SIZE` | Maximum number of log entries to batch together before writing to storage. | `1000` | No |
@@ -64,8 +64,8 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `MAX_DESTINATIONS_PER_TENANT` | Maximum number of destinations allowed per tenant/organization. | `20` | No |
 | `MAX_RETRY_LIMIT` | Maximum number of retry attempts for a single event delivery before giving up. | `10` | No |
 | `ORGANIZATION_NAME` | Name of the organization, used for display purposes and potentially in user agent strings. | `nil` | No |
-| `OTEL_EXPORTER` | Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT. | `nil` | Conditional (see description) |
-| `OTEL_PROTOCOL` | Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL. | `nil` | Conditional (see description) |
+| `OTEL_EXPORTER` | Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT. | `nil` | Conditional |
+| `OTEL_PROTOCOL` | Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL. | `nil` | Conditional |
 | `OTEL_SERVICE_NAME` | The service name reported to OpenTelemetry. If set, OpenTelemetry will be enabled. | `nil` | No |
 | `PORTAL_BRAND_COLOR` | Primary brand color (hex code) for theming the Outpost Portal (e.g., '#6122E7'). Also referred to as Accent Color in some contexts. | `nil` | No |
 | `PORTAL_DISABLE_OUTPOST_BRANDING` | If true, disables Outpost branding in the portal. | `false` | No |
@@ -75,25 +75,25 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `PORTAL_LOGO_DARK` | URL for the dark-mode logo to be displayed in the Outpost Portal. | `nil` | No |
 | `PORTAL_ORGANIZATION_NAME` | Organization name displayed in the Outpost Portal. | `nil` | No |
 | `PORTAL_PROXY_URL` | URL to proxy the Outpost Portal through. If set, Outpost serves the portal assets, and this URL is used as the base. Must be a valid URL. | `nil` | No |
-| `PORTAL_REFERER_URL` | The expected Referer URL for accessing the portal. This is a security measure. Required if the Outpost Portal is enabled/used. Example: 'https://admin.example.com'. | `nil` | Conditional (see description) |
-| `POSTGRES_URL` | Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed. | `nil` | Conditional (see description) |
-| `PUBLISH_AWS_SQS_ACCESS_KEY_ID` | AWS Access Key ID for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional (see description) |
+| `PORTAL_REFERER_URL` | The expected Referer URL for accessing the portal. This is a security measure. Required if the Outpost Portal is enabled/used. Example: 'https://admin.example.com'. | `nil` | Conditional |
+| `POSTGRES_URL` | Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed. | `nil` | Conditional |
+| `PUBLISH_AWS_SQS_ACCESS_KEY_ID` | AWS Access Key ID for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
 | `PUBLISH_AWS_SQS_ENDPOINT` | Custom AWS SQS endpoint URL for the publish queue. Optional. | `nil` | No |
-| `PUBLISH_AWS_SQS_QUEUE` | Name of the SQS queue for publishing events. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_AWS_SQS_REGION` | AWS Region for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_AWS_SQS_SECRET_ACCESS_KEY` | AWS Secret Access Key for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_GCP_PUBSUB_PROJECT` | GCP Project ID for the Pub/Sub publish topic. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_GCP_PUBSUB_SERVICE_ACCOUNT_CREDENTIALS` | JSON string or path to a file containing GCP service account credentials for the Pub/Sub publish topic. Required if GCP Pub/Sub is chosen and not using implicit credentials. | `nil` | Conditional (see description) |
-| `PUBLISH_GCP_PUBSUB_SUBSCRIPTION` | Name of the GCP Pub/Sub subscription to read published events from. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_GCP_PUBSUB_TOPIC` | Name of the GCP Pub/Sub topic for publishing events. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional (see description) |
+| `PUBLISH_AWS_SQS_QUEUE` | Name of the SQS queue for publishing events. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_AWS_SQS_REGION` | AWS Region for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_AWS_SQS_SECRET_ACCESS_KEY` | AWS Secret Access Key for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_GCP_PUBSUB_PROJECT` | GCP Project ID for the Pub/Sub publish topic. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_GCP_PUBSUB_SERVICE_ACCOUNT_CREDENTIALS` | JSON string or path to a file containing GCP service account credentials for the Pub/Sub publish topic. Required if GCP Pub/Sub is chosen and not using implicit credentials. | `nil` | Conditional |
+| `PUBLISH_GCP_PUBSUB_SUBSCRIPTION` | Name of the GCP Pub/Sub subscription to read published events from. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_GCP_PUBSUB_TOPIC` | Name of the GCP Pub/Sub topic for publishing events. Required if GCP Pub/Sub is the chosen publish MQ provider. | `nil` | Conditional |
 | `PUBLISH_MAX_CONCURRENCY` | Maximum number of messages to process concurrently from the publish queue. | `1` | No |
 | `PUBLISH_RABBITMQ_EXCHANGE` | Name of the RabbitMQ exchange for the publish queue. | `nil` | No |
-| `PUBLISH_RABBITMQ_QUEUE` | Name of the RabbitMQ queue for publishing events. Required if RabbitMQ is the chosen publish MQ provider. | `nil` | Conditional (see description) |
-| `PUBLISH_RABBITMQ_SERVER_URL` | RabbitMQ server connection URL for the publish queue. Required if RabbitMQ is the chosen publish MQ provider. | `nil` | Conditional (see description) |
+| `PUBLISH_RABBITMQ_QUEUE` | Name of the RabbitMQ queue for publishing events. Required if RabbitMQ is the chosen publish MQ provider. | `nil` | Conditional |
+| `PUBLISH_RABBITMQ_SERVER_URL` | RabbitMQ server connection URL for the publish queue. Required if RabbitMQ is the chosen publish MQ provider. | `nil` | Conditional |
 | `RABBITMQ_DELIVERY_QUEUE` | Name of the RabbitMQ queue for delivery events. | `outpost-delivery` | No |
 | `RABBITMQ_EXCHANGE` | Name of the RabbitMQ exchange to use. | `outpost` | No |
 | `RABBITMQ_LOG_QUEUE` | Name of the RabbitMQ queue for log events. | `outpost-log` | No |
-| `RABBITMQ_SERVER_URL` | RabbitMQ server connection URL (e.g., 'amqp://user:pass@host:port/vhost'). Required if RabbitMQ is the chosen MQ provider. | `nil` | Conditional (see description) |
+| `RABBITMQ_SERVER_URL` | RabbitMQ server connection URL (e.g., 'amqp://user:pass@host:port/vhost'). Required if RabbitMQ is the chosen MQ provider. | `nil` | Conditional |
 | `REDIS_DATABASE` | Redis database number to select after connecting. | `0` | Yes |
 | `REDIS_HOST` | Hostname or IP address of the Redis server. | `127.0.0.1` | Yes |
 | `REDIS_PASSWORD` | Password for Redis authentication, if required by the server. | `nil` | Yes |
@@ -104,7 +104,7 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `TELEMETRY_BATCH_SIZE` | Maximum number of telemetry events to batch before sending. | `100` | No |
 | `TELEMETRY_HOOKDECK_SOURCE_URL` | The Hookdeck Source URL to send anonymous usage telemetry data to. Set to empty to disable sending to Hookdeck. | `https://hkdk.events/yhk665ljz3rn6l` | No |
 | `TELEMETRY_SENTRY_DSN` | Sentry DSN for error reporting. If provided and telemetry is not disabled, Sentry integration will be enabled. | `https://examplePublicKey@o0.ingest.sentry.io/0` | No |
-| `TOPICS` | Comma-separated list of topics that this Outpost instance should subscribe to for event processing. | `[]` | No |
+| `TOPICS` | Comma-separated list of topics that this Outpost instance should subscribe to for event processing. | `nil` | No |
 {/* END AUTOGENERATED CONFIG ENV VARS */}
 
 ## YAML
@@ -115,37 +115,48 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 # This example shows all available keys with their default values where applicable.
 
 # A 16, 24, or 32 byte secret key used for AES encryption of sensitive data at rest.
+# Required: Y
 aes_encryption_secret: ""
 
-alert:
-  # If true, automatically disables a destination after 'consecutive_failure_count' is reached.
-  auto_disable_destination: true
-  # URL to which Outpost will send a POST request when an alert is triggered (e.g., for destination failures).
-  callback_url: ""
-  # Number of consecutive delivery failures for a destination before triggering an alert and potentially disabling it.
-  consecutive_failure_count: 20
-
 # Secret key for signing and verifying JWTs if JWT authentication is used for the API.
+# Required: Y
 api_jwt_secret: ""
 
 # API key for authenticating requests to the Outpost API.
+# Required: Y
 api_key: ""
 
 # Port number for the API server to listen on.
 api_port: 3333
+
+alert:
+  # If true, automatically disables a destination after 'consecutive_failure_count' is reached.
+  auto_disable_destination: true
+
+  # URL to which Outpost will send a POST request when an alert is triggered (e.g., for destination failures).
+  callback_url: ""
+
+  # Number of consecutive delivery failures for a destination before triggering an alert and potentially disabling it.
+  consecutive_failure_count: 20
+
 
 # Enables or disables audit logging for significant events.
 audit_log: true
 
 clickhouse:
   # Address (host:port) of the ClickHouse server. Example: 'localhost:9000'. Required if ClickHouse is used for log storage.
+  # Required: C
   addr: ""
+
   # Database name in ClickHouse to use.
   database: "outpost"
+
   # Password for ClickHouse authentication.
   password: ""
+
   # Username for ClickHouse authentication.
   username: ""
+
 
 # Maximum number of delivery attempts to process concurrently.
 delivery_max_concurrency: 1
@@ -161,28 +172,41 @@ destinations:
   aws_kinesis:
     # If true, includes Outpost metadata (event ID, topic, etc.) within the Kinesis record payload.
     metadata_in_payload: true
+
+
   # Path to the directory containing custom destination type definitions. This can be overridden by the root-level 'destination_metadata_path' if also set.
   metadata_path: "config/outpost/destinations"
+
   # Configuration specific to webhook destinations.
   webhook:
     # If true, disables adding the default 'X-Outpost-Event-Id' header to webhook requests.
     disable_default_event_id_header: false
+
     # If true, disables adding the default 'X-Outpost-Signature' header to webhook requests.
     disable_default_signature_header: false
+
     # If true, disables adding the default 'X-Outpost-Timestamp' header to webhook requests.
     disable_default_timestamp_header: false
+
     # If true, disables adding the default 'X-Outpost-Topic' header to webhook requests.
     disable_default_topic_header: false
+
     # Prefix for custom headers added to webhook requests (e.g., 'X-MyOrg-').
     header_prefix: "x-outpost-"
+
     # Algorithm used for signing webhook requests (e.g., 'hmac-sha256').
     signature_algorithm: "hmac-sha256"
+
     # Go template for constructing the content to be signed for webhook requests.
     signature_content_template: "{{.Timestamp.Unix}}.{{.Body}}"
+
     # Encoding for the signature (e.g., 'hex', 'base64').
     signature_encoding: "hex"
+
     # Go template for the value of the signature header.
     signature_header_template: "t={{.Timestamp.Unix}},v0={{.Signatures | join \",\"}}"
+
+
 
 # Global flag to disable all telemetry (anonymous usage statistics to Hookdeck and error reporting to Sentry). If true, overrides 'telemetry.disabled'.
 disable_telemetry: false
@@ -205,143 +229,274 @@ log_level: "info"
 # Maximum number of log writing operations to process concurrently.
 log_max_concurrency: 1
 
-# Maximum number of destinations allowed per tenant/organization.
-max_destinations_per_tenant: 20
-
 mqs:
-  # Choose one of the following MQ providers:
   # Configuration for using AWS SQS as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
   aws_sqs:
     # AWS Access Key ID for SQS. Required if AWS SQS is the chosen MQ provider.
+    # Required: C
     access_key_id: ""
+
     # Name of the SQS queue for delivery events.
     delivery_queue: "outpost-delivery"
+
     # Custom AWS SQS endpoint URL. Optional, typically used for local testing (e.g., LocalStack).
     endpoint: ""
+
     # Name of the SQS queue for log events.
     log_queue: "outpost-log"
+
     # AWS Region for SQS. Required if AWS SQS is the chosen MQ provider.
+    # Required: C
     region: ""
+
     # AWS Secret Access Key for SQS. Required if AWS SQS is the chosen MQ provider.
+    # Required: C
     secret_access_key: ""
+
+
   # Configuration for using GCP Pub/Sub as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
   gcp_pubsub:
     # Name of the GCP Pub/Sub subscription for delivery events.
     delivery_subscription: "outpost-delivery-sub"
+
     # Name of the GCP Pub/Sub topic for delivery events.
     delivery_topic: "outpost-delivery"
+
     # Name of the GCP Pub/Sub subscription for log events.
     log_subscription: "outpost-log-sub"
+
     # Name of the GCP Pub/Sub topic for log events.
     log_topic: "outpost-log"
+
     # GCP Project ID for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider.
+    # Required: C
     project: ""
+
     # JSON string or path to a file containing GCP service account credentials for Pub/Sub. Required if GCP Pub/Sub is the chosen MQ provider and not running in an environment with implicit credentials (e.g., GCE, GKE).
+    # Required: C
     service_account_credentials: ""
+
+
   # Configuration for using RabbitMQ as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
   rabbitmq:
     # Name of the RabbitMQ queue for delivery events.
     delivery_queue: "outpost-delivery"
+
     # Name of the RabbitMQ exchange to use.
     exchange: "outpost"
+
     # Name of the RabbitMQ queue for log events.
     log_queue: "outpost-log"
+
     # RabbitMQ server connection URL (e.g., 'amqp://user:pass@host:port/vhost'). Required if RabbitMQ is the chosen MQ provider.
+    # Required: C
     server_url: ""
 
-# Name of the organization, used for display purposes and potentially in user agent strings.
-organization_name: ""
+
+
+# Maximum number of destinations allowed per tenant/organization.
+max_destinations_per_tenant: 20
 
 otel:
   # OpenTelemetry configuration specific to logs.
   logs:
     # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
     exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
     # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
     protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+
   # OpenTelemetry configuration specific to metrics.
   metrics:
     # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
     exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
     # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
     protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+
   # The service name reported to OpenTelemetry. If set, OpenTelemetry will be enabled.
   service_name: ""
+
   # OpenTelemetry configuration specific to traces.
   traces:
     # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
     exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
+    # Specifies the OTLP exporter to use for this telemetry type (e.g., 'otlp'). Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_ENDPOINT.
+    # Required: C
+    exporter: ""
+
     # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
     protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+    # Specifies the OTLP protocol ('grpc' or 'http') for this telemetry type. Typically used with environment variables like OTEL_EXPORTER_OTLP_TRACES_PROTOCOL.
+    # Required: C
+    protocol: ""
+
+
+
+# Name of the organization, used for display purposes and potentially in user agent strings.
+organization_name: ""
 
 portal:
   # Primary brand color (hex code) for theming the Outpost Portal (e.g., '#6122E7'). Also referred to as Accent Color in some contexts.
   brand_color: ""
+
   # If true, disables Outpost branding in the portal.
   disable_outpost_branding: false
+
   # URL for the favicon to be used in the Outpost Portal.
   favicon_url: ""
+
   # Force a specific theme for the Outpost Portal (e.g., 'light', 'dark').
   force_theme: ""
+
   # URL for the light-mode logo to be displayed in the Outpost Portal.
   logo: ""
+
   # URL for the dark-mode logo to be displayed in the Outpost Portal.
   logo_dark: ""
+
   # Organization name displayed in the Outpost Portal.
   org_name: ""
+
   # URL to proxy the Outpost Portal through. If set, Outpost serves the portal assets, and this URL is used as the base. Must be a valid URL.
   proxy_url: ""
+
   # The expected Referer URL for accessing the portal. This is a security measure. Required if the Outpost Portal is enabled/used. Example: 'https://admin.example.com'.
+  # Required: C
   referer_url: ""
 
+
 # Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed.
+# Required: C
 postgres: ""
 
-# Maximum number of messages to process concurrently from the publish queue.
-publish_max_concurrency: 1
-
 publishmq:
-  # Choose one of the following MQ providers:
   # Configuration for using AWS SQS as the publish message queue. Only one publish MQ provider should be configured.
   aws_sqs:
     # AWS Access Key ID for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider.
+    # Required: C
     access_key_id: ""
+
     # Custom AWS SQS endpoint URL for the publish queue. Optional.
     endpoint: ""
+
     # Name of the SQS queue for publishing events. Required if AWS SQS is the chosen publish MQ provider.
+    # Required: C
     queue: ""
+
     # AWS Region for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider.
+    # Required: C
     region: ""
+
     # AWS Secret Access Key for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider.
+    # Required: C
     secret_access_key: ""
+
+
   # Configuration for using GCP Pub/Sub as the publish message queue. Only one publish MQ provider should be configured.
   gcp_pubsub:
     # GCP Project ID for the Pub/Sub publish topic. Required if GCP Pub/Sub is the chosen publish MQ provider.
+    # Required: C
     project: ""
+
     # JSON string or path to a file containing GCP service account credentials for the Pub/Sub publish topic. Required if GCP Pub/Sub is chosen and not using implicit credentials.
+    # Required: C
     service_account_credentials: ""
+
     # Name of the GCP Pub/Sub subscription to read published events from. Required if GCP Pub/Sub is the chosen publish MQ provider.
+    # Required: C
     subscription: ""
+
     # Name of the GCP Pub/Sub topic for publishing events. Required if GCP Pub/Sub is the chosen publish MQ provider.
+    # Required: C
     topic: ""
+
+
   # Configuration for using RabbitMQ as the publish message queue. Only one publish MQ provider should be configured.
   rabbitmq:
     # Name of the RabbitMQ exchange for the publish queue.
     exchange: ""
+
     # Name of the RabbitMQ queue for publishing events. Required if RabbitMQ is the chosen publish MQ provider.
+    # Required: C
     queue: ""
+
     # RabbitMQ server connection URL for the publish queue. Required if RabbitMQ is the chosen publish MQ provider.
+    # Required: C
     server_url: ""
+
+
+
+# Maximum number of messages to process concurrently from the publish queue.
+publish_max_concurrency: 1
 
 redis:
   # Redis database number to select after connecting.
+  # Required: Y
   database: 0
+
   # Hostname or IP address of the Redis server.
+  # Required: Y
   host: "127.0.0.1"
+
   # Password for Redis authentication, if required by the server.
+  # Required: Y
   password: ""
+
   # Port number for the Redis server.
+  # Required: Y
   port: 6379
+
 
 # Interval in seconds between delivery retry attempts for failed webhooks.
 retry_interval_seconds: 30
@@ -355,18 +510,23 @@ service: ""
 telemetry:
   # Maximum time in seconds to wait before sending a batch of telemetry events if batch size is not reached.
   batch_interval: 5
+
   # Maximum number of telemetry events to batch before sending.
   batch_size: 100
+
   # Disables telemetry within the 'telemetry' block (Hookdeck usage stats and Sentry). Can be overridden by the global 'disable_telemetry' flag at the root of the configuration.
   disabled: false
+
   # The Hookdeck Source URL to send anonymous usage telemetry data to. Set to empty to disable sending to Hookdeck.
   hookdeck_source_url: "https://hkdk.events/yhk665ljz3rn6l"
+
   # Sentry DSN for error reporting. If provided and telemetry is not disabled, Sentry integration will be enabled.
   sentry_dsn: "https://examplePublicKey@o0.ingest.sentry.io/0"
 
+
 # Comma-separated list of topics that this Outpost instance should subscribe to for event processing.
-topics:
-  [] # Empty list
+topics: [item1, item2]
 
 ```
+
 {/* END AUTOGENERATED CONFIG YAML */}
