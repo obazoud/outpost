@@ -6,13 +6,6 @@ type QueueConfig struct {
 	GCPPubSub       *GCPPubSubConfig
 	RabbitMQ        *RabbitMQConfig
 	InMemory        *InMemoryConfig // mainly for testing purposes
-
-	Policy Policy
-}
-
-type Policy struct {
-	VisibilityTimeout int // seconds
-	RetryLimit        int
 }
 
 type AzureServiceBusConfig struct {

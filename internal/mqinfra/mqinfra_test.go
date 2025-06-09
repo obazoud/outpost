@@ -190,9 +190,6 @@ func TestIntegrationMQInfra_RabbitMQ(t *testing.T) {
 					Exchange:  exchange,
 					Queue:     queue,
 				},
-				Policy: mqs.Policy{
-					RetryLimit: retryLimit,
-				},
 			},
 		},
 		&Config{
@@ -237,10 +234,6 @@ func TestIntegrationMQInfra_AWSSQS(t *testing.T) {
 					ServiceAccountCredentials: "test:test:",
 					Region:                    "us-east-1",
 					Topic:                     q,
-				},
-				Policy: mqs.Policy{
-					RetryLimit:        retryLimit,
-					VisibilityTimeout: 1,
 				},
 			},
 		},
@@ -292,10 +285,6 @@ func TestIntegrationMQInfra_GCPPubSub(t *testing.T) {
 					TopicID:                   topicID,
 					SubscriptionID:            subscriptionID,
 					ServiceAccountCredentials: "",
-				},
-				Policy: mqs.Policy{
-					RetryLimit:        retryLimit,
-					VisibilityTimeout: 10,
 				},
 			},
 		},
