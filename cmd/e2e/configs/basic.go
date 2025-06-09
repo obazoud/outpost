@@ -75,8 +75,8 @@ func Basic(t *testing.T, opts BasicOpts) config.Config {
 	// Setup cleanup
 	t.Cleanup(func() {
 		if err := infra.Teardown(context.Background(), infra.Config{
-			DeliveryMQ: c.MQs.GetDeliveryQueueConfig(),
-			LogMQ:      c.MQs.GetLogQueueConfig(),
+			DeliveryMQ: c.MQs.ToInfraConfig("deliverymq"),
+			LogMQ:      c.MQs.ToInfraConfig("logmq"),
 		}); err != nil {
 			log.Println("Teardown failed:", err)
 		}

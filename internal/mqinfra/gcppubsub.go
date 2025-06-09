@@ -7,14 +7,13 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/hookdeck/outpost/internal/mqs"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type infraGCPPubSub struct {
-	cfg *mqs.QueueConfig
+	cfg *MQInfraConfig
 }
 
 func (infra *infraGCPPubSub) Declare(ctx context.Context) error {

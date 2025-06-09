@@ -17,20 +17,25 @@ import (
 
 const retryLimit = 5
 
-func testMQInfra(t *testing.T, mqConfig mqs.QueueConfig, dlqConfig mqs.QueueConfig) {
+type Config struct {
+	infra mqinfra.MQInfraConfig
+	mq    mqs.QueueConfig
+}
+
+func testMQInfra(t *testing.T, mqConfig *Config, dlqConfig *Config) {
 	t.Parallel()
 	t.Cleanup(testinfra.Start(t))
 
 	t.Run("should create queue", func(t *testing.T) {
 		ctx := context.Background()
-		infra := mqinfra.New(&mqConfig)
+		infra := mqinfra.New(&mqConfig.infra)
 		require.NoError(t, infra.Declare(ctx))
 
 		t.Cleanup(func() {
 			require.NoError(t, infra.TearDown(ctx))
 		})
 
-		mq := mqs.NewQueue(&mqConfig)
+		mq := mqs.NewQueue(&mqConfig.mq)
 		cleanup, err := mq.Init(ctx)
 		require.NoError(t, err)
 		t.Cleanup(cleanup)
@@ -76,14 +81,14 @@ func testMQInfra(t *testing.T, mqConfig mqs.QueueConfig, dlqConfig mqs.QueueConf
 	// - Afterwards, reading the DLQ should return the message.
 	t.Run("should create dlq queue", func(t *testing.T) {
 		ctx := context.Background()
-		infra := mqinfra.New(&mqConfig)
+		infra := mqinfra.New(&mqConfig.infra)
 		require.NoError(t, infra.Declare(ctx))
 
 		t.Cleanup(func() {
 			require.NoError(t, infra.TearDown(ctx))
 		})
 
-		mq := mqs.NewQueue(&mqConfig)
+		mq := mqs.NewQueue(&mqConfig.mq)
 		cleanup, err := mq.Init(ctx)
 		require.NoError(t, err)
 		t.Cleanup(cleanup)
@@ -126,7 +131,7 @@ func testMQInfra(t *testing.T, mqConfig mqs.QueueConfig, dlqConfig mqs.QueueConf
 		}
 		require.Equal(t, retryLimit+1, msgCount)
 
-		dlmq := mqs.NewQueue(&dlqConfig)
+		dlmq := mqs.NewQueue(&dlqConfig.mq)
 		dlsubscription, err := dlmq.Subscribe(ctx)
 		require.NoError(t, err)
 		dlmsgchan := make(chan *testutil.MockMsg)
@@ -168,21 +173,42 @@ func TestIntegrationMQInfra_RabbitMQ(t *testing.T) {
 	queue := uuid.New().String()
 
 	testMQInfra(t,
-		mqs.QueueConfig{
-			RabbitMQ: &mqs.RabbitMQConfig{
-				ServerURL: testinfra.EnsureRabbitMQ(),
-				Exchange:  exchange,
-				Queue:     queue,
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				RabbitMQ: &mqinfra.RabbitMQInfraConfig{
+					ServerURL: testinfra.EnsureRabbitMQ(),
+					Exchange:  exchange,
+					Queue:     queue,
+				},
+				Policy: mqinfra.Policy{
+					RetryLimit: retryLimit,
+				},
 			},
-			Policy: mqs.Policy{
-				RetryLimit: retryLimit,
+			mq: mqs.QueueConfig{
+				RabbitMQ: &mqs.RabbitMQConfig{
+					ServerURL: testinfra.EnsureRabbitMQ(),
+					Exchange:  exchange,
+					Queue:     queue,
+				},
+				Policy: mqs.Policy{
+					RetryLimit: retryLimit,
+				},
 			},
 		},
-		mqs.QueueConfig{
-			RabbitMQ: &mqs.RabbitMQConfig{
-				ServerURL: testinfra.EnsureRabbitMQ(),
-				Exchange:  exchange,
-				Queue:     queue + ".dlq",
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				RabbitMQ: &mqinfra.RabbitMQInfraConfig{
+					ServerURL: testinfra.EnsureRabbitMQ(),
+					Exchange:  exchange,
+					Queue:     queue + ".dlq",
+				},
+			},
+			mq: mqs.QueueConfig{
+				RabbitMQ: &mqs.RabbitMQConfig{
+					ServerURL: testinfra.EnsureRabbitMQ(),
+					Exchange:  exchange,
+					Queue:     queue + ".dlq",
+				},
 			},
 		},
 	)
@@ -192,24 +218,48 @@ func TestIntegrationMQInfra_AWSSQS(t *testing.T) {
 	q := uuid.New().String()
 
 	testMQInfra(t,
-		mqs.QueueConfig{
-			AWSSQS: &mqs.AWSSQSConfig{
-				Endpoint:                  testinfra.EnsureLocalStack(),
-				ServiceAccountCredentials: "test:test:",
-				Region:                    "us-east-1",
-				Topic:                     q,
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				AWSSQS: &mqinfra.AWSSQSInfraConfig{
+					Endpoint:                  testinfra.EnsureLocalStack(),
+					ServiceAccountCredentials: "test:test:",
+					Region:                    "us-east-1",
+					Topic:                     q,
+				},
+				Policy: mqinfra.Policy{
+					RetryLimit:        retryLimit,
+					VisibilityTimeout: 1,
+				},
 			},
-			Policy: mqs.Policy{
-				RetryLimit:        retryLimit,
-				VisibilityTimeout: 1,
+			mq: mqs.QueueConfig{
+				AWSSQS: &mqs.AWSSQSConfig{
+					Endpoint:                  testinfra.EnsureLocalStack(),
+					ServiceAccountCredentials: "test:test:",
+					Region:                    "us-east-1",
+					Topic:                     q,
+				},
+				Policy: mqs.Policy{
+					RetryLimit:        retryLimit,
+					VisibilityTimeout: 1,
+				},
 			},
 		},
-		mqs.QueueConfig{
-			AWSSQS: &mqs.AWSSQSConfig{
-				Endpoint:                  testinfra.EnsureLocalStack(),
-				ServiceAccountCredentials: "test:test:",
-				Region:                    "us-east-1",
-				Topic:                     q + "-dlq",
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				AWSSQS: &mqinfra.AWSSQSInfraConfig{
+					Endpoint:                  testinfra.EnsureLocalStack(),
+					ServiceAccountCredentials: "test:test:",
+					Region:                    "us-east-1",
+					Topic:                     q + "-dlq",
+				},
+			},
+			mq: mqs.QueueConfig{
+				AWSSQS: &mqs.AWSSQSConfig{
+					Endpoint:                  testinfra.EnsureLocalStack(),
+					ServiceAccountCredentials: "test:test:",
+					Region:                    "us-east-1",
+					Topic:                     q + "-dlq",
+				},
 			},
 		},
 	)
@@ -223,24 +273,48 @@ func TestIntegrationMQInfra_GCPPubSub(t *testing.T) {
 	subscriptionID := topicID + "-subscription"
 
 	testMQInfra(t,
-		mqs.QueueConfig{
-			GCPPubSub: &mqs.GCPPubSubConfig{
-				ProjectID:                 "test-project",
-				TopicID:                   topicID,
-				SubscriptionID:            subscriptionID,
-				ServiceAccountCredentials: "",
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				GCPPubSub: &mqinfra.GCPPubSubInfraConfig{
+					ProjectID:                 "test-project",
+					TopicID:                   topicID,
+					SubscriptionID:            subscriptionID,
+					ServiceAccountCredentials: "",
+				},
+				Policy: mqinfra.Policy{
+					RetryLimit:        retryLimit,
+					VisibilityTimeout: 10,
+				},
 			},
-			Policy: mqs.Policy{
-				RetryLimit:        retryLimit,
-				VisibilityTimeout: 10,
+			mq: mqs.QueueConfig{
+				GCPPubSub: &mqs.GCPPubSubConfig{
+					ProjectID:                 "test-project",
+					TopicID:                   topicID,
+					SubscriptionID:            subscriptionID,
+					ServiceAccountCredentials: "",
+				},
+				Policy: mqs.Policy{
+					RetryLimit:        retryLimit,
+					VisibilityTimeout: 10,
+				},
 			},
 		},
-		mqs.QueueConfig{
-			GCPPubSub: &mqs.GCPPubSubConfig{
-				ProjectID:                 "test-project",
-				TopicID:                   topicID + "-dlq",
-				SubscriptionID:            topicID + "-dlq-sub",
-				ServiceAccountCredentials: "",
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				GCPPubSub: &mqinfra.GCPPubSubInfraConfig{
+					ProjectID:                 "test-project",
+					TopicID:                   topicID + "-dlq",
+					SubscriptionID:            topicID + "-dlq-sub",
+					ServiceAccountCredentials: "",
+				},
+			},
+			mq: mqs.QueueConfig{
+				GCPPubSub: &mqs.GCPPubSubConfig{
+					ProjectID:                 "test-project",
+					TopicID:                   topicID + "-dlq",
+					SubscriptionID:            topicID + "-dlq-sub",
+					ServiceAccountCredentials: "",
+				},
 			},
 		},
 	)

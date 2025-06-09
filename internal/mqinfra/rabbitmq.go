@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hookdeck/outpost/internal/mqs"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type infraRabbitMQ struct {
-	cfg *mqs.QueueConfig
+	cfg *MQInfraConfig
 }
 
 func (infra *infraRabbitMQ) Declare(ctx context.Context) error {

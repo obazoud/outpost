@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/hookdeck/outpost/internal/mqinfra"
-	"github.com/hookdeck/outpost/internal/mqs"
 )
 
 type Config struct {
-	DeliveryMQ *mqs.QueueConfig
-	LogMQ      *mqs.QueueConfig
+	DeliveryMQ *mqinfra.MQInfraConfig
+	LogMQ      *mqinfra.MQInfraConfig
 }
 
 func (cfg *Config) SetSensiblePolicyDefaults() {

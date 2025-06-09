@@ -10,7 +10,7 @@ import (
 )
 
 type infraAWSSQS struct {
-	cfg *mqs.QueueConfig
+	cfg *MQInfraConfig
 }
 
 func (infra *infraAWSSQS) Declare(ctx context.Context) error {
@@ -18,7 +18,12 @@ func (infra *infraAWSSQS) Declare(ctx context.Context) error {
 		return errors.New("failed assertion: cfg.AWSSQS != nil") // IMPOSSIBLE
 	}
 
-	sqsClient, err := awsutil.SQSClientFromConfig(ctx, infra.cfg.AWSSQS)
+	sqsClient, err := awsutil.SQSClientFromConfig(ctx, &mqs.AWSSQSConfig{
+		Endpoint:                  infra.cfg.AWSSQS.Endpoint,
+		Region:                    infra.cfg.AWSSQS.Region,
+		ServiceAccountCredentials: infra.cfg.AWSSQS.ServiceAccountCredentials,
+		Topic:                     infra.cfg.AWSSQS.Topic,
+	})
 	if err != nil {
 		return err
 	}
@@ -54,7 +59,12 @@ func (infra *infraAWSSQS) TearDown(ctx context.Context) error {
 		return errors.New("failed assertion: cfg.AWSSQS != nil") // IMPOSSIBLE
 	}
 
-	sqsClient, err := awsutil.SQSClientFromConfig(ctx, infra.cfg.AWSSQS)
+	sqsClient, err := awsutil.SQSClientFromConfig(ctx, &mqs.AWSSQSConfig{
+		Endpoint:                  infra.cfg.AWSSQS.Endpoint,
+		Region:                    infra.cfg.AWSSQS.Region,
+		ServiceAccountCredentials: infra.cfg.AWSSQS.ServiceAccountCredentials,
+		Topic:                     infra.cfg.AWSSQS.Topic,
+	})
 	if err != nil {
 		return err
 	}

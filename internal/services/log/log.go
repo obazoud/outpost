@@ -84,10 +84,15 @@ func NewService(ctx context.Context,
 		}
 	})
 
+	logQueueConfig, err := cfg.MQs.ToQueueConfig(ctx, "logmq")
+	if err != nil {
+		return nil, err
+	}
+
 	service := &LogService{}
 	service.logger = logger
 	service.redisClient = redisClient
-	service.logMQ = logmq.New(logmq.WithQueue(cfg.MQs.GetLogQueueConfig()))
+	service.logMQ = logmq.New(logmq.WithQueue(logQueueConfig))
 	service.consumerOptions = &consumerOptions{
 		concurreny: cfg.DeliveryMaxConcurrency,
 	}
