@@ -455,15 +455,36 @@ Below is an example YAML configuration file showing all available options and th
 	mdxContent := string(mdxBytes)
 
 	// --- Replace placeholders ---
-	var changed bool
-	mdxContent, changed = replacePlaceholder(mdxContent, envVarsStartPlaceholder, envVarsEndPlaceholder, "\n"+envVarsContent+"\n")
-	if !changed {
-		log.Printf("Warning: ENV vars placeholder '%s' not found or content unchanged.", envVarsStartPlaceholder)
+	envStartIndex := strings.Index(mdxContent, envVarsStartPlaceholder)
+	envEndIndex := strings.Index(mdxContent, envVarsEndPlaceholder)
+
+	if envStartIndex != -1 && envEndIndex != -1 && envEndIndex > envStartIndex {
+		newMdxContent, changed := replacePlaceholder(mdxContent, envVarsStartPlaceholder, envVarsEndPlaceholder, "\n"+envVarsContent+"\n")
+		if !changed {
+			// Placeholder found, but content was already up-to-date.
+			log.Printf("Info: The content for the ENV vars placeholder '%s' was already up-to-date. No changes made to this block.", envVarsStartPlaceholder)
+		} else {
+			mdxContent = newMdxContent // Content was updated.
+		}
+	} else {
+		// Placeholder not found or in wrong order.
+		log.Printf("Warning: The ENV vars placeholder '%s' (and/or its corresponding end tag '%s') was not found or is in the wrong order in the output file. The ENV vars block will not be updated.", envVarsStartPlaceholder, envVarsEndPlaceholder)
 	}
 
-	mdxContent, changed = replacePlaceholder(mdxContent, yamlStartPlaceholder, yamlEndPlaceholder, "\n"+yamlContent+"\n")
-	if !changed {
-		log.Printf("Warning: YAML placeholder '%s' not found or content unchanged.", yamlStartPlaceholder)
+	yamlStartIndex := strings.Index(mdxContent, yamlStartPlaceholder)
+	yamlEndIndex := strings.Index(mdxContent, yamlEndPlaceholder)
+
+	if yamlStartIndex != -1 && yamlEndIndex != -1 && yamlEndIndex > yamlStartIndex {
+		newMdxContent, changed := replacePlaceholder(mdxContent, yamlStartPlaceholder, yamlEndPlaceholder, "\n"+yamlContent+"\n")
+		if !changed {
+			// Placeholder found, but content was already up-to-date.
+			log.Printf("Info: The content for the YAML placeholder '%s' was already up-to-date. No changes made to this block.", yamlStartPlaceholder)
+		} else {
+			mdxContent = newMdxContent // Content was updated.
+		}
+	} else {
+		// Placeholder not found or in wrong order.
+		log.Printf("Warning: The YAML placeholder '%s' (and/or its corresponding end tag '%s') was not found or is in the wrong order in the output file. The YAML block will not be updated.", yamlStartPlaceholder, yamlEndPlaceholder)
 	}
 
 	// --- Write updated content back to MDX file ---
@@ -512,14 +533,6 @@ func generateYAMLPart(builder *strings.Builder, configInfo *ParsedConfig, allCon
 				builder.WriteString(fmt.Sprintf("%s# %s\n", indent, strings.TrimSpace(line)))
 			}
 		}
-
-		// Default value as a comment, if available and not a struct type that will be expanded
-		// isStructTypeField := false
-		// Check if the field's type (after dereferencing if it's a pointer) corresponds to a known struct configuration
-		// actualFieldTypeForCheck := strings.TrimPrefix(field.Type, "*")
-		// if _, isKnownStruct := allConfigs[actualFieldTypeForCheck]; isKnownStruct {
-		// 	isStructTypeField = true
-		// }
 
 		// Removed default value comments as per feedback. The value itself is shown.
 		// if field.DefaultValue != "" && !isStructTypeField {
