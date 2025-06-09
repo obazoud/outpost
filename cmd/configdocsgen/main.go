@@ -1,5 +1,4 @@
 // Known Limitations/Further Improvements:
-// Embedded Structs (AST): Fields from anonymously embedded structs are not fully resolved during AST parsing for documentation as part of the parent struct.
 // Complex Slice/Map YAML Formatting: Default value formatting for slices is basic. Maps are not explicitly formatted for YAML beyond their default string representation.
 
 package main
@@ -7,83 +6,40 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hookdeck/outpost/internal/config" // Import your project's config package
 )
 
 var (
+	// inputDir is no longer used for AST parsing but kept for potential future use or to avoid breaking existing scripts if any.
 	inputDir   string
 	outputFile string
 )
 
-func main() {
-	// Default paths are relative to the project root, where `go run cmd/configdocsgen/main.go` is expected to be executed.
-	defaultInputDir := "internal/config"
-	defaultOutputFile := "docs/pages/references/configuration.mdx"
-
-	flag.StringVar(&inputDir, "input-dir", defaultInputDir, "Directory containing the Go configuration source files.")
-	flag.StringVar(&outputFile, "output-file", defaultOutputFile, "Path to the output Markdown file.")
-	flag.Parse()
-
-	fmt.Println("Configuration Documentation Generator")
-	log.Printf("Input directory: %s", inputDir)
-	log.Printf("Output file: %s", outputFile)
-
-	// TODO:
-	// 2. Implement parsing of Go files in inputDir
-	//    - Use go/parser and go/ast
-	// 3. Identify config structs
-	// 4. Extract field information (name, yaml, env, desc, required tags, data type)
-	// 5. Instantiate config.Config and call InitDefaults()
-	//    - Use reflection to get default values
-	// 6. Handle "one-of" types (e.g., MQsConfig)
-	// 7. Generate Markdown:
-	//    - Environment Variables Table
-	//    - YAML Configuration Section
-	// 8. Write to output file
-
-	parsedConfigs, err := parseConfigFiles(inputDir)
-	if err != nil {
-		log.Fatalf("Error parsing config files: %v", err)
-	}
-
-	// For now, just print what was found (later this will be processed)
-	for _, cfg := range parsedConfigs {
-		log.Printf("Found config struct: %s in file %s", cfg.Name, cfg.FileName)
-	}
-
-	// Attempt to get default values and integrate them BEFORE generating docs
-	log.Println("Attempting to load and reflect on config.Config for default values...")
-	defaults, err := getConfigDefaults()
-	if err != nil {
-		log.Printf("Warning: Could not get config defaults: %v", err)
-		log.Println("Default values will be missing or incorrect in the generated documentation.")
-	} else {
-		log.Printf("Successfully reflected on config.Config. Total default keys found: %d", len(defaults))
-		// Integrate defaults into parsedConfigs
-		integrateDefaults(parsedConfigs, defaults) // This modifies parsedConfigs in place
-	}
-
-	// Now generate docs with populated defaults
-	err = generateDocs(parsedConfigs, outputFile)
-	if err != nil {
-		log.Fatalf("Error generating docs: %v", err)
-	}
-
-	fmt.Printf("Successfully generated documentation to %s\n", outputFile)
+// ReflectionFieldInfo is an intermediate struct to hold data extracted via reflection.
+type ReflectionFieldInfo struct {
+	Path            string // Full dot-notation path from root config. e.g. "Redis.Host"
+	FieldName       string // Original Go field name. e.g. "Host"
+	FieldTypeStr    string // String representation of field type. e.g. "string", "int", "config.RedisConfig"
+	StructName      string // Name of the immediate struct this field belongs to. e.g. "Config", "RedisConfig"
+	StructPkgPath   string // Package path of the struct this field belongs to.
+	YAMLName        string
+	EnvName         string
+	EnvSeparator    string
+	Description     string
+	Required        string      // "true", "false", or "Y", "N", "C" from tag
+	DefaultValue    interface{} // Actual default value
+	IsEmbeddedField bool        // True if this field comes from an embedded struct and should be inlined in YAML
 }
 
-// ConfigField represents a field in a configuration struct
+// ConfigField represents a field in a configuration struct (used by generateDocs)
 type ConfigField struct {
 	Name         string
 	Type         string
@@ -92,346 +48,298 @@ type ConfigField struct {
 	EnvSeparator string
 	Description  string
 	Required     string // Y, N, C
-	DefaultValue string
+	DefaultValue string // String representation
 }
 
-// ParsedConfig represents a parsed configuration struct
+// ParsedConfig represents a parsed configuration struct (used by generateDocs)
 type ParsedConfig struct {
-	FileName     string
-	Name         string // Go struct name
+	FileName     string // Can be set to "reflection" or similar
+	Name         string // Go struct name (e.g., "Config", "RedisConfig")
 	Fields       []ConfigField
 	IsTopLevel   bool   // Flag to identify the root config.Config struct for pathing
-	GoStructName string // To help build paths for defaults map
-	// We might need to store the original ast.StructType for default value resolution later
+	GoStructName string // Same as Name
 }
 
-func parseConfigFiles(dirPath string) ([]ParsedConfig, error) {
-	var configs []ParsedConfig
-	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dirPath, func(fi os.FileInfo) bool {
-		return !fi.IsDir() && strings.HasSuffix(fi.Name(), ".go") && !strings.HasSuffix(fi.Name(), "_test.go")
-	}, parser.ParseComments)
+func main() {
+	defaultInputDir := "internal/config" // Retained for consistency, though not directly used for parsing config.Config
+	defaultOutputFile := "docs/pages/references/configuration.mdx"
 
+	flag.StringVar(&inputDir, "input-dir", defaultInputDir, "Directory containing the Go configuration source files (usage changed with reflection).")
+	flag.StringVar(&outputFile, "output-file", defaultOutputFile, "Path to the output Markdown file.")
+	flag.Parse()
+
+	fmt.Println("Configuration Documentation Generator (Reflection-based)")
+	log.Printf("Output file: %s", outputFile)
+
+	allFieldInfos, err := parseConfigWithReflection()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse directory %s: %w", dirPath, err)
+		log.Fatalf("Error parsing config with reflection: %v", err)
 	}
 
-	for _, pkg := range pkgs {
-		for fileName, file := range pkg.Files {
-			log.Printf("Processing file: %s", fileName)
-			ast.Inspect(file, func(n ast.Node) bool {
-				ts, ok := n.(*ast.TypeSpec)
-				if !ok || ts.Type == nil {
-					return true // Continue traversal
-				}
+	parsedConfigs := transformToParsedConfigs(allFieldInfos)
 
-				s, ok := ts.Type.(*ast.StructType)
-				if !ok {
-					return true // Continue traversal
-				}
-
-				// Found a struct
-				structName := ts.Name.Name
-				log.Printf("Found struct: %s in file %s", structName, fileName)
-				isTopLevel := (structName == "Config") // Simple check for the main Config
-
-				var fields []ConfigField
-				for _, field := range s.Fields.List {
-					if len(field.Names) > 0 { // Ensure it's a named field
-						fieldName := field.Names[0].Name
-						var fieldTypeStr string
-						switch typeExpr := field.Type.(type) {
-						case *ast.Ident:
-							fieldTypeStr = typeExpr.Name
-						case *ast.SelectorExpr: // For types like pkg.Type
-							if pkgIdent, ok := typeExpr.X.(*ast.Ident); ok {
-								fieldTypeStr = pkgIdent.Name + "." + typeExpr.Sel.Name
-							} else {
-								fieldTypeStr = fmt.Sprintf("%s", field.Type) // Fallback
-							}
-						case *ast.ArrayType:
-							// Further inspect Elt for element type if needed
-							if eltIdent, ok := typeExpr.Elt.(*ast.Ident); ok {
-								fieldTypeStr = "[]" + eltIdent.Name
-							} else {
-								fieldTypeStr = fmt.Sprintf("%s", field.Type) // Fallback for complex array/slice types
-							}
-						case *ast.MapType:
-							// Further inspect Key and Value for their types
-							fieldTypeStr = fmt.Sprintf("%s", field.Type) // Fallback for complex map types
-						default:
-							fieldTypeStr = fmt.Sprintf("%s", field.Type) // Fallback
-						}
-
-						var yamlName, envName, envSeparator, description, requiredValue string
-
-						if field.Tag != nil {
-							tagValue := field.Tag.Value // Raw string like `yaml:"name" env:"VAR"`
-							// Remove backticks
-							tagValue = strings.Trim(tagValue, "`")
-
-							// The line below was unused and caused a compiler error.
-							// tags := strings.Fields(tagValue)
-							// A more robust way is to use reflect.StructTag, but that requires an instance.
-							// For AST parsing, manual parsing or a dedicated tag parser is common.
-							// Let's do a simplified manual parse for now.
-
-							parsedTag := parseStructTag(tagValue)
-							yamlName = parsedTag["yaml"]
-							envName = parsedTag["env"]
-							envSeparator = parsedTag["envSeparator"]
-							description = parsedTag["desc"]
-							requiredValue = parsedTag["required"]
-						}
-
-						// TODO: Handle embedded structs (field.Names would be empty)
-
-						log.Printf("  Field: %s, Type: %s, YAML: '%s', Env: '%s', Desc: '%s', Required: '%s'",
-							fieldName, fieldTypeStr, yamlName, envName, description, requiredValue)
-
-						fields = append(fields, ConfigField{
-							Name:         fieldName,
-							Type:         fieldTypeStr,
-							YAMLName:     yamlName,
-							EnvName:      envName,
-							EnvSeparator: envSeparator,
-							Description:  description,
-							Required:     requiredValue,
-						})
-					} else {
-						// This could be an embedded struct
-						// field.Type would give its type.
-						// Example: `MyEmbeddedStruct` or `pkg.MyEmbeddedStruct`
-						// We need to decide how to represent these.
-						// For now, we are only processing fields with names.
-						// If an embedded struct's fields should be "flattened" into the parent,
-						// this logic needs to recursively call a part of parseConfigFiles or similar.
-						// The current reflection for defaults *will* see flattened fields.
-						// The AST parsing needs to align if we want to document them as part of the parent.
-						if typeIdent, ok := field.Type.(*ast.Ident); ok {
-							log.Printf("  Found embedded-like field (no name): Type: %s", typeIdent.Name)
-							// Here, you might look up `typeIdent.Name` in `allConfigs` (if populated first pass)
-							// and then merge its fields. This gets complex with ordering and paths.
-							// For now, we'll skip documenting fields of embedded structs directly here,
-							// assuming they are separate `ParsedConfig` entries if they are config structs themselves.
-						}
-					}
-				}
-				configs = append(configs, ParsedConfig{
-					FileName:     filepath.Base(fileName),
-					Name:         structName, // This is the Go struct name
-					GoStructName: structName,
-					Fields:       fields,
-					IsTopLevel:   isTopLevel,
-				})
-				return false // Stop traversal for this struct, already processed
-			})
-		}
+	err = generateDocs(parsedConfigs, outputFile)
+	if err != nil {
+		log.Fatalf("Error generating docs: %v", err)
 	}
-	return configs, nil
+
+	fmt.Printf("Successfully generated documentation to %s\n", outputFile)
 }
 
-// parseStructTag parses a struct tag string and returns a map of key-value pairs.
-// It handles quoted values that may contain spaces.
-func parseStructTag(tagStr string) map[string]string {
-	tags := make(map[string]string)
-	for tagStr != "" {
-		// Skip leading spaces.
-		i := 0
-		for i < len(tagStr) && tagStr[i] == ' ' {
-			i++
-		}
-		tagStr = tagStr[i:]
-		if tagStr == "" {
-			break
-		}
+func parseConfigWithReflection() ([]ReflectionFieldInfo, error) {
+	var infos []ReflectionFieldInfo
+	cfg := config.Config{}
+	cfg.InitDefaults()
 
-		// Find the key.
-		i = 0
-		for i < len(tagStr) && tagStr[i] != ' ' && tagStr[i] != ':' {
-			i++
-		}
-		if i == 0 || i+1 >= len(tagStr) || tagStr[i] != ':' || tagStr[i+1] != '"' {
-			// Malformed tag or no value, skip to next potential tag part
-			// This might happen if a tag is just `key` without `:"value"`
-			// Or if it's not a quoted value. For simplicity, we assume all values are quoted.
-			nextSpace := strings.Index(tagStr, " ")
-			if nextSpace == -1 {
-				break // No more tags
-			}
-			tagStr = tagStr[nextSpace:]
-			continue
-		}
-		key := tagStr[:i]
-		tagStr = tagStr[i+1:] // Skip key and ':'
+	cfgType := reflect.TypeOf(cfg)
+	cfgValue := reflect.ValueOf(cfg)
+	targetPkgPath := cfgType.PkgPath()
 
-		// Find the value (quoted).
-		if tagStr[0] != '"' {
-			// Malformed tag: value not quoted
-			nextSpace := strings.Index(tagStr, " ")
-			if nextSpace == -1 {
-				break
-			}
-			tagStr = tagStr[nextSpace:]
-			continue
-		}
-		i = 1 // Skip leading quote
-		for i < len(tagStr) && tagStr[i] != '"' {
-			if tagStr[i] == '\\' { // Handle escaped quotes
-				i++
-			}
-			i++
-		}
-		if i >= len(tagStr) {
-			// Malformed tag: unclosed quote
-			break
-		}
-		value := tagStr[1:i]
-		tags[key] = value
-
-		// Move to next tag.
-		tagStr = tagStr[i+1:]
+	err := extractFieldsRecursive(cfgValue, cfgType, "", cfgType.Name(), cfgType.PkgPath(), targetPkgPath, &infos, false)
+	if err != nil {
+		return nil, err
 	}
-	return tags
+	return infos, nil
 }
 
-// getConfigDefaults attempts to instantiate config.Config, run InitDefaults,
-// and extract default values using reflection.
-func getConfigDefaults() (map[string]interface{}, error) {
-	cfg := config.Config{} // Create an instance of the actual Config struct
-	cfg.InitDefaults()     // Initialize it with default values
-
-	defaults := make(map[string]interface{})
-	extractDefaultsRecursive(reflect.ValueOf(cfg), defaults, "")
-
-	// TODO: Map these defaults back to the ParsedConfig fields,
-	// potentially using a path like "Redis.Host" or by matching struct and field names.
-
-	return defaults, nil
-}
-
-func extractDefaultsRecursive(val reflect.Value, defaultsMap map[string]interface{}, prefix string) {
-	// Dereference pointers if any
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
+func extractFieldsRecursive(currentVal reflect.Value, currentType reflect.Type, pathPrefix string, structName string, structPkgPath string, targetPkgPath string, infos *[]ReflectionFieldInfo, isEmbedded bool) error {
+	if currentType.Kind() == reflect.Ptr {
+		if currentVal.IsNil() {
+			// If the pointer is nil, create a zero value of the element type to inspect its structure
+			// This ensures fields of this struct are documented, albeit with zero/nil defaults.
+			currentType = currentType.Elem()
+			currentVal = reflect.Zero(currentType)
+		} else {
+			currentVal = currentVal.Elem()
+			currentType = currentType.Elem()
+		}
 	}
 
-	// Ensure we are dealing with a struct
-	if val.Kind() != reflect.Struct {
-		return
+	if currentType.Kind() != reflect.Struct {
+		return fmt.Errorf("expected a struct or pointer to a struct, got %s", currentType.Kind())
 	}
 
-	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		fieldVal := val.Field(i)
+	for i := 0; i < currentType.NumField(); i++ {
+		fieldSpec := currentType.Field(i)
+		fieldVal := currentVal.Field(i)
 
 		// Skip unexported fields
 		if !fieldVal.CanInterface() {
 			continue
 		}
 
-		currentPath := field.Name
-		if prefix != "" {
-			currentPath = prefix + "." + field.Name
+		fieldName := fieldSpec.Name
+		fullPath := fieldName
+		if pathPrefix != "" {
+			fullPath = pathPrefix + "." + fieldName
 		}
 
-		if fieldVal.Kind() == reflect.Struct {
-			// Check if it's a time.Time struct or other common struct we don't want to recurse into deeply for this purpose
-			// For example, time.Time has unexported fields that would cause issues or are not relevant as "defaults"
-			if fieldVal.Type().PkgPath() == "time" && fieldVal.Type().Name() == "Time" {
-				defaultsMap[currentPath] = fieldVal.Interface()
-			} else {
-				// Recurse for nested structs
-				extractDefaultsRecursive(fieldVal, defaultsMap, currentPath)
+		// Handle anonymous/embedded structs
+		if fieldSpec.Anonymous {
+			// For embedded structs, recurse with the same pathPrefix (or adjusted if needed)
+			// and mark fields as embedded so they can be inlined in YAML.
+			err := extractFieldsRecursive(fieldVal, fieldSpec.Type, pathPrefix, structName, structPkgPath, targetPkgPath, infos, true)
+			if err != nil {
+				return fmt.Errorf("error recursing into embedded struct %s: %w", fieldName, err)
 			}
-		} else if fieldVal.Kind() == reflect.Slice || fieldVal.Kind() == reflect.Array {
-			// Handle slices/arrays - store them directly
-			// For complex slice elements (structs), further handling might be needed if defaults per element are relevant
-			defaultsMap[currentPath] = fieldVal.Interface()
-		} else {
-			defaultsMap[currentPath] = fieldVal.Interface()
+			continue // Skip adding the embedded struct itself as a field
+		}
+
+		yamlTag := fieldSpec.Tag.Get("yaml")
+		yamlName := strings.Split(yamlTag, ",")[0] // Get name part, ignore omitempty etc.
+		if yamlName == "-" {                       // Skip fields explicitly ignored by YAML
+			continue
+		}
+		if yamlName == "" { // Default to field name if yaml tag is missing or empty
+			// This behavior might need adjustment based on how YAML typically marshals
+			// For documentation, often we want to show the Go field name if no YAML name.
+			// However, for config, usually explicit YAML names are preferred.
+			// Let's assume if yaml tag is missing, it's not a primary config field for YAML docs.
+			// Or, for full documentation, one might want to include it.
+			// For now, if no yamlName, we might skip or use Go name.
+			// Let's use Go field name if yamlName is empty after split (e.g. tag was just ",omitempty")
+			// but if tag was entirely missing, it's less clear.
+			// The current AST parser implies fields without YAML tags are still processed.
+			// Let's default to Go field name if yamlName is empty.
+			yamlName = fieldName
+		}
+
+		fieldTypeStr := formatFieldType(fieldSpec.Type)
+
+		// Create info for the current field itself
+		// This applies whether it's a basic type, a struct from another package, or a struct we'll recurse into.
+		currentFieldInfo := ReflectionFieldInfo{
+			Path:            fullPath,
+			FieldName:       fieldName,
+			FieldTypeStr:    fieldTypeStr,
+			StructName:      structName, // The struct this field belongs to (e.g., "Config")
+			StructPkgPath:   structPkgPath,
+			YAMLName:        yamlName,
+			EnvName:         fieldSpec.Tag.Get("env"),
+			EnvSeparator:    fieldSpec.Tag.Get("envSeparator"),
+			Description:     fieldSpec.Tag.Get("desc"),
+			Required:        fieldSpec.Tag.Get("required"),
+			DefaultValue:    fieldVal.Interface(), // Capture the default value of this field
+			IsEmbeddedField: isEmbedded,           // This is about whether *this field* is part of an embedding context
+		}
+		// If fieldSpec.Anonymous was true, we already 'continue'd earlier.
+		// So, this currentFieldInfo is for a named field.
+		*infos = append(*infos, currentFieldInfo)
+
+		// If the field's type is a struct from the target package (and not an interface), recurse into its members.
+		// These members will have their StructName as fieldSpec.Type.Name() (e.g., "RedisConfig")
+		// and their Path will be prefixed with fullPath (e.g., "Redis.Host").
+		actualFieldType := fieldSpec.Type
+		if actualFieldType.Kind() == reflect.Ptr {
+			actualFieldType = actualFieldType.Elem()
+		}
+
+		if fieldSpec.Type.Kind() != reflect.Interface && actualFieldType.Kind() == reflect.Struct && actualFieldType.PkgPath() == targetPkgPath && actualFieldType.Name() != "Time" {
+			// Use actualFieldType.Name() for the StructName of the members
+			err := extractFieldsRecursive(fieldVal, fieldSpec.Type, fullPath, actualFieldType.Name(), actualFieldType.PkgPath(), targetPkgPath, infos, false) // isEmbedded is false for members of a regularly named struct field
+			if err != nil {
+				return fmt.Errorf("error recursing into members of struct field %s (type %s): %w", fullPath, actualFieldType.Name(), err)
+			}
 		}
 	}
+	return nil
 }
 
-func integrateDefaults(parsedConfigs []ParsedConfig, defaults map[string]interface{}) {
-	// Find the top-level "Config" struct first to establish base for paths
-	var topLevelConfig *ParsedConfig
-	otherConfigs := make(map[string]*ParsedConfig) // Map by GoStructName
+func formatFieldType(t reflect.Type) string {
+	// This produces types like "string", "int", "[]string", "map[string]int", "config.RedisConfig", "*config.MQsConfig"
+	// which is generally good for documentation.
+	return t.String()
+}
 
-	for i := range parsedConfigs {
-		pc := &parsedConfigs[i]          // Get a pointer to modify in place
-		if pc.GoStructName == "Config" { // Assuming "Config" is the main one
-			topLevelConfig = pc
+func isTargetPkgStruct(t reflect.Type, targetPkgPath string) bool {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Kind() == reflect.Struct && t.PkgPath() == targetPkgPath && t.Name() != "Time" // Exclude time.Time
+}
+
+func formatDefaultValueToString(value interface{}, goType string) string {
+	if value == nil {
+		return "" // generateDocs will convert this to `nil`
+	}
+
+	val := reflect.ValueOf(value)
+	if val.Kind() == reflect.Ptr && val.IsNil() {
+		return ""
+	}
+
+	// Handle time.Time specifically if needed, otherwise %v is usually okay.
+	if t, ok := value.(time.Time); ok {
+		if t.IsZero() {
+			return "" // Represent zero time as empty for cleaner defaults
 		}
-		otherConfigs[pc.GoStructName] = pc
+		return t.Format(time.RFC3339) // Or another suitable format
 	}
 
-	if topLevelConfig == nil {
-		log.Println("Warning: Top-level 'Config' struct not found in parsed files. Cannot accurately map all defaults.")
-		return
+	// Handle slices
+	if val.Kind() == reflect.Slice {
+		if val.IsNil() { // Explicitly nil slice
+			return ""
+		}
+		if val.Len() == 0 { // Empty slice []
+			return "[]"
+		}
+		// For non-empty slices, fmt.Sprintf("%v", value) gives "[elem1 elem2 ...]"
+		// We might want commas: "[elem1, elem2]"
+		var parts []string
+		for i := 0; i < val.Len(); i++ {
+			parts = append(parts, fmt.Sprintf("%v", val.Index(i).Interface()))
+		}
+		return "[" + strings.Join(parts, ", ") + "]"
 	}
 
-	// Recursive function to build paths and assign defaults
-	var assignDefaults func(currentFields *[]ConfigField, currentPathPrefix string)
-	assignDefaults = func(currentFields *[]ConfigField, currentPathPrefix string) {
-		for i := range *currentFields {
-			field := &(*currentFields)[i] // Pointer to modify the field
+	// Handle booleans to ensure "true" or "false"
+	if val.Kind() == reflect.Bool {
+		return strconv.FormatBool(val.Bool())
+	}
 
-			defaultPathKey := field.Name // Default path is just the field name for top-level
-			if currentPathPrefix != "" {
-				defaultPathKey = currentPathPrefix + "." + field.Name
-			}
+	// Default string representation
+	strVal := fmt.Sprintf("%v", value)
 
-			if defaultValue, ok := defaults[defaultPathKey]; ok {
-				field.DefaultValue = fmt.Sprintf("%v", defaultValue)
-				log.Printf("Assigned default for %s: %s", defaultPathKey, field.DefaultValue)
+	// Avoid Go's default "<nil>" string for non-interface nils (e.g. nil map/slice that wasn't caught above)
+	if strVal == "<nil>" {
+		return ""
+	}
+
+	return strVal
+}
+
+func transformToParsedConfigs(infos []ReflectionFieldInfo) []ParsedConfig {
+	groupedByStruct := make(map[string][]ReflectionFieldInfo)
+	structOrder := []string{} // To maintain an order, e.g., "Config" first
+
+	for _, info := range infos {
+		if _, exists := groupedByStruct[info.StructName]; !exists {
+			groupedByStruct[info.StructName] = []ReflectionFieldInfo{}
+			if info.StructName == "Config" { // Ensure "Config" is first if present
+				structOrder = append([]string{info.StructName}, structOrder...)
 			} else {
-				// If not found directly, it might be a nested struct defined elsewhere.
-				// The current `extractDefaultsRecursive` stores nested struct fields as "Parent.Field".
-				// The AST parsing gives us field types like "RedisConfig". We need to bridge this.
-				// For now, this simple pathing works for direct fields and first-level nesting if paths align.
-				// More complex mapping might be needed if AST field type (e.g. "RedisConfig") needs to be part of path.
-				// The current `extractDefaultsRecursive` builds paths like "Redis.Host", "Redis.Port".
-				// Our AST parsing gives us `Config.Redis` (type `RedisConfig`), then `RedisConfig.Host`.
-				// We need to ensure the path construction aligns.
-
-				// If field.Type is a known struct type from our parsed configs, recurse.
-				// This part needs careful alignment of how paths are constructed in `extractDefaultsRecursive`
-				// and how we look them up here.
-				// The current `extractDefaultsRecursive` uses Go field names for paths.
-				// So, if `Config` has a field `Redis RedisConfig`, the path for redis host is `Redis.Host`.
-
-				// Let's assume field.Type is the Go type name of the struct (e.g., "RedisConfig")
-				// And that our `extractDefaultsRecursive` has built paths like "Redis.Host"
-				// where "Redis" is the field name in the parent struct (`Config`)
-				// and "Host" is the field name in the child struct (`RedisConfig`).
-
-				// If the field itself is a struct type we parsed, we need to recurse into its fields.
-				// The `defaultPathKey` for fields of this nested struct would be `ParentField.NestedField`.
-				// Example: Config.Redis (field.Name = "Redis"), its type is "RedisConfig".
-				// We need to find the ParsedConfig for "RedisConfig" and then iterate its fields.
-				// The path prefix for fields of RedisConfig would be "Redis".
-
-				if nestedStructInfo, isStruct := otherConfigs[field.Type]; isStruct {
-					log.Printf("Recursing for nested struct field %s (type %s) with path prefix %s", field.Name, field.Type, defaultPathKey)
-					// The prefix for the children of this field is the full path to this field.
-					assignDefaults(&nestedStructInfo.Fields, defaultPathKey)
-				} else {
-					log.Printf("No direct default found for %s (path key: %s)", field.Name, defaultPathKey)
-				}
+				structOrder = append(structOrder, info.StructName)
 			}
 		}
+		groupedByStruct[info.StructName] = append(groupedByStruct[info.StructName], info)
 	}
 
-	// Start with the top-level config, no prefix for its direct fields
-	assignDefaults(&topLevelConfig.Fields, "")
+	// Sort structOrder to have "Config" first, then alphabetically for others
+	sort.SliceStable(structOrder, func(i, j int) bool {
+		if structOrder[i] == "Config" {
+			return true
+		}
+		if structOrder[j] == "Config" {
+			return false
+		}
+		return structOrder[i] < structOrder[j]
+	})
 
-	// After processing top-level, some nested structs might have had their defaults assigned
-	// by the recursion above if their parent field was processed.
-	// We might need a more robust way to ensure all parsed structs are processed if they can be standalone.
-	// For now, this focuses on defaults reachable from `config.Config`.
+	var parsedConfigs []ParsedConfig
+	for _, structName := range structOrder {
+		fieldsInfo := groupedByStruct[structName]
+		var configFields []ConfigField
+		var goStructPkgPath string // Take from the first field, should be consistent
+
+		// Sort fields by their original Go field name for consistent order
+		// This is important if ReflectionFieldInfo Path was used for sorting,
+		// but here we sort by FieldName within each struct.
+		sort.Slice(fieldsInfo, func(i, j int) bool {
+			// A simple path sort might be better if fields from embedded structs are mixed.
+			// For now, FieldName within the current struct context.
+			return fieldsInfo[i].FieldName < fieldsInfo[j].FieldName
+		})
+
+		for _, info := range fieldsInfo {
+			if goStructPkgPath == "" {
+				goStructPkgPath = info.StructPkgPath
+			}
+			configFields = append(configFields, ConfigField{
+				Name:         info.FieldName, // Use the Go field name
+				Type:         info.FieldTypeStr,
+				YAMLName:     info.YAMLName,
+				EnvName:      info.EnvName,
+				EnvSeparator: info.EnvSeparator,
+				Description:  info.Description,
+				Required:     info.Required,
+				DefaultValue: formatDefaultValueToString(info.DefaultValue, info.FieldTypeStr),
+			})
+		}
+
+		// Determine if this struct is the top-level "Config"
+		// The main config.Config struct from internal/config
+		isTopLevel := (structName == "Config" && goStructPkgPath == "github.com/hookdeck/outpost/internal/config")
+
+		parsedConfigs = append(parsedConfigs, ParsedConfig{
+			FileName:     "reflection-generated",
+			Name:         structName,
+			GoStructName: structName,
+			Fields:       configFields,
+			IsTopLevel:   isTopLevel,
+		})
+	}
+	return parsedConfigs
 }
 
 const (
@@ -458,8 +366,6 @@ func generateDocs(parsedConfigs []ParsedConfig, outputPath string) error {
 		} else {
 			// Escape special characters for Markdown table cells
 			defaultValueText = strings.ReplaceAll(defaultValueText, "|", "\\|")
-			// defaultValueText = strings.ReplaceAll(defaultValueText, "{", "\\{")
-			// defaultValueText = strings.ReplaceAll(defaultValueText, "}", "\\}")
 			// Enclose in backticks if not already `nil`
 			defaultValueText = fmt.Sprintf("`%s`", defaultValueText)
 		}
@@ -478,66 +384,95 @@ func generateDocs(parsedConfigs []ParsedConfig, outputPath string) error {
 		))
 	}
 	envVarsContent := strings.TrimRight(envVarsBuilder.String(), "\n")
+
 	// --- Generate YAML Content (including fences) ---
 	var yamlBuilder strings.Builder
-	// The "## YAML" header should be manually placed in the MDX file.
 	yamlBuilder.WriteString("```yaml\n")
 	yamlBuilder.WriteString("# Outpost Configuration Example (Generated)\n")
 	yamlBuilder.WriteString("# This example shows all available keys with their default values where applicable.\n\n")
+
 	var mainConfigInfo *ParsedConfig
 	configInfoMap := make(map[string]*ParsedConfig)
 	for i := range parsedConfigs {
-		pc := &parsedConfigs[i]
+		pc := &parsedConfigs[i] // operate on a copy to avoid modifying the slice
 		configInfoMap[pc.GoStructName] = pc
-		if pc.GoStructName == "Config" {
+		if pc.IsTopLevel { // Use IsTopLevel flag
 			mainConfigInfo = pc
 		}
 	}
+
 	if mainConfigInfo != nil {
 		generateYAMLPart(&yamlBuilder, mainConfigInfo, configInfoMap, 0, true)
 	} else {
-		yamlBuilder.WriteString("# ERROR: Main 'Config' struct not found. Cannot generate YAML structure.\n")
+		// Fallback if IsTopLevel wasn't set correctly, try finding "Config" by name
+		if cfgByName, ok := configInfoMap["Config"]; ok {
+			log.Println("Warning: Main 'Config' struct not found by IsTopLevel flag, falling back to name 'Config'.")
+			generateYAMLPart(&yamlBuilder, cfgByName, configInfoMap, 0, true)
+		} else {
+			yamlBuilder.WriteString("# ERROR: Main 'Config' struct not found. Cannot generate YAML structure.\n")
+			log.Println("Error: Main 'Config' struct not found by IsTopLevel flag or by name 'Config'.")
+		}
 	}
-	yamlBuilder.WriteString("```\n") // Add closing fence
-	yamlContent := strings.TrimRight(yamlBuilder.String(), "\n")
+	yamlBuilder.WriteString("```\n")
+	yamlContent := yamlBuilder.String()
 
-	// --- Read existing file and replace placeholder sections ---
-	existingContentBytes, err := os.ReadFile(outputPath)
+	// --- Read existing MDX file ---
+	mdxBytes, err := os.ReadFile(outputPath)
 	if err != nil {
-		log.Printf("Warning: Could not read existing output file %s. Will create a new one. Error: %v", outputPath, err)
-		// If file doesn't exist, create it with placeholders and content
-		var newFileBuilder strings.Builder
-		newFileBuilder.WriteString("---\ntitle: \"Outpost Configuration\"\n---\n\n") // Basic frontmatter
-		newFileBuilder.WriteString("<!-- Placeholder for intro content -->\n\n")
-		newFileBuilder.WriteString(envVarsStartPlaceholder + "\n")
-		newFileBuilder.WriteString(envVarsContent)
-		newFileBuilder.WriteString(envVarsEndPlaceholder + "\n\n")
-		newFileBuilder.WriteString("<!-- Placeholder for content between sections -->\n\n")
-		newFileBuilder.WriteString(yamlStartPlaceholder + "\n")
-		newFileBuilder.WriteString(yamlContent)
-		newFileBuilder.WriteString(yamlEndPlaceholder + "\n\n")
-		newFileBuilder.WriteString("<!-- Placeholder for outro content -->\n")
-		return os.WriteFile(outputPath, []byte(newFileBuilder.String()), 0644)
+		if os.IsNotExist(err) {
+			log.Printf("Warning: Output file %s does not exist. A new file will be created with placeholders.", outputPath)
+			// Create a template with placeholders if file doesn't exist
+			templateContent := fmt.Sprintf(`---
+title: Configuration Reference
+description: Detailed configuration options for Outpost.
+---
+
+This document outlines all the configuration options available for Outpost, settable via environment variables or a YAML configuration file.
+
+## Environment Variables
+
+%s
+
+%s
+
+%s
+
+## YAML Configuration
+
+Below is an example YAML configuration file showing all available options and their default values.
+
+%s
+
+%s
+
+%s
+`, envVarsStartPlaceholder, envVarsContent, envVarsEndPlaceholder, yamlStartPlaceholder, yamlContent, yamlEndPlaceholder)
+			mdxBytes = []byte(templateContent)
+		} else {
+			return fmt.Errorf("failed to read output file %s: %w", outputPath, err)
+		}
+	}
+	mdxContent := string(mdxBytes)
+
+	// --- Replace placeholders ---
+	var changed bool
+	mdxContent, changed = replacePlaceholder(mdxContent, envVarsStartPlaceholder, envVarsEndPlaceholder, "\n"+envVarsContent+"\n")
+	if !changed {
+		log.Printf("Warning: ENV vars placeholder '%s' not found or content unchanged.", envVarsStartPlaceholder)
 	}
 
-	existingContent := string(existingContentBytes)
-
-	finalContent, envReplaced := replacePlaceholder(existingContent, envVarsStartPlaceholder, envVarsEndPlaceholder, envVarsContent)
-	if !envReplaced {
-		log.Printf("Warning: ENV VARS placeholders not found in %s. ENV VARS section not updated.", outputPath)
+	mdxContent, changed = replacePlaceholder(mdxContent, yamlStartPlaceholder, yamlEndPlaceholder, "\n"+yamlContent+"\n")
+	if !changed {
+		log.Printf("Warning: YAML placeholder '%s' not found or content unchanged.", yamlStartPlaceholder)
 	}
 
-	finalContent, yamlReplaced := replacePlaceholder(finalContent, yamlStartPlaceholder, yamlEndPlaceholder, yamlContent)
-	if !yamlReplaced {
-		log.Printf("Warning: YAML placeholders not found in %s. YAML section not updated.", outputPath)
+	// --- Write updated content back to MDX file ---
+	err = os.WriteFile(outputPath, []byte(mdxContent), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write updated content to %s: %w", outputPath, err)
 	}
 
-	if !envReplaced && !yamlReplaced {
-		log.Printf("Neither ENV VARS nor YAML placeholders were found. File %s was not modified.", outputPath)
-		return nil // Or return an error if placeholders are mandatory
-	}
-
-	return os.WriteFile(outputPath, []byte(finalContent), 0644)
+	return nil
 }
 
 func replacePlaceholder(content, startPlaceholder, endPlaceholder, newBlockContent string) (string, bool) {
@@ -545,141 +480,161 @@ func replacePlaceholder(content, startPlaceholder, endPlaceholder, newBlockConte
 	endIndex := strings.Index(content, endPlaceholder)
 
 	if startIndex != -1 && endIndex != -1 && endIndex > startIndex {
-		// Preserve the placeholders themselves, replace content between them
-		newContent := content[:startIndex+len(startPlaceholder)] + "\n" + newBlockContent + "\n" + content[endIndex:]
-		return newContent, true
+		// Include the start placeholder, replace content until end placeholder, then add end placeholder
+		newContent := content[:startIndex+len(startPlaceholder)] +
+			newBlockContent +
+			content[endIndex:]
+		return newContent, newContent != content
 	}
-	return content, false // Placeholders not found or in wrong order
+	return content, false // Placeholder not found or content is the same
 }
 
 func generateYAMLPart(builder *strings.Builder, configInfo *ParsedConfig, allConfigs map[string]*ParsedConfig, indentLevel int, isRoot bool) {
 	indent := strings.Repeat("  ", indentLevel)
 
-	// Special handling for MQsConfig and PublishMQConfig to show "one of"
-	if configInfo.GoStructName == "MQsConfig" || configInfo.GoStructName == "PublishMQConfig" {
-		builder.WriteString(fmt.Sprintf("%s# Choose one of the following MQ providers:\n", indent))
-	}
+	// Sort fields by YAMLName for consistent YAML output
+	// This is important because map iteration order is not guaranteed in Go for allConfigs
+	// and field order from reflection is Go struct order, not necessarily desired YAML order.
+	// However, for struct fields, we use the order from ParsedConfig.Fields which is
+	// now sorted by Go FieldName in transformToParsedConfigs.
+	// For truly aesthetic YAML, one might want a custom sort order.
+	// For now, using the order from ParsedConfig.Fields.
 
-	// Sort fields by YAML name for consistent output
-	sortedFields := make([]ConfigField, len(configInfo.Fields))
-	copy(sortedFields, configInfo.Fields)
-	sort.Slice(sortedFields, func(i, j int) bool {
-		if sortedFields[i].YAMLName == "" {
-			return false
-		}
-		if sortedFields[j].YAMLName == "" {
-			return true
-		}
-		return sortedFields[i].YAMLName < sortedFields[j].YAMLName
-	})
-
-	for _, field := range sortedFields {
-		if field.YAMLName == "" {
+	for _, field := range configInfo.Fields {
+		if field.YAMLName == "" || field.YAMLName == "-" { // Skip if no YAML name or explicitly ignored
 			continue
 		}
-
+		// Field description as a comment
 		if field.Description != "" {
+			// Ensure multi-line descriptions are commented correctly
 			descLines := strings.Split(field.Description, "\n")
 			for _, line := range descLines {
-				builder.WriteString(fmt.Sprintf("%s# %s\n", indent, line))
+				builder.WriteString(fmt.Sprintf("%s# %s\n", indent, strings.TrimSpace(line)))
 			}
 		}
 
-		if nestedConfigInfo, ok := allConfigs[field.Type]; ok {
-			builder.WriteString(fmt.Sprintf("%s%s:\n", indent, field.YAMLName))
-			generateYAMLPart(builder, nestedConfigInfo, allConfigs, indentLevel+1, false)
-		} else if strings.HasPrefix(field.Type, "[]") { // Handle slices
-			builder.WriteString(fmt.Sprintf("%s%s:\n", indent, field.YAMLName))
-			// Attempt to use the actual reflected default value for slices
-			// This part is tricky because `field.DefaultValue` is just a string.
-			// We need a way to get the actual `reflect.Value` of the default.
-			// For now, we'll rely on a placeholder or a very simple interpretation of field.DefaultValue
-			// A proper solution would involve passing the `defaults` map (from getConfigDefaults)
-			// down to here and looking up the field's default by its path.
+		// Default value as a comment, if available and not a struct type that will be expanded
+		// isStructTypeField := false
+		// Check if the field's type (after dereferencing if it's a pointer) corresponds to a known struct configuration
+		// actualFieldTypeForCheck := strings.TrimPrefix(field.Type, "*")
+		// if _, isKnownStruct := allConfigs[actualFieldTypeForCheck]; isKnownStruct {
+		// 	isStructTypeField = true
+		// }
 
-			// Let's assume field.DefaultValue is a string like "[]" or "[item1 item2]"
-			// This is a simplification.
-			if field.DefaultValue == "[]" || field.DefaultValue == "" || field.DefaultValue == "<nil>" {
-				builder.WriteString(fmt.Sprintf("%s  [] # Empty list\n", indent))
+		// Removed default value comments as per feedback. The value itself is shown.
+		// if field.DefaultValue != "" && !isStructTypeField {
+		// 	builder.WriteString(fmt.Sprintf("%s# Default: %s\n", indent, field.DefaultValue))
+		// } else if field.DefaultValue == "" && !isStructTypeField && field.Required != "Y" && field.Required != "true" {
+		// 	// Indicate if no default and not required (optional)
+		// 	builder.WriteString(fmt.Sprintf("%s# Default: (none)\n", indent))
+		// }
+
+		// Required status as a comment
+		if field.Required != "" && field.Required != "N" && field.Required != "false" {
+			builder.WriteString(fmt.Sprintf("%s# Required: %s\n", indent, field.Required))
+		}
+
+		// Field line
+		builder.WriteString(fmt.Sprintf("%s%s:", indent, field.YAMLName))
+
+		var nestedStructShortName string
+		fieldTypeForLookup := field.Type // This is string like "config.RedisConfig" or "*config.MQsConfig"
+		if strings.HasPrefix(fieldTypeForLookup, "*") {
+			fieldTypeForLookup = fieldTypeForLookup[1:] // remove "*"
+		}
+		// Further strip package path if present, e.g. "config.RedisConfig" -> "RedisConfig"
+		// or "time.Time" -> "Time"
+		parts := strings.Split(fieldTypeForLookup, ".")
+		if len(parts) > 0 {
+			nestedStructShortName = parts[len(parts)-1] // Get the last part
+		}
+
+		if nestedStructShortName != "" {
+			if nestedConfig, ok := allConfigs[nestedStructShortName]; ok && field.Type != "string" && nestedStructShortName != "Time" { // also ensure we don't try to expand time.Time as a custom struct
+				// It's a nested struct we should expand
+				builder.WriteString("\n")
+				generateYAMLPart(builder, nestedConfig, allConfigs, indentLevel+1, false)
 			} else {
-				// Attempt to parse a simple string representation of a slice.
-				// This is very basic and will likely need improvement.
-				trimmed := strings.Trim(field.DefaultValue, "[]")
-				if trimmed != "" {
-					elements := strings.Fields(trimmed) // Splits by space, assumes simple elements
-					for _, elem := range elements {
-						// Try to format element based on assumed type (e.g., string if it's not number/bool)
-						elemType := strings.TrimPrefix(field.Type, "[]") // e.g. "string" from "[]string"
-						builder.WriteString(fmt.Sprintf("%s  - %s\n", indent, formatSimpleValueToYAML(elem, elemType)))
-					}
+				// Scalar, slice, map, or a struct from a different package (or time.Time)
+				valueStr := field.DefaultValue
+				if valueStr == "" || (valueStr == "[]" && strings.HasPrefix(field.Type, "[]")) {
+					valueStr = getYAMLPlaceholderForType(field.Type)
 				} else {
-					builder.WriteString(fmt.Sprintf("%s  [] # Empty list from default value: %s\n", indent, field.DefaultValue))
+					valueStr = formatSimpleValueToYAML(valueStr, field.Type)
 				}
+				builder.WriteString(fmt.Sprintf(" %s\n", valueStr))
 			}
-		} else { // Simple field
-			defaultValueText := field.DefaultValue
-			if defaultValueText == "" || defaultValueText == "<nil>" {
-				defaultValueText = getYAMLPlaceholderForType(field.Type)
+		} else {
+			// Fallback if short name extraction failed (should not happen for valid types)
+			valueStr := field.DefaultValue
+			if valueStr == "" || (valueStr == "[]" && strings.HasPrefix(field.Type, "[]")) {
+				valueStr = getYAMLPlaceholderForType(field.Type)
 			} else {
-				defaultValueText = formatSimpleValueToYAML(defaultValueText, field.Type)
+				valueStr = formatSimpleValueToYAML(valueStr, field.Type)
 			}
-			builder.WriteString(fmt.Sprintf("%s%s: %s\n", indent, field.YAMLName, defaultValueText))
+			builder.WriteString(fmt.Sprintf(" %s\n", valueStr))
 		}
-		if indentLevel == 0 && isRoot {
-			builder.WriteString("\n")
-		}
+		builder.WriteString("\n") // Add a blank line after each top-level entry in a struct for readability
 	}
 }
 
 func getYAMLPlaceholderForType(goType string) string {
-	if strings.HasPrefix(goType, "[]") { // Slice
-		return "[] # Empty list or no default"
-	}
-	switch goType {
-	case "string":
-		return `""`
-	case "int", "int64", "int32", "uint", "uint64", "uint32":
+	switch {
+	case strings.HasPrefix(goType, "[]string"):
+		return "[item1, item2]"
+	case strings.HasPrefix(goType, "[]"): // Generic slice
+		return "[]"
+	case strings.HasPrefix(goType, "map["):
+		return "{key: value}"
+	case goType == "string":
+		return "\"\""
+	case goType == "int", goType == "int64", goType == "float64":
 		return "0"
-	case "bool":
+	case goType == "bool":
 		return "false"
-	case "map[string]string", "map[string]interface{}": // Basic map types
-		return "{} # Empty map or no default"
 	default:
-		// For unknown or complex struct types not handled as nested.
-		// Check if it's a known config struct type (should have been handled by nestedConfigInfo)
-		// If not, it's likely a type we don't have specific YAML for.
-		return "null # Check type and provide appropriate default"
+		return "# <" + goType + ">"
 	}
 }
 
 func formatSimpleValueToYAML(value, goType string) string {
-	if value == "<nil>" { // Handle explicit nil from reflection
-		return "null"
-	}
+	// If it's a string, ensure it's quoted if it contains special chars or is empty
 	if goType == "string" {
-		// Ensure strings are quoted, unless they are already clearly a YAML string that doesn't need quotes
-		// (e.g. simple alphanumeric, or already quoted). This is a simplification.
-		if _, err := strconv.ParseFloat(value, 64); err != nil && value != "true" && value != "false" && value != "null" {
-			if !(strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) &&
-				!(strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) {
-				return fmt.Sprintf(`"%s"`, strings.ReplaceAll(value, `"`, `\"`))
-			}
+		if value == "" {
+			return "\"\"" // Explicitly empty string
 		}
-		return value // Return as is if it looks like a number, bool, null, or already quoted
+		// Always quote non-empty strings to handle all special characters correctly for YAML.
+		return strconv.Quote(value)
 	}
-	// For non-string simple types, assume DefaultValue is already a good representation
+	if value == "[]" && strings.HasPrefix(goType, "[]") { // Empty slice from default
+		return "[]"
+	}
+	// For non-string types (numbers, booleans), the default fmt.Sprintf("%v") representation is usually fine for YAML.
 	return value
 }
 
-// collectEnvVarFields flattens all fields that have an environment variable name.
-// This helps in case fields are defined across multiple ParsedConfig structs but should be in one table.
+// collectEnvVarFields gathers all fields that have an EnvName, from all ParsedConfig structs.
 func collectEnvVarFields(parsedConfigs []ParsedConfig) []ConfigField {
 	var allFields []ConfigField
-	seenEnvVars := make(map[string]bool) // To avoid duplicates if somehow an env var is on multiple fields
+	seenEnvVars := make(map[string]bool) // To avoid duplicates if structs are processed multiple times or nested weirdly
 
-	// It's better to iterate based on the main config structure to get a somewhat logical order
-	// For now, a simple iteration. Order might need refinement.
-	for _, pc := range parsedConfigs {
+	// Process top-level "Config" first if available, then others.
+	// This helps in establishing a somewhat predictable order if paths were involved.
+	// With the current flat list from reflection, order of parsedConfigs matters less here.
+
+	sortedParsedConfigs := make([]ParsedConfig, len(parsedConfigs))
+	copy(sortedParsedConfigs, parsedConfigs)
+	sort.Slice(sortedParsedConfigs, func(i, j int) bool {
+		if sortedParsedConfigs[i].IsTopLevel {
+			return true
+		}
+		if sortedParsedConfigs[j].IsTopLevel {
+			return false
+		}
+		return sortedParsedConfigs[i].Name < sortedParsedConfigs[j].Name
+	})
+
+	for _, pc := range sortedParsedConfigs {
 		for _, field := range pc.Fields {
 			if field.EnvName != "" && !seenEnvVars[field.EnvName] {
 				allFields = append(allFields, field)
@@ -687,7 +642,7 @@ func collectEnvVarFields(parsedConfigs []ParsedConfig) []ConfigField {
 			}
 		}
 	}
-	// Sort fields alphabetically by EnvName for consistent output
+	// Sort by EnvName for consistent table output
 	sort.Slice(allFields, func(i, j int) bool {
 		return allFields[i].EnvName < allFields[j].EnvName
 	})
@@ -695,14 +650,17 @@ func collectEnvVarFields(parsedConfigs []ParsedConfig) []ConfigField {
 }
 
 func formatRequiredText(reqStatus string) string {
-	switch reqStatus {
-	case "Y":
+	switch strings.ToUpper(reqStatus) {
+	case "Y", "TRUE":
 		return "Yes"
-	case "N":
+	case "N", "FALSE":
 		return "No"
 	case "C":
-		return "Conditional (see description)"
+		return "Conditional"
 	default:
-		return reqStatus // Or "Unknown"
+		if reqStatus != "" {
+			return reqStatus // Show as is if not recognized
+		}
+		return "No" // Default to No if empty
 	}
 }
