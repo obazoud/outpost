@@ -15,9 +15,10 @@ type MQConfigAdapter interface {
 }
 
 type MQsConfig struct {
-	AWSSQS    AWSSQSConfig    `yaml:"aws_sqs" desc:"Configuration for using AWS SQS as the message queue. Only one MQ provider should be configured." required:"N"`
-	GCPPubSub GCPPubSubConfig `yaml:"gcp_pubsub" desc:"Configuration for using GCP Pub/Sub as the message queue. Only one MQ provider should be configured." required:"N"`
-	RabbitMQ  RabbitMQConfig  `yaml:"rabbitmq" desc:"Configuration for using RabbitMQ as the message queue. Only one MQ provider should be configured." required:"N"`
+	AWSSQS          AWSSQSConfig          `yaml:"aws_sqs" desc:"Configuration for using AWS SQS as the message queue. Only one MQ provider should be configured." required:"N"`
+	AzureServiceBus AzureServiceBusConfig `yaml:"azure_servicebus" desc:"Configuration for using Azure Service Bus as the message queue. Only one MQ provider should be configured." required:"N"`
+	GCPPubSub       GCPPubSubConfig       `yaml:"gcp_pubsub" desc:"Configuration for using GCP Pub/Sub as the message queue. Only one MQ provider should be configured." required:"N"`
+	RabbitMQ        RabbitMQConfig        `yaml:"rabbitmq" desc:"Configuration for using RabbitMQ as the message queue. Only one MQ provider should be configured." required:"N"`
 
 	adapter MQConfigAdapter
 }
@@ -29,6 +30,8 @@ func (c *MQsConfig) init() {
 
 	if c.AWSSQS.IsConfigured() {
 		c.adapter = &c.AWSSQS
+	} else if c.AzureServiceBus.IsConfigured() {
+		c.adapter = &c.AzureServiceBus
 	} else if c.GCPPubSub.IsConfigured() {
 		c.adapter = &c.GCPPubSub
 	} else if c.RabbitMQ.IsConfigured() {

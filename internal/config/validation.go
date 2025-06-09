@@ -94,7 +94,7 @@ func (c *Config) validateLogStorage() error {
 // validateMQs validates the MQs configuration
 func (c *Config) validateMQs() error {
 	ctx := context.Background()
-	
+
 	// Check delivery queue
 	deliveryConfig, err := c.MQs.ToQueueConfig(ctx, "deliverymq")
 	if err != nil {

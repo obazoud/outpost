@@ -138,6 +138,12 @@ func (c *Config) InitDefaults() {
 			LogTopic:             "outpost-log",
 			LogSubscription:      "outpost-log-sub",
 		},
+		AzureServiceBus: AzureServiceBusConfig{
+			DeliveryTopic:        "outpost-delivery",
+			DeliverySubscription: "outpost-delivery-sub",
+			LogTopic:             "outpost-log",
+			LogSubscription:      "outpost-log-sub",
+		},
 	}
 	c.PublishMaxConcurrency = 1
 	c.DeliveryMaxConcurrency = 1

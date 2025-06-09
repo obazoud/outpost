@@ -12,6 +12,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+type GCPPubSubConfig struct {
+	ProjectID                 string
+	TopicID                   string
+	SubscriptionID            string
+	ServiceAccountCredentials string // JSON key file content
+}
+
 type GCPPubSubQueue struct {
 	once       *sync.Once
 	base       *wrappedBaseQueue

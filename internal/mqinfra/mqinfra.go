@@ -83,18 +83,6 @@ func (infra *infraInvalid) TearDown(ctx context.Context) error {
 	return ErrInvalidConfig
 }
 
-type infraAzureServiceBus struct {
-	cfg *MQInfraConfig
-}
-
-func (infra *infraAzureServiceBus) Declare(ctx context.Context) error {
-	return ErrInfraUnimplemented
-}
-
-func (infra *infraAzureServiceBus) TearDown(ctx context.Context) error {
-	return ErrInfraUnimplemented
-}
-
 var (
 	ErrInvalidConfig      = fmt.Errorf("invalid config")
 	ErrInfraUnimplemented = fmt.Errorf("unimplemented infra")

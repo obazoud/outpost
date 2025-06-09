@@ -308,3 +308,77 @@ func TestIntegrationMQInfra_GCPPubSub(t *testing.T) {
 		},
 	)
 }
+
+func TestIntegrationMQInfra_AzureServiceBus(t *testing.T) {
+	t.Skip("skip AzureServiceBus integration test for now since there's no emulator yet")
+
+	topic := uuid.New().String()
+	subscription := topic + "-subscription"
+
+	const (
+		tenantID       = ""
+		clientID       = ""
+		clientSecret   = ""
+		subscriptionID = ""
+		resourceGroup  = ""
+		namespace      = ""
+	)
+
+	testMQInfra(t,
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				AzureServiceBus: &mqinfra.AzureServiceBusInfraConfig{
+					TenantID:       tenantID,
+					ClientID:       clientID,
+					ClientSecret:   clientSecret,
+					SubscriptionID: subscriptionID,
+					ResourceGroup:  resourceGroup,
+					Namespace:      namespace,
+					Topic:          topic,
+					Subscription:   subscription,
+				},
+				Policy: mqinfra.Policy{
+					RetryLimit:        retryLimit,
+					VisibilityTimeout: 10,
+				},
+			},
+			mq: mqs.QueueConfig{
+				AzureServiceBus: &mqs.AzureServiceBusConfig{
+					TenantID:       tenantID,
+					ClientID:       clientID,
+					ClientSecret:   clientSecret,
+					SubscriptionID: subscriptionID,
+					ResourceGroup:  resourceGroup,
+					Namespace:      namespace,
+					Topic:          topic,
+					Subscription:   subscription,
+				},
+			},
+		},
+		&Config{
+			infra: mqinfra.MQInfraConfig{
+				AzureServiceBus: &mqinfra.AzureServiceBusInfraConfig{
+					TenantID:       tenantID,
+					ClientID:       clientID,
+					ClientSecret:   clientSecret,
+					SubscriptionID: subscriptionID,
+					ResourceGroup:  resourceGroup,
+					Namespace:      namespace,
+					Topic:          topic,        // Same topic as main queue
+					Subscription:   subscription, // Same subscription as main queue
+				}},
+			mq: mqs.QueueConfig{
+				AzureServiceBus: &mqs.AzureServiceBusConfig{
+					TenantID:       tenantID,
+					ClientID:       clientID,
+					ClientSecret:   clientSecret,
+					SubscriptionID: subscriptionID,
+					ResourceGroup:  resourceGroup,
+					Namespace:      namespace,
+					Topic:          topic,        // Same topic as main queue
+					Subscription:   subscription, // Same subscription as main queue
+					DLQ:            true,         // Enable DLQ mode
+				}},
+		},
+	)
+}
