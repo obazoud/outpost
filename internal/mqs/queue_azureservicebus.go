@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
@@ -93,7 +94,9 @@ func (q *AzureServiceBusQueue) Subscribe(ctx context.Context) (Subscription, err
 		return nil, err
 	}
 
-	subscription, err := azuresb.OpenSubscription(ctx, q.client, receiver, nil)
+	subscription, err := azuresb.OpenSubscription(ctx, q.client, receiver, &azuresb.SubscriptionOptions{
+		ListenerTimeout: 10 * time.Second, // Increased for cross-region scenarios
+	})
 	if err != nil {
 		return nil, err
 	}
