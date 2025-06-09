@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/servicebus/armservicebus"
@@ -12,21 +11,21 @@ import (
 )
 
 type AzureServiceBusConfig struct {
-	TenantID       string `yaml:"tenant_id" desc:"Azure Active Directory tenant ID" required:"Y"`
-	ClientID       string `yaml:"client_id" desc:"Service principal client ID" required:"Y"`
-	ClientSecret   string `yaml:"client_secret" desc:"Service principal client secret" required:"Y"`
-	SubscriptionID string `yaml:"subscription_id" desc:"Azure subscription ID" required:"Y"`
-	ResourceGroup  string `yaml:"resource_group" desc:"Azure resource group name" required:"Y"`
-	Namespace      string `yaml:"namespace" desc:"Azure Service Bus namespace" required:"Y"`
+	TenantID       string `yaml:"tenant_id" env:"AZURE_SERVICEBUS_TENANT_ID" desc:"Azure Active Directory tenant ID" required:"Y"`
+	ClientID       string `yaml:"client_id" env:"AZURE_SERVICEBUS_CLIENT_ID" desc:"Service principal client ID" required:"Y"`
+	ClientSecret   string `yaml:"client_secret" env:"AZURE_SERVICEBUS_CLIENT_SECRET" desc:"Service principal client secret" required:"Y"`
+	SubscriptionID string `yaml:"subscription_id" env:"AZURE_SERVICEBUS_SUBSCRIPTION_ID" desc:"Azure subscription ID" required:"Y"`
+	ResourceGroup  string `yaml:"resource_group" env:"AZURE_SERVICEBUS_RESOURCE_GROUP" desc:"Azure resource group name" required:"Y"`
+	Namespace      string `yaml:"namespace" env:"AZURE_SERVICEBUS_NAMESPACE" desc:"Azure Service Bus namespace" required:"Y"`
 
-	DeliveryTopic        string `yaml:"delivery_topic" desc:"Topic name for delivery queue" required:"N" default:"outpost-delivery"`
-	DeliverySubscription string `yaml:"delivery_subscription" desc:"Subscription name for delivery queue" required:"N" default:"outpost-delivery-subscription"`
-	LogTopic             string `yaml:"log_topic" desc:"Topic name for log queue" required:"N" default:"outpost-log"`
-	LogSubscription      string `yaml:"log_subscription" desc:"Subscription name for log queue" required:"N" default:"outpost-log-subscription"`
+	DeliveryTopic        string `yaml:"delivery_topic" env:"AZURE_SERVICEBUS_DELIVERY_TOPIC" desc:"Topic name for delivery queue" required:"N" default:"outpost-delivery"`
+	DeliverySubscription string `yaml:"delivery_subscription" env:"AZURE_SERVICEBUS_DELIVERY_SUBSCRIPTION" desc:"Subscription name for delivery queue" required:"N" default:"outpost-delivery-subscription"`
+	LogTopic             string `yaml:"log_topic" env:"AZURE_SERVICEBUS_LOG_TOPIC" desc:"Topic name for log queue" required:"N" default:"outpost-log"`
+	LogSubscription      string `yaml:"log_subscription" env:"AZURE_SERVICEBUS_LOG_SUBSCRIPTION" desc:"Subscription name for log queue" required:"N" default:"outpost-log-subscription"`
 
-	connectionStringOnce  sync.Once
-	connectionString      string
-	connectionStringError error
+	// connectionStringOnce  sync.Once
+	// connectionString      string
+	// connectionStringError error
 }
 
 func (c *AzureServiceBusConfig) IsConfigured() bool {
