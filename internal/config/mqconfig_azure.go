@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/servicebus/armservicebus"
@@ -23,9 +24,9 @@ type AzureServiceBusConfig struct {
 	LogTopic             string `yaml:"log_topic" env:"AZURE_SERVICEBUS_LOG_TOPIC" desc:"Topic name for log queue" required:"N" default:"outpost-log"`
 	LogSubscription      string `yaml:"log_subscription" env:"AZURE_SERVICEBUS_LOG_SUBSCRIPTION" desc:"Subscription name for log queue" required:"N" default:"outpost-log-subscription"`
 
-	// connectionStringOnce  sync.Once
-	// connectionString      string
-	// connectionStringError error
+	connectionStringOnce  sync.Once
+	connectionString      string
+	connectionStringError error
 }
 
 func (c *AzureServiceBusConfig) IsConfigured() bool {
