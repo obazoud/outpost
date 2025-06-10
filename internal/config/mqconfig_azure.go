@@ -2,11 +2,7 @@ package config
 
 import (
 	"context"
-	"fmt"
-	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/servicebus/armservicebus"
 	"github.com/hookdeck/outpost/internal/mqinfra"
 	"github.com/hookdeck/outpost/internal/mqs"
 )
@@ -24,9 +20,9 @@ type AzureServiceBusConfig struct {
 	LogTopic             string `yaml:"log_topic" env:"AZURE_SERVICEBUS_LOG_TOPIC" desc:"Topic name for log queue" required:"N" default:"outpost-log"`
 	LogSubscription      string `yaml:"log_subscription" env:"AZURE_SERVICEBUS_LOG_SUBSCRIPTION" desc:"Subscription name for log queue" required:"N" default:"outpost-log-subscription"`
 
-	connectionStringOnce  sync.Once
-	connectionString      string
-	connectionStringError error
+	// connectionStringOnce  sync.Once
+	// connectionString      string
+	// connectionStringError error
 }
 
 func (c *AzureServiceBusConfig) IsConfigured() bool {
@@ -86,11 +82,6 @@ func (c *AzureServiceBusConfig) ToQueueConfig(ctx context.Context, queueType str
 		return nil, nil
 	}
 
-	// connectionString, err := c.getConnectionString(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	topic := c.getTopicByQueueType(queueType)
 	subscription := c.getSubscriptionByQueueType(queueType)
 
@@ -108,38 +99,44 @@ func (c *AzureServiceBusConfig) ToQueueConfig(ctx context.Context, queueType str
 	}, nil
 }
 
-func (c *AzureServiceBusConfig) getConnectionString(ctx context.Context) (string, error) {
-	c.connectionStringOnce.Do(func() {
-		cred, err := azidentity.NewClientSecretCredential(
-			c.TenantID,
-			c.ClientID,
-			c.ClientSecret,
-			nil,
-		)
-		if err != nil {
-			c.connectionStringError = fmt.Errorf("failed to create credential: %w", err)
-			return
-		}
+// getConnectionString fetches the namespace's primary connection string using ARM API.
+// This method is not currently used because we've adopted direct Service Principal authentication.
+//
+// Permission requirements:
+// - Connection string: Requires management plane access (e.g., "Contributor" role) to list namespace keys
+// - Direct auth: Requires only data plane access ("Azure Service Bus Data Owner" role)
+// func (c *AzureServiceBusConfig) getConnectionString(ctx context.Context) (string, error) {
+// 	c.connectionStringOnce.Do(func() {
+// 		cred, err := azidentity.NewClientSecretCredential(
+// 			c.TenantID,
+// 			c.ClientID,
+// 			c.ClientSecret,
+// 			nil,
+// 		)
+// 		if err != nil {
+// 			c.connectionStringError = fmt.Errorf("failed to create credential: %w", err)
+// 			return
+// 		}
 
-		sbClient, err := armservicebus.NewNamespacesClient(c.SubscriptionID, cred, nil)
-		if err != nil {
-			c.connectionStringError = fmt.Errorf("failed to create servicebus client: %w", err)
-			return
-		}
+// 		sbClient, err := armservicebus.NewNamespacesClient(c.SubscriptionID, cred, nil)
+// 		if err != nil {
+// 			c.connectionStringError = fmt.Errorf("failed to create servicebus client: %w", err)
+// 			return
+// 		}
 
-		keysResp, err := sbClient.ListKeys(ctx, c.ResourceGroup, c.Namespace, "RootManageSharedAccessKey", nil)
-		if err != nil {
-			c.connectionStringError = fmt.Errorf("failed to get keys: %w", err)
-			return
-		}
+// 		keysResp, err := sbClient.ListKeys(ctx, c.ResourceGroup, c.Namespace, "RootManageSharedAccessKey", nil)
+// 		if err != nil {
+// 			c.connectionStringError = fmt.Errorf("failed to get keys: %w", err)
+// 			return
+// 		}
 
-		if keysResp.PrimaryConnectionString == nil {
-			c.connectionStringError = fmt.Errorf("no connection string found")
-			return
-		}
+// 		if keysResp.PrimaryConnectionString == nil {
+// 			c.connectionStringError = fmt.Errorf("no connection string found")
+// 			return
+// 		}
 
-		c.connectionString = *keysResp.PrimaryConnectionString
-	})
+// 		c.connectionString = *keysResp.PrimaryConnectionString
+// 	})
 
-	return c.connectionString, c.connectionStringError
-}
+// 	return c.connectionString, c.connectionStringError
+// }
