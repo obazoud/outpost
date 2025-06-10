@@ -167,3 +167,12 @@ AZURE_SERVICEBUS_TENANT_ID="<TENANT_ID>"
 ```
 
 This configuration allows Outpost to connect to your Azure Service Bus namespace and manage topics and subscriptions for internal message queuing.
+
+## Troubleshooting
+
+### failed to declare topic: failed to create topic outpost-delivery
+
+This error can happen due to a race condition of multiple Outpost instances trying to create the same topic concurrently. To resolve this you can either:
+
+1. Run the services one at a time to ensure only one instance is creating the topic.
+2. Running the services again often resolves the issue as the topic may have been created by another instance.
