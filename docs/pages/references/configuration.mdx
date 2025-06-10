@@ -30,6 +30,16 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `AWS_SQS_LOG_QUEUE` | Name of the SQS queue for log events. | `outpost-log` | No |
 | `AWS_SQS_REGION` | AWS Region for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional |
 | `AWS_SQS_SECRET_ACCESS_KEY` | AWS Secret Access Key for SQS. Required if AWS SQS is the chosen MQ provider. | `nil` | Conditional |
+| `AZURE_SERVICEBUS_CLIENT_ID` | Service principal client ID | `nil` | Yes |
+| `AZURE_SERVICEBUS_CLIENT_SECRET` | Service principal client secret | `nil` | Yes |
+| `AZURE_SERVICEBUS_DELIVERY_SUBSCRIPTION` | Subscription name for delivery queue | `outpost-delivery-sub` | No |
+| `AZURE_SERVICEBUS_DELIVERY_TOPIC` | Topic name for delivery queue | `outpost-delivery` | No |
+| `AZURE_SERVICEBUS_LOG_SUBSCRIPTION` | Subscription name for log queue | `outpost-log-sub` | No |
+| `AZURE_SERVICEBUS_LOG_TOPIC` | Topic name for log queue | `outpost-log` | No |
+| `AZURE_SERVICEBUS_NAMESPACE` | Azure Service Bus namespace | `nil` | Yes |
+| `AZURE_SERVICEBUS_RESOURCE_GROUP` | Azure resource group name | `nil` | Yes |
+| `AZURE_SERVICEBUS_SUBSCRIPTION_ID` | Azure subscription ID | `nil` | Yes |
+| `AZURE_SERVICEBUS_TENANT_ID` | Azure Active Directory tenant ID | `nil` | Yes |
 | `CLICKHOUSE_ADDR` | Address (host:port) of the ClickHouse server. Example: 'localhost:9000'. Required if ClickHouse is used for log storage. | `nil` | Conditional |
 | `CLICKHOUSE_DATABASE` | Database name in ClickHouse to use. | `outpost` | No |
 | `CLICKHOUSE_PASSWORD` | Password for ClickHouse authentication. | `nil` | No |
@@ -230,7 +240,7 @@ log_level: "info"
 log_max_concurrency: 1
 
 mqs:
-  # Configuration for using AWS SQS as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
+  # Configuration for using AWS SQS as the message queue. Only one MQ provider should be configured.
   aws_sqs:
     # AWS Access Key ID for SQS. Required if AWS SQS is the chosen MQ provider.
     # Required: C
@@ -254,7 +264,46 @@ mqs:
     secret_access_key: ""
 
 
-  # Configuration for using GCP Pub/Sub as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
+  # Configuration for using Azure Service Bus as the message queue. Only one MQ provider should be configured.
+  azure_servicebus:
+    # Service principal client ID
+    # Required: Y
+    client_id: ""
+
+    # Service principal client secret
+    # Required: Y
+    client_secret: ""
+
+    # Subscription name for delivery queue
+    delivery_subscription: "outpost-delivery-sub"
+
+    # Topic name for delivery queue
+    delivery_topic: "outpost-delivery"
+
+    # Subscription name for log queue
+    log_subscription: "outpost-log-sub"
+
+    # Topic name for log queue
+    log_topic: "outpost-log"
+
+    # Azure Service Bus namespace
+    # Required: Y
+    namespace: ""
+
+    # Azure resource group name
+    # Required: Y
+    resource_group: ""
+
+    # Azure subscription ID
+    # Required: Y
+    subscription_id: ""
+
+    # Azure Active Directory tenant ID
+    # Required: Y
+    tenant_id: ""
+
+
+  # Configuration for using GCP Pub/Sub as the message queue. Only one MQ provider should be configured.
   gcp_pubsub:
     # Name of the GCP Pub/Sub subscription for delivery events.
     delivery_subscription: "outpost-delivery-sub"
@@ -277,7 +326,7 @@ mqs:
     service_account_credentials: ""
 
 
-  # Configuration for using RabbitMQ as the message queue. Only one MQ provider (AWSSQS, GCPPubSub, RabbitMQ) should be configured.
+  # Configuration for using RabbitMQ as the message queue. Only one MQ provider should be configured.
   rabbitmq:
     # Name of the RabbitMQ queue for delivery events.
     delivery_queue: "outpost-delivery"
