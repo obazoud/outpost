@@ -199,7 +199,7 @@ func TestMQs(t *testing.T) {
 			name: "missing mqs config",
 			config: func() *config.Config {
 				c := validConfig()
-				c.MQs = config.MQsConfig{}
+				c.MQs = &config.MQsConfig{}
 				return c
 			}(),
 			wantErr: config.ErrMissingMQs,

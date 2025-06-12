@@ -56,7 +56,11 @@ func NewService(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, log
 		return nil, err
 	}
 
-	deliveryMQ := deliverymq.New(deliverymq.WithQueue(cfg.MQs.GetDeliveryQueueConfig()))
+	deliveryQueueConfig, err := cfg.MQs.ToQueueConfig(ctx, "deliverymq")
+	if err != nil {
+		return nil, err
+	}
+	deliveryMQ := deliverymq.New(deliverymq.WithQueue(deliveryQueueConfig))
 	cleanupDeliveryMQ, err := deliveryMQ.Init(ctx)
 	if err != nil {
 		return nil, err

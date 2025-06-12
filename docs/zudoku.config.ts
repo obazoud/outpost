@@ -128,6 +128,11 @@ const config: ZudokuConfig = {
         items: [
           {
             type: "doc",
+            label: "Deployment",
+            id: "guides/deployment",
+          },
+          {
+            type: "doc",
             label: "Migrate to Outpost",
             id: "guides/migrate-to-outpost",
           },
@@ -148,8 +153,8 @@ const config: ZudokuConfig = {
           },
           {
             type: "doc",
-            label: "Deployment",
-            id: "guides/deployment",
+            label: "Using Azure Service Bus as an Internal MQ",
+            id: "guides/service-bus-internal-mq",
           },
           {
             type: "doc",

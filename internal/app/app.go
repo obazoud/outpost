@@ -54,8 +54,8 @@ func run(mainContext context.Context, cfg *config.Config) error {
 	}
 
 	if err := infra.Declare(mainContext, infra.Config{
-		DeliveryMQ: cfg.MQs.GetDeliveryQueueConfig(),
-		LogMQ:      cfg.MQs.GetLogQueueConfig(),
+		DeliveryMQ: cfg.MQs.ToInfraConfig("deliverymq"),
+		LogMQ:      cfg.MQs.ToInfraConfig("logmq"),
 	}); err != nil {
 		return err
 	}

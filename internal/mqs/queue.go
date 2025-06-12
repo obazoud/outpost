@@ -11,6 +11,18 @@ import (
 	_ "gocloud.dev/pubsub/mempubsub"
 )
 
+type QueueConfig struct {
+	AWSSQS          *AWSSQSConfig
+	AzureServiceBus *AzureServiceBusConfig
+	GCPPubSub       *GCPPubSubConfig
+	RabbitMQ        *RabbitMQConfig
+	InMemory        *InMemoryConfig // mainly for testing purposes
+}
+
+type InMemoryConfig struct {
+	Name string
+}
+
 type Queue interface {
 	Init(ctx context.Context) (func(), error)
 	Publish(ctx context.Context, msg IncomingMessage) error
@@ -45,7 +57,7 @@ func NewQueue(config *QueueConfig) Queue {
 	if config.AWSSQS != nil {
 		return NewAWSQueue(config.AWSSQS)
 	} else if config.AzureServiceBus != nil {
-		return &UnimplementedQueue{}
+		return NewAzureServiceBusQueue(config.AzureServiceBus)
 	} else if config.GCPPubSub != nil {
 		return NewGCPPubSubQueue(config.GCPPubSub)
 	} else if config.RabbitMQ != nil {

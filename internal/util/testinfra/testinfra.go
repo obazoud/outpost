@@ -88,8 +88,13 @@ func Start(t *testing.T) func() {
 	return func() {
 		suiteCounter -= 1
 		if suiteCounter == 0 {
-			for _, fn := range cfg.cleanupFns {
-				fn()
+			// Ensure cfg is initialized and not nil before accessing cleanupFns
+			if cfg != nil && cfg.cleanupFns != nil {
+				for _, fn := range cfg.cleanupFns {
+					if fn != nil {
+						fn()
+					}
+				}
 			}
 		}
 	}

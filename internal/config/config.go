@@ -62,7 +62,7 @@ type Config struct {
 	Redis       RedisConfig      `yaml:"redis"`
 	ClickHouse  ClickHouseConfig `yaml:"clickhouse"`
 	PostgresURL string           `yaml:"postgres" env:"POSTGRES_URL" desc:"Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed." required:"C"`
-	MQs         MQsConfig        `yaml:"mqs"`
+	MQs         *MQsConfig       `yaml:"mqs"`
 
 	// PublishMQ
 	PublishMQ PublishMQConfig `yaml:"publishmq"`
@@ -122,7 +122,7 @@ func (c *Config) InitDefaults() {
 	c.ClickHouse = ClickHouseConfig{
 		Database: "outpost",
 	}
-	c.MQs = MQsConfig{
+	c.MQs = &MQsConfig{
 		RabbitMQ: RabbitMQConfig{
 			Exchange:      "outpost",
 			DeliveryQueue: "outpost-delivery",
@@ -133,6 +133,12 @@ func (c *Config) InitDefaults() {
 			LogQueue:      "outpost-log",
 		},
 		GCPPubSub: GCPPubSubConfig{
+			DeliveryTopic:        "outpost-delivery",
+			DeliverySubscription: "outpost-delivery-sub",
+			LogTopic:             "outpost-log",
+			LogSubscription:      "outpost-log-sub",
+		},
+		AzureServiceBus: AzureServiceBusConfig{
 			DeliveryTopic:        "outpost-delivery",
 			DeliverySubscription: "outpost-delivery-sub",
 			LogTopic:             "outpost-log",

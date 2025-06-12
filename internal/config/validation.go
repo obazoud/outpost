@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 )
@@ -92,13 +93,23 @@ func (c *Config) validateLogStorage() error {
 
 // validateMQs validates the MQs configuration
 func (c *Config) validateMQs() error {
+	ctx := context.Background()
+
 	// Check delivery queue
-	if c.MQs.GetDeliveryQueueConfig() == nil {
+	deliveryConfig, err := c.MQs.ToQueueConfig(ctx, "deliverymq")
+	if err != nil {
+		return fmt.Errorf("failed to validate delivery queue config: %w", err)
+	}
+	if deliveryConfig == nil {
 		return ErrMissingMQs
 	}
 
 	// Check log queue
-	if c.MQs.GetLogQueueConfig() == nil {
+	logConfig, err := c.MQs.ToQueueConfig(ctx, "logmq")
+	if err != nil {
+		return fmt.Errorf("failed to validate log queue config: %w", err)
+	}
+	if logConfig == nil {
 		return ErrMissingMQs
 	}
 

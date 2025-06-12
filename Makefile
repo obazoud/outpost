@@ -65,6 +65,9 @@ test/coverage:
 test/coverage/html:
 	go tool cover -html=coverage.out
 
+docs/generate/config:
+	go run cmd/configdocsgen/main.go
+
 network:
 	docker network create outpost
 

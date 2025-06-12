@@ -34,17 +34,46 @@ func TestIntegrationMQ_RabbitMQ(t *testing.T) {
 	testMQ(t, func() mqs.QueueConfig { return config })
 }
 
-func TestIntegrationMQ_AWS(t *testing.T) {
+func TestIntegrationMQ_AWSSQS(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(testinfra.Start(t))
 	config := testinfra.NewMQAWSConfig(t, nil)
 	testMQ(t, func() mqs.QueueConfig { return config })
 }
 
-func TestIntegrationMQ_GCP(t *testing.T) {
+func TestIntegrationMQ_GCPPubSub(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(testinfra.Start(t))
 	config := testinfra.NewMQGCPConfig(t, nil)
+	testMQ(t, func() mqs.QueueConfig { return config })
+}
+
+func TestIntegrationMQ_AzureServiceBus(t *testing.T) {
+	t.Skip("skip AzureServiceBus integration test for now since there's no emulator yet")
+
+	t.Parallel()
+	t.Cleanup(testinfra.Start(t))
+	// config := testinfra.NewMQAzureServiceBusConfig(t, nil)
+
+	// config := mqs.QueueConfig{
+	// 	AzureServiceBus: &mqs.AzureServiceBusConfig{
+	// 		ConnectionString: "",
+	// 		Topic:            "test-topic",
+	// 		Subscription:     "test-subscription",
+	// 	},
+	// }
+	config := mqs.QueueConfig{
+		AzureServiceBus: &mqs.AzureServiceBusConfig{
+			TenantID:       "",
+			ClientID:       "",
+			ClientSecret:   "",
+			SubscriptionID: "",
+			ResourceGroup:  "",
+			Namespace:      "",
+			Topic:          "test-topic",
+			Subscription:   "test-subscription",
+		},
+	}
 	testMQ(t, func() mqs.QueueConfig { return config })
 }
 
