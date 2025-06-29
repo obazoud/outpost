@@ -1,0 +1,56 @@
+{
+  "type": "aws_s3",
+  "label": "AWS S3",
+  "description": "Store events in an Amazon S3 bucket",
+  "link": "https://aws.amazon.com/s3/",
+  "config_fields": [
+    {
+      "key": "bucket",
+      "type": "text",
+      "label": "Bucket Name",
+      "description": "The name of your AWS S3 bucket",
+      "required": true
+    },
+    {
+      "key": "region",
+      "type": "text",
+      "label": "AWS Region",
+      "description": "The AWS region where your bucket is located",
+      "required": true,
+      "pattern": "^[a-z]{2}-[a-z]+-[0-9]+$"
+    },
+    {
+      "key": "prefix",
+      "type": "text",
+      "label": "Object Prefix",
+      "description": "Optional prefix to prepend to object keys",
+      "required": false
+    }
+  ],
+  "credential_fields": [
+    {
+      "key": "key",
+      "type": "text",
+      "label": "Access Key ID",
+      "description": "AWS Access Key ID",
+      "required": true,
+      "sensitive": true
+    },
+    {
+      "key": "secret",
+      "type": "text",
+      "label": "Secret Access Key",
+      "description": "AWS Secret Access Key",
+      "required": true,
+      "sensitive": true
+    },
+    {
+      "key": "session",
+      "type": "text",
+      "label": "Session Token",
+      "description": "AWS Session Token (optional)",
+      "required": false,
+      "sensitive": true
+    }
+  ]
+}
