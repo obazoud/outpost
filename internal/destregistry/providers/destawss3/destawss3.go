@@ -3,15 +3,18 @@ package destawss3
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	awssdk "github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	awscreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
 	"github.com/hookdeck/outpost/internal/models"
@@ -19,9 +22,13 @@ import (
 
 // Config for S3 destination
 type AWSS3Config struct {
-	Bucket string
-	Region string
-	Prefix string
+	Bucket           string
+	Region           string
+	KeyPrefix        string
+	KeySuffix        string
+	IncludeTimestamp bool
+	IncludeEventID   bool
+	StorageClass     string
 }
 
 // Credentials for S3
@@ -73,12 +80,15 @@ func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models
 
 	client := s3.NewFromConfig(sdkConfig)
 
-	return &AWSS3Publisher{
-		BasePublisher: &destregistry.BasePublisher{},
-		client:        client,
-		bucket:        cfg.Bucket,
-		prefix:        cfg.Prefix,
-	}, nil
+	return NewAWSS3Publisher(
+		client,
+		cfg.Bucket,
+		cfg.KeyPrefix,
+		cfg.KeySuffix,
+		cfg.StorageClass,
+		cfg.IncludeTimestamp,
+		cfg.IncludeEventID,
+	), nil
 }
 
 func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.Destination) (*AWSS3Config, *AWSS3Credentials, error) {
@@ -86,10 +96,31 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 		return nil, nil, err
 	}
 
+	includeTimestamp := true
+	if tsStr, ok := destination.Config["include_timestamp"]; ok {
+		includeTimestamp = tsStr == "true" || tsStr == "on"
+	}
+
+	includeEventID := true
+	if eidStr, ok := destination.Config["include_event_id"]; ok {
+		includeEventID = eidStr == "true" || eidStr == "on"
+	}
+
+	sc := destination.Config["storage_class"]
+
+	_, err := parseStorageClass(sc)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid storage class %q: %w", sc, err)
+	}
+
 	return &AWSS3Config{
-			Bucket: destination.Config["bucket"],
-			Region: destination.Config["region"],
-			Prefix: destination.Config["prefix"],
+			Bucket:           destination.Config["bucket"],
+			Region:           destination.Config["region"],
+			KeyPrefix:        destination.Config["key_prefix"],
+			KeySuffix:        destination.Config["key_suffix"],
+			StorageClass:     sc,
+			IncludeTimestamp: includeTimestamp,
+			IncludeEventID:   includeEventID,
 		}, &AWSS3Credentials{
 			Key:     destination.Credentials["key"],
 			Secret:  destination.Credentials["secret"],
@@ -110,9 +141,13 @@ func (p *AWSS3Provider) ComputeTarget(destination *models.Destination) destregis
 
 type AWSS3Publisher struct {
 	*destregistry.BasePublisher
-	client *s3.Client
-	bucket string
-	prefix string
+	client           *s3.Client
+	bucket           string
+	keyPrefix        string
+	keySuffix        string
+	includeTimestamp bool
+	includeEventID   bool
+	storageClass     string
 }
 
 func (p *AWSS3Publisher) Close() error {
@@ -120,23 +155,92 @@ func (p *AWSS3Publisher) Close() error {
 	return nil
 }
 
-func (p *AWSS3Publisher) Format(ctx context.Context, event *models.Event) (*s3.PutObjectInput, error) {
-	payload := map[string]interface{}{
-		"metadata": p.BasePublisher.MakeMetadata(event, time.Now()),
-		"data":     event.Data,
+func (p *AWSS3Publisher) makeKey(event *models.Event) (string, error) {
+	sb := &strings.Builder{}
+
+	if len(p.keyPrefix) > 0 {
+		if _, err := sb.WriteString(p.keyPrefix); err != nil {
+			return "", fmt.Errorf("failed to append key prefix: %w", err)
+		}
 	}
 
-	data, err := json.Marshal(payload)
+	if p.includeTimestamp {
+		if _, err := sb.WriteString(event.Time.UTC().Format(time.RFC3339Nano)); err != nil {
+			return "", fmt.Errorf("failed to append timestamp: %w", err)
+		}
+
+		if p.includeEventID {
+			if _, err := sb.WriteString("_"); err != nil {
+				return "", fmt.Errorf("failed to append underscore before event ID: %w", err)
+			}
+		}
+	}
+
+	if p.includeEventID {
+		if _, err := sb.WriteString(event.ID); err != nil {
+			return "", fmt.Errorf("failed to append event ID: %w", err)
+		}
+	}
+
+	if len(p.keySuffix) > 0 {
+		if _, err := sb.WriteString(p.keySuffix); err != nil {
+			return "", fmt.Errorf("failed to append key suffix: %w", err)
+		}
+	}
+
+	if sb.Len() == 0 {
+		return "", fmt.Errorf("makeKey result cannot be empty")
+	}
+
+	return sb.String(), nil
+}
+
+func (p *AWSS3Publisher) getStorageClass() (types.StorageClass, error) {
+	return parseStorageClass(p.storageClass)
+}
+
+func (p *AWSS3Publisher) getChecksums(payload []byte) (string, error) {
+	hasher := sha256.New()
+
+	if _, err := hasher.Write(payload); err != nil {
+		return "", err
+	}
+
+	checksum := hasher.Sum(nil)
+
+	return base64.StdEncoding.EncodeToString(checksum), nil
+}
+
+func (p *AWSS3Publisher) Format(_ context.Context, event *models.Event) (*s3.PutObjectInput, error) {
+	data, err := json.Marshal(event.Data)
 	if err != nil {
 		return nil, err
 	}
 
-	key := fmt.Sprintf("%s%s_%s", p.prefix, time.Now().UTC().Format("20060102T150405Z"), event.ID)
+	key, err := p.makeKey(event)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create S3 key: %w", err)
+	}
+
+	storageClass, err := p.getStorageClass()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get S3 storage class: %w", err)
+	}
+
+	checksumSha256, err := p.getChecksums(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compute checksum: %w", err)
+	}
 
 	return &s3.PutObjectInput{
-		Bucket: awssdk.String(p.bucket),
-		Key:    awssdk.String(key),
-		Body:   bytes.NewReader(data),
+		Bucket:            awssdk.String(p.bucket),
+		Key:               awssdk.String(key),
+		Body:              bytes.NewReader(data),
+		Metadata:          event.Metadata,
+		StorageClass:      storageClass,
+		ContentType:       awssdk.String("application/json"),
+		ChecksumSHA256:    awssdk.String(checksumSha256),
+		ChecksumAlgorithm: types.ChecksumAlgorithmSha256,
 	}, nil
 }
 
@@ -178,12 +282,37 @@ func (p *AWSS3Publisher) Publish(ctx context.Context, event *models.Event) (*des
 	}, nil
 }
 
+func parseStorageClass(storageClass string) (types.StorageClass, error) {
+	if storageClass == "" {
+		return types.StorageClassStandard, nil
+	}
+
+	// Just here so we can call .Values() on the types.ObjectStorageClass type
+	var sc types.StorageClass
+
+	for _, val := range sc.Values() {
+		if strings.EqualFold(string(val), storageClass) {
+			return val, nil
+		}
+	}
+
+	return "", fmt.Errorf("invalid S3 storage class: %q", storageClass)
+}
+
 // NewAWSS3Publisher exposed for testing
-func NewAWSS3Publisher(client *s3.Client, bucket, prefix string) *AWSS3Publisher {
+func NewAWSS3Publisher(
+	client *s3.Client,
+	bucket, keyPrefix, keySuffix, storageClass string,
+	includeTimestamp, includeEventID bool,
+) *AWSS3Publisher {
 	return &AWSS3Publisher{
-		BasePublisher: &destregistry.BasePublisher{},
-		client:        client,
-		bucket:        bucket,
-		prefix:        prefix,
+		BasePublisher:    &destregistry.BasePublisher{},
+		client:           client,
+		bucket:           bucket,
+		keyPrefix:        keyPrefix,
+		keySuffix:        keySuffix,
+		includeTimestamp: includeTimestamp,
+		includeEventID:   includeEventID,
+		storageClass:     storageClass,
 	}
 }
