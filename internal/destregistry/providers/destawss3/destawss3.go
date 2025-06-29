@@ -20,7 +20,7 @@ import (
 	"github.com/hookdeck/outpost/internal/models"
 )
 
-// Config for S3 destination
+// AWSS3Config is the configuration for an S3 destination
 type AWSS3Config struct {
 	Bucket           string
 	Region           string
@@ -31,14 +31,14 @@ type AWSS3Config struct {
 	StorageClass     string
 }
 
-// Credentials for S3
+// AWSS3Credentials is the credentials for an S3 destination
 type AWSS3Credentials struct {
 	Key     string
 	Secret  string
 	Session string
 }
 
-// Provider implementation
+// AWSS3Provider is the S3 Provider implementation
 type AWSS3Provider struct {
 	*destregistry.BaseProvider
 }
@@ -55,17 +55,14 @@ func New(loader metadata.MetadataLoader) (*AWSS3Provider, error) {
 	return &AWSS3Provider{BaseProvider: base}, nil
 }
 
+// Validate checks if the destination configuration is valid
 func (p *AWSS3Provider) Validate(ctx context.Context, destination *models.Destination) error {
 	_, _, err := p.resolveConfig(ctx, destination)
 	return err
 }
 
-func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models.Destination) (destregistry.Publisher, error) {
-	cfg, creds, err := p.resolveConfig(ctx, destination)
-	if err != nil {
-		return nil, err
-	}
-
+// createS3Client creates a new S3 client using the provided configuration and credentials.
+func (p *AWSS3Provider) createS3Client(ctx context.Context, cfg *AWSS3Config, creds *AWSS3Credentials) (*s3.Client, error) {
 	sdkConfig, err := awsconfig.LoadDefaultConfig(ctx,
 		awsconfig.WithCredentialsProvider(awscreds.NewStaticCredentialsProvider(
 			creds.Key,
@@ -78,7 +75,20 @@ func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
-	client := s3.NewFromConfig(sdkConfig)
+	return s3.NewFromConfig(sdkConfig), nil
+}
+
+// CreatePublisher creates a new S3 publisher for the given destination
+func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models.Destination) (destregistry.Publisher, error) {
+	cfg, creds, err := p.resolveConfig(ctx, destination)
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := p.createS3Client(ctx, cfg, creds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create S3 client: %w", err)
+	}
 
 	return NewAWSS3Publisher(
 		client,
@@ -91,6 +101,7 @@ func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models
 	), nil
 }
 
+// resolveConfig resolves the configuration and credentials for the S3 destination
 func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.Destination) (*AWSS3Config, *AWSS3Credentials, error) {
 	if err := p.BaseProvider.Validate(ctx, destination); err != nil {
 		return nil, nil, err
@@ -128,6 +139,7 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 		}, nil
 }
 
+// ComputeTarget returns a human-readable target description for the S3 destination
 func (p *AWSS3Provider) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
 	bucket := destination.Config["bucket"]
 	region := destination.Config["region"]
@@ -139,6 +151,7 @@ func (p *AWSS3Provider) ComputeTarget(destination *models.Destination) destregis
 
 // Publisher implementation
 
+// AWSS3Publisher is the S3 publisher implementation
 type AWSS3Publisher struct {
 	*destregistry.BasePublisher
 	client           *s3.Client
