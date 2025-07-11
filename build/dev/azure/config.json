@@ -53,6 +53,17 @@
                 "Rules": []
               }
             ]
+          },
+          {
+            "Name": "TestDestinationAzureServiceBusSuite-topic",
+            "Properties": {},
+            "Subscriptions": [
+              {
+                "Name": "TestDestinationAzureServiceBusSuite-subscription",
+                "Properties": {},
+                "Rules": []
+              }
+            ]
           }
         ]
       }

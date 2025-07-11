@@ -1,0 +1,27 @@
+{
+  "type": "azure_servicebus",
+  "config_fields": [
+    {
+      "key": "topic",
+      "type": "text",
+      "label": "Topic Name",
+      "description": "The name of the Azure Service Bus topic to publish to",
+      "required": true,
+      "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$"
+    }
+  ],
+  "credential_fields": [
+    {
+      "key": "connection_string",
+      "type": "text",
+      "label": "Connection String",
+      "description": "Azure Service Bus connection string with Send permissions",
+      "required": true,
+      "sensitive": true
+    }
+  ],
+  "label": "Azure Service Bus",
+  "link": "https://azure.microsoft.com/en-us/services/service-bus/",
+  "description": "Send events to Azure Service Bus topics for reliable cloud messaging between applications and services.",
+  "icon": "<svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"16\" height=\"16\" fill=\"#0078D4\"/><path d=\"M8 2L2 6V10L8 14L14 10V6L8 2Z\" fill=\"white\"/></svg>"
+}
