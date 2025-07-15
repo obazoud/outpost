@@ -2,8 +2,11 @@ package destazureservicebus
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
 	"github.com/hookdeck/outpost/internal/models"
@@ -63,7 +66,6 @@ func (d *AzureServiceBusDestination) ComputeTarget(destination *models.Destinati
 }
 
 func (d *AzureServiceBusDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
-	// Phase 1: empty implementation
 	return nil
 }
 
@@ -84,15 +86,104 @@ type AzureServiceBusPublisher struct {
 	*destregistry.BasePublisher
 	connectionString string
 	topic            string
+	client           *azservicebus.Client
+	sender           *azservicebus.Sender
+}
+
+func (p *AzureServiceBusPublisher) ensureSender() (*azservicebus.Sender, error) {
+	if p.client == nil {
+		client, err := azservicebus.NewClientFromConnectionString(p.connectionString, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create Azure Service Bus client: %w", err)
+		}
+		p.client = client
+	}
+
+	if p.sender == nil {
+		sender, err := p.client.NewSender(p.topic, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create sender for topic %s: %w", p.topic, err)
+		}
+		p.sender = sender
+	}
+
+	return p.sender, nil
+}
+
+func (p *AzureServiceBusPublisher) Format(ctx context.Context, event *models.Event) (*azservicebus.Message, error) {
+	dataBytes, err := json.Marshal(event.Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal event data: %w", err)
+	}
+
+	messageMetadata := map[string]any{}
+	metadata := p.BasePublisher.MakeMetadata(event, time.Now())
+	for k, v := range metadata {
+		messageMetadata[k] = v
+	}
+
+	message := &azservicebus.Message{
+		Body:                  dataBytes,
+		ApplicationProperties: messageMetadata,
+	}
+
+	return message, nil
 }
 
 func (p *AzureServiceBusPublisher) Publish(ctx context.Context, event *models.Event) (*destregistry.Delivery, error) {
-	// Phase 1: minimal implementation that returns an error
-	return nil, fmt.Errorf("Azure Service Bus publishing not yet implemented")
+	if err := p.BasePublisher.StartPublish(); err != nil {
+		return nil, err
+	}
+	defer p.BasePublisher.FinishPublish()
+
+	// Format the message
+	message, err := p.Format(ctx, event)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get or create sender and send the message
+	sender, err := p.ensureSender()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := sender.SendMessage(ctx, message, nil); err != nil {
+		return &destregistry.Delivery{
+				Status: "failed",
+				Code:   "ERR",
+				Response: map[string]interface{}{
+					"error": err.Error(),
+				},
+			}, destregistry.NewErrDestinationPublishAttempt(err, "azure_servicebus", map[string]interface{}{
+				"error": err.Error(),
+			})
+	}
+
+	return &destregistry.Delivery{
+		Status:   "success",
+		Code:     "OK",
+		Response: map[string]interface{}{},
+	}, nil
 }
 
 func (p *AzureServiceBusPublisher) Close() error {
 	p.BasePublisher.StartClose()
-	// Phase 1: empty implementation
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if p.sender != nil {
+		if err := p.sender.Close(ctx); err != nil {
+			return err
+		}
+	}
+
+	if p.client != nil {
+		if err := p.client.Close(ctx); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

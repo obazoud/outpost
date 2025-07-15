@@ -1,8 +1,12 @@
 package destazureservicebus_test
 
 import (
+	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destazureservicebus"
 	testsuite "github.com/hookdeck/outpost/internal/destregistry/testing"
 	"github.com/hookdeck/outpost/internal/models"
@@ -15,17 +19,77 @@ import (
 
 // AzureServiceBusConsumer implements testsuite.MessageConsumer
 type AzureServiceBusConsumer struct {
-	msgChan chan testsuite.Message
-	done    chan struct{}
+	client   *azservicebus.Client
+	receiver *azservicebus.Receiver
+	msgChan  chan testsuite.Message
+	done     chan struct{}
 }
 
-func NewAzureServiceBusConsumer() *AzureServiceBusConsumer {
-	c := &AzureServiceBusConsumer{
-		msgChan: make(chan testsuite.Message),
-		done:    make(chan struct{}),
+func NewAzureServiceBusConsumer(connectionString, topic, subscription string) (*AzureServiceBusConsumer, error) {
+	client, err := azservicebus.NewClientFromConnectionString(connectionString, nil)
+	if err != nil {
+		return nil, err
 	}
-	// Phase 1: Mock consumer that doesn't actually consume
-	return c
+
+	receiver, err := client.NewReceiverForSubscription(topic, subscription, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &AzureServiceBusConsumer{
+		client:   client,
+		receiver: receiver,
+		msgChan:  make(chan testsuite.Message),
+		done:     make(chan struct{}),
+	}
+	go c.consume()
+	return c, nil
+}
+
+func (c *AzureServiceBusConsumer) consume() {
+	ctx := context.Background()
+	for {
+		select {
+		case <-c.done:
+			return
+		default:
+			messages, err := c.receiver.ReceiveMessages(ctx, 1, nil)
+			if err != nil {
+				continue
+			}
+
+			for _, msg := range messages {
+				// Parse custom properties as metadata
+				metadata := make(map[string]string)
+				for k, v := range msg.ApplicationProperties {
+					if strVal, ok := v.(string); ok {
+						metadata[k] = strVal
+					}
+				}
+
+				// Parse the message body
+				var data interface{}
+				if err := json.Unmarshal(msg.Body, &data); err != nil {
+					// If JSON parsing fails, use raw bytes
+					data = msg.Body
+				}
+
+				dataBytes, _ := json.Marshal(data)
+
+				c.msgChan <- testsuite.Message{
+					Data:     dataBytes,
+					Metadata: metadata,
+					Raw:      msg,
+				}
+
+				// Complete the message
+				if err := c.receiver.CompleteMessage(ctx, msg, nil); err != nil {
+					// Log error but continue
+					continue
+				}
+			}
+		}
+	}
 }
 
 func (c *AzureServiceBusConsumer) Consume() <-chan testsuite.Message {
@@ -34,6 +98,16 @@ func (c *AzureServiceBusConsumer) Consume() <-chan testsuite.Message {
 
 func (c *AzureServiceBusConsumer) Close() error {
 	close(c.done)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if c.receiver != nil {
+		c.receiver.Close(ctx)
+	}
+	if c.client != nil {
+		c.client.Close(ctx)
+	}
 	return nil
 }
 
@@ -69,7 +143,13 @@ func (s *AzureServiceBusSuite) SetupSuite() {
 	mqConfig := testinfra.GetMQAzureConfig(t, "TestDestinationAzureServiceBusSuite")
 
 	// Create consumer
-	s.consumer = NewAzureServiceBusConsumer()
+	consumer, err := NewAzureServiceBusConsumer(
+		mqConfig.AzureServiceBus.ConnectionString,
+		mqConfig.AzureServiceBus.Topic,
+		mqConfig.AzureServiceBus.Subscription,
+	)
+	require.NoError(t, err)
+	s.consumer = consumer
 
 	// Create provider
 	provider, err := destazureservicebus.New(testutil.Registry.MetadataLoader())
