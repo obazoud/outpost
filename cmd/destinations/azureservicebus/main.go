@@ -12,9 +12,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 )
 
+// local
 const (
 	TOPIC_NAME        = "destination-test"
 	SUBSCRIPTION_NAME = "destination-test-sub"
+	CONNECTION_STRING = "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;"
 )
 
 func main() {
@@ -24,15 +26,8 @@ func main() {
 }
 
 func run() error {
-	// Get connection string from environment or use default
-	connectionString := os.Getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
-	if connectionString == "" {
-		// Default for local development - update as needed
-		connectionString = "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;"
-	}
-
 	// Create client
-	client, err := azservicebus.NewClientFromConnectionString(connectionString, nil)
+	client, err := azservicebus.NewClientFromConnectionString(CONNECTION_STRING, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
@@ -102,7 +97,7 @@ func run() error {
 	log.Printf("[*] Azure Service Bus Consumer")
 	log.Printf("[*] Topic: %s", TOPIC_NAME)
 	log.Printf("[*] Subscription: %s", SUBSCRIPTION_NAME)
-	log.Printf("[*] Namespace: %s", extractNamespace(connectionString))
+	log.Printf("[*] Namespace: %s", extractNamespace(CONNECTION_STRING))
 	log.Printf("[*] Ready to receive messages. Press Ctrl+C to exit.")
 
 	// Wait for termination signal
