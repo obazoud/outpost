@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
@@ -55,13 +56,27 @@ func (d *AzureServiceBusDestination) CreatePublisher(ctx context.Context, destin
 }
 
 func (d *AzureServiceBusDestination) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
-	if topic, ok := destination.Config["topic"]; ok {
-		return destregistry.DestinationTarget{
-			Target:    topic,
-			TargetURL: "",
+	name, ok := destination.Config["name"]
+	if !ok {
+		return destregistry.DestinationTarget{}
+	}
+
+	// Try to extract namespace from connection string
+	if connStr, ok := destination.Credentials["connection_string"]; ok {
+		namespace := parseNamespaceFromConnectionString(connStr)
+		if namespace != "" {
+			return destregistry.DestinationTarget{
+				Target:    fmt.Sprintf("%s/%s", namespace, name),
+				TargetURL: "",
+			}
 		}
 	}
-	return destregistry.DestinationTarget{}
+
+	// Fallback to just the name if we can't parse namespace
+	return destregistry.DestinationTarget{
+		Target:    name,
+		TargetURL: "",
+	}
 }
 
 func (d *AzureServiceBusDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
@@ -182,4 +197,24 @@ func (p *AzureServiceBusPublisher) Close() error {
 	}
 
 	return nil
+}
+
+// parseNamespaceFromConnectionString extracts the namespace from an Azure Service Bus connection string.
+// Connection strings typically have the format:
+// Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=...;SharedAccessKey=...
+func parseNamespaceFromConnectionString(connStr string) string {
+	// Split by semicolons to get individual components
+	parts := strings.Split(connStr, ";")
+	for _, part := range parts {
+		if strings.HasPrefix(part, "Endpoint=") {
+			endpoint := strings.TrimPrefix(part, "Endpoint=")
+			// Remove protocol prefix
+			endpoint = strings.TrimPrefix(endpoint, "sb://")
+			// Extract namespace (everything before first dot)
+			if idx := strings.Index(endpoint, "."); idx > 0 {
+				return endpoint[:idx]
+			}
+		}
+	}
+	return ""
 }
