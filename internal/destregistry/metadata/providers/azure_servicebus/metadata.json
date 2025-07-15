@@ -2,10 +2,10 @@
   "type": "azure_servicebus",
   "config_fields": [
     {
-      "key": "topic",
+      "key": "name",
       "type": "text",
-      "label": "Topic Name",
-      "description": "The name of the Azure Service Bus topic to publish to",
+      "label": "Queue or Topic Name",
+      "description": "The name of the Azure Service Bus queue or topic to publish to",
       "required": true,
       "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$"
     }

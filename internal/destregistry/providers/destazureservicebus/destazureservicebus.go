@@ -17,7 +17,7 @@ type AzureServiceBusDestination struct {
 }
 
 type AzureServiceBusDestinationConfig struct {
-	Topic string
+	Name string
 }
 
 type AzureServiceBusDestinationCredentials struct {
@@ -38,7 +38,6 @@ func New(loader metadata.MetadataLoader) (*AzureServiceBusDestination, error) {
 }
 
 func (d *AzureServiceBusDestination) Validate(ctx context.Context, destination *models.Destination) error {
-	// For phase 1, just call base validation
 	return d.BaseProvider.Validate(ctx, destination)
 }
 
@@ -51,7 +50,7 @@ func (d *AzureServiceBusDestination) CreatePublisher(ctx context.Context, destin
 	return &AzureServiceBusPublisher{
 		BasePublisher:    &destregistry.BasePublisher{},
 		connectionString: creds.ConnectionString,
-		topic:            cfg.Topic,
+		queueOrTopic:     cfg.Name,
 	}, nil
 }
 
@@ -75,17 +74,16 @@ func (d *AzureServiceBusDestination) resolveMetadata(ctx context.Context, destin
 	}
 
 	return &AzureServiceBusDestinationConfig{
-			Topic: destination.Config["topic"],
+			Name: destination.Config["name"],
 		}, &AzureServiceBusDestinationCredentials{
 			ConnectionString: destination.Credentials["connection_string"],
 		}, nil
 }
 
-// Publisher implementation
 type AzureServiceBusPublisher struct {
 	*destregistry.BasePublisher
 	connectionString string
-	topic            string
+	queueOrTopic     string
 	client           *azservicebus.Client
 	sender           *azservicebus.Sender
 }
@@ -100,9 +98,9 @@ func (p *AzureServiceBusPublisher) ensureSender() (*azservicebus.Sender, error) 
 	}
 
 	if p.sender == nil {
-		sender, err := p.client.NewSender(p.topic, nil)
+		sender, err := p.client.NewSender(p.queueOrTopic, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create sender for topic %s: %w", p.topic, err)
+			return nil, fmt.Errorf("failed to create sender for queue or topic %s: %w", p.queueOrTopic, err)
 		}
 		p.sender = sender
 	}
@@ -136,13 +134,11 @@ func (p *AzureServiceBusPublisher) Publish(ctx context.Context, event *models.Ev
 	}
 	defer p.BasePublisher.FinishPublish()
 
-	// Format the message
 	message, err := p.Format(ctx, event)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get or create sender and send the message
 	sender, err := p.ensureSender()
 	if err != nil {
 		return nil, err

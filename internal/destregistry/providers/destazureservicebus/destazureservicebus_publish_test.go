@@ -159,7 +159,7 @@ func (s *AzureServiceBusSuite) SetupSuite() {
 	destination := testutil.DestinationFactory.Any(
 		testutil.DestinationFactory.WithType("azure_servicebus"),
 		testutil.DestinationFactory.WithConfig(map[string]string{
-			"topic": mqConfig.AzureServiceBus.Topic,
+			"name": mqConfig.AzureServiceBus.Topic,
 		}),
 		testutil.DestinationFactory.WithCredentials(map[string]string{
 			"connection_string": mqConfig.AzureServiceBus.ConnectionString,
