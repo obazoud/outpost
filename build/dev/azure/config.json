@@ -41,6 +41,15 @@
               }
             ]
           },
+          // test destination
+          {
+            "Name": "destination-test",
+            "Subscriptions": [
+              {
+                "Name": "destination-test-sub"
+              }
+            ]
+          },
 
           // tests
           {
