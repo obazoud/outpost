@@ -1,8 +1,11 @@
 package destazureservicebus_test
 
 import (
+	"context"
+	"strings"
 	"testing"
 
+	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destazureservicebus"
 	"github.com/hookdeck/outpost/internal/models"
 	"github.com/hookdeck/outpost/internal/util/testutil"
@@ -16,74 +19,63 @@ func TestComputeTarget(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		destination    models.Destination
+		config         map[string]string
+		credentials    map[string]string
 		expectedTarget string
 	}{
 		{
 			name: "with valid connection string and name",
-			destination: models.Destination{
-				Config: map[string]string{
-					"name": "my-queue",
-				},
-				Credentials: map[string]string{
-					"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
-				},
+			config: map[string]string{
+				"name": "my-queue",
+			},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
 			},
 			expectedTarget: "mynamespace/my-queue",
 		},
 		{
 			name: "with different namespace format",
-			destination: models.Destination{
-				Config: map[string]string{
-					"name": "my-topic",
-				},
-				Credentials: map[string]string{
-					"connection_string": "Endpoint=sb://test-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xyz789",
-				},
+			config: map[string]string{
+				"name": "my-topic",
+			},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://test-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=xyz789",
 			},
 			expectedTarget: "test-namespace/my-topic",
 		},
 		{
-			name: "with missing name config",
-			destination: models.Destination{
-				Config: map[string]string{},
-				Credentials: map[string]string{
-					"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
-				},
+			name:        "with missing name config",
+			config:      map[string]string{},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
 			},
 			expectedTarget: "",
 		},
 		{
 			name: "with invalid connection string format",
-			destination: models.Destination{
-				Config: map[string]string{
-					"name": "my-queue",
-				},
-				Credentials: map[string]string{
-					"connection_string": "invalid-connection-string",
-				},
+			config: map[string]string{
+				"name": "my-queue",
+			},
+			credentials: map[string]string{
+				"connection_string": "invalid-connection-string",
 			},
 			expectedTarget: "my-queue", // Falls back to just the name
 		},
 		{
 			name: "with missing connection string",
-			destination: models.Destination{
-				Config: map[string]string{
-					"name": "my-queue",
-				},
-				Credentials: map[string]string{},
+			config: map[string]string{
+				"name": "my-queue",
 			},
+			credentials:    map[string]string{},
 			expectedTarget: "my-queue", // Falls back to just the name
 		},
 		{
 			name: "with connection string missing Endpoint",
-			destination: models.Destination{
-				Config: map[string]string{
-					"name": "my-queue",
-				},
-				Credentials: map[string]string{
-					"connection_string": "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
-				},
+			config: map[string]string{
+				"name": "my-queue",
+			},
+			credentials: map[string]string{
+				"connection_string": "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
 			},
 			expectedTarget: "my-queue", // Falls back to just the name
 		},
@@ -91,7 +83,12 @@ func TestComputeTarget(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := provider.ComputeTarget(&tt.destination)
+			destination := testutil.DestinationFactory.Any(
+				testutil.DestinationFactory.WithType("azure_servicebus"),
+				testutil.DestinationFactory.WithConfig(tt.config),
+				testutil.DestinationFactory.WithCredentials(tt.credentials),
+			)
+			result := provider.ComputeTarget(&destination)
 			assert.Equal(t, tt.expectedTarget, result.Target)
 			assert.Empty(t, result.TargetURL) // TargetURL should always be empty for now
 		})
@@ -149,6 +146,7 @@ func TestParseNamespaceFromConnectionString(t *testing.T) {
 			require.NoError(t, err)
 
 			dest := models.Destination{
+				Type: "azure_servicebus",
 				Config: map[string]string{
 					"name": "test-entity",
 				},
@@ -162,6 +160,90 @@ func TestParseNamespaceFromConnectionString(t *testing.T) {
 				assert.Equal(t, "test-entity", result.Target)
 			} else {
 				assert.Equal(t, tt.expectedNamespace+"/test-entity", result.Target)
+			}
+		})
+	}
+}
+
+func TestValidate(t *testing.T) {
+	provider, err := destazureservicebus.New(testutil.Registry.MetadataLoader())
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		config      map[string]string
+		credentials map[string]string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid destination",
+			config: map[string]string{
+				"name": "my-queue",
+			},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
+			},
+			wantErr: false,
+		},
+		{
+			name:   "missing name",
+			config: map[string]string{},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
+			},
+			wantErr:     true,
+			errContains: "config.name",
+		},
+		{
+			name: "missing connection string",
+			config: map[string]string{
+				"name": "my-queue",
+			},
+			credentials: map[string]string{},
+			wantErr:     true,
+			errContains: "credentials.connection_string",
+		},
+		{
+			name: "invalid name pattern",
+			config: map[string]string{
+				"name": "my queue with spaces", // Invalid - should fail pattern validation
+			},
+			credentials: map[string]string{
+				"connection_string": "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcd1234",
+			},
+			wantErr:     true,
+			errContains: "config.name",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			destination := testutil.DestinationFactory.Any(
+				testutil.DestinationFactory.WithType("azure_servicebus"),
+				testutil.DestinationFactory.WithConfig(tt.config),
+				testutil.DestinationFactory.WithCredentials(tt.credentials),
+			)
+			ctx := context.Background()
+			err := provider.Validate(ctx, &destination)
+			if tt.wantErr {
+				require.Error(t, err)
+				if tt.errContains != "" {
+					var validationErr *destregistry.ErrDestinationValidation
+					require.ErrorAs(t, err, &validationErr)
+					require.NotEmpty(t, validationErr.Errors)
+					// Check that at least one error contains the expected field
+					found := false
+					for _, e := range validationErr.Errors {
+						if strings.Contains(e.Field, tt.errContains) {
+							found = true
+							break
+						}
+					}
+					assert.True(t, found, "Expected error field containing %q, but got %+v", tt.errContains, validationErr.Errors)
+				}
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

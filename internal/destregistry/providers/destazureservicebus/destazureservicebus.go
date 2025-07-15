@@ -39,6 +39,7 @@ func New(loader metadata.MetadataLoader) (*AzureServiceBusDestination, error) {
 }
 
 func (d *AzureServiceBusDestination) Validate(ctx context.Context, destination *models.Destination) error {
+	// Just use base validation - let Azure SDK handle connection string validation at runtime
 	return d.BaseProvider.Validate(ctx, destination)
 }
 
@@ -80,6 +81,7 @@ func (d *AzureServiceBusDestination) ComputeTarget(destination *models.Destinati
 }
 
 func (d *AzureServiceBusDestination) Preprocess(newDestination *models.Destination, originalDestination *models.Destination, opts *destregistry.PreprocessDestinationOpts) error {
+	// No preprocessing needed for Azure Service Bus
 	return nil
 }
 
