@@ -2,11 +2,18 @@ package destgcppubsub
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
 	"github.com/hookdeck/outpost/internal/models"
+	"google.golang.org/api/option"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type GCPPubSubDestination struct {
@@ -16,6 +23,7 @@ type GCPPubSubDestination struct {
 type GCPPubSubDestinationConfig struct {
 	ProjectID string
 	TopicName string
+	Endpoint  string // For emulator support
 }
 
 type GCPPubSubDestinationCredentials struct {
@@ -44,8 +52,53 @@ func (d *GCPPubSubDestination) Validate(ctx context.Context, destination *models
 }
 
 func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination *models.Destination) (destregistry.Publisher, error) {
-	// TODO: Implement
-	return nil, fmt.Errorf("not implemented")
+	cfg, creds, err := d.resolveMetadata(ctx, destination)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create Pub/Sub client options
+	var opts []option.ClientOption
+	
+	// Check for emulator endpoint (for testing)
+	if cfg.Endpoint != "" {
+		opts = append(opts,
+			option.WithEndpoint(cfg.Endpoint),
+			option.WithoutAuthentication(),
+			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		)
+	} else if creds.ServiceAccountJSON != "" {
+		// Use service account credentials for production
+		opts = append(opts, option.WithCredentialsJSON([]byte(creds.ServiceAccountJSON)))
+	}
+
+	// Create the client
+	client, err := pubsub.NewClient(ctx, cfg.ProjectID, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pubsub client: %w", err)
+	}
+
+	// Get the topic
+	topic := client.Topic(cfg.TopicName)
+	
+	// Check if topic exists
+	exists, err := topic.Exists(ctx)
+	if err != nil {
+		client.Close()
+		return nil, fmt.Errorf("failed to check topic existence: %w", err)
+	}
+	if !exists {
+		client.Close()
+		return nil, fmt.Errorf("topic %s does not exist in project %s", cfg.TopicName, cfg.ProjectID)
+	}
+
+	return &GCPPubSubPublisher{
+		BasePublisher: &destregistry.BasePublisher{},
+		client:        client,
+		topic:         topic,
+		projectID:     cfg.ProjectID,
+		topicName:     cfg.TopicName,
+	}, nil
 }
 
 func (d *GCPPubSubDestination) resolveMetadata(ctx context.Context, destination *models.Destination) (*GCPPubSubDestinationConfig, *GCPPubSubDestinationCredentials, error) {
@@ -56,23 +109,52 @@ func (d *GCPPubSubDestination) resolveMetadata(ctx context.Context, destination 
 	return &GCPPubSubDestinationConfig{
 			ProjectID: destination.Config["project_id"],
 			TopicName: destination.Config["topic_name"],
+			Endpoint:  destination.Config["endpoint"], // For testing
 		}, &GCPPubSubDestinationCredentials{
 			ServiceAccountJSON: destination.Credentials["service_account_json"],
 		}, nil
 }
 
 func (d *GCPPubSubDestination) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
-	// TODO: Return a human-readable target description
+	projectID := destination.Config["project_id"]
+	topicName := destination.Config["topic_name"]
+	
 	return destregistry.DestinationTarget{
-		Target:    "unknown",
-		TargetURL: "", // Optional: URL to view the resource in a web console
+		Target:    fmt.Sprintf("%s/%s", projectID, topicName),
+		TargetURL: fmt.Sprintf("https://console.cloud.google.com/cloudpubsub/topic/detail/%s?project=%s", topicName, projectID),
 	}
 }
 
 type GCPPubSubPublisher struct {
 	*destregistry.BasePublisher
 	
-	// TODO: Add publisher fields
+	client    *pubsub.Client
+	topic     *pubsub.Topic
+	projectID string
+	topicName string
+	mu        sync.Mutex
+}
+
+func (pub *GCPPubSubPublisher) Format(ctx context.Context, event *models.Event) (*pubsub.Message, error) {
+	// Marshal event data to JSON
+	dataBytes, err := json.Marshal(event.Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal event data: %w", err)
+	}
+
+	// Create metadata
+	metadata := pub.BasePublisher.MakeMetadata(event, time.Now())
+	
+	// Convert metadata to Pub/Sub attributes (must be strings)
+	attributes := make(map[string]string)
+	for k, v := range metadata {
+		attributes[k] = v
+	}
+
+	return &pubsub.Message{
+		Data:       dataBytes,
+		Attributes: attributes,
+	}, nil
 }
 
 func (pub *GCPPubSubPublisher) Publish(ctx context.Context, event *models.Event) (*destregistry.Delivery, error) {
@@ -81,13 +163,55 @@ func (pub *GCPPubSubPublisher) Publish(ctx context.Context, event *models.Event)
 	}
 	defer pub.BasePublisher.FinishPublish()
 
-	// TODO: Implement
-	return nil, fmt.Errorf("not implemented")
+	// Format the message
+	msg, err := pub.Format(ctx, event)
+	if err != nil {
+		return nil, err
+	}
+
+	// Publish the message
+	result := pub.topic.Publish(ctx, msg)
+	
+	// Wait for the publish to complete
+	messageID, err := result.Get(ctx)
+	if err != nil {
+		return &destregistry.Delivery{
+			Status: "failed",
+			Code:   "ERR",
+			Response: map[string]interface{}{
+				"error": err.Error(),
+			},
+		}, destregistry.NewErrDestinationPublishAttempt(err, "gcp_pubsub", map[string]interface{}{
+			"error":     "publish_failed",
+			"project":   pub.projectID,
+			"topic":     pub.topicName,
+			"message":   err.Error(),
+		})
+	}
+
+	return &destregistry.Delivery{
+		Status: "success",
+		Code:   "OK",
+		Response: map[string]interface{}{
+			"message_id": messageID,
+			"topic":      pub.topicName,
+			"project":    pub.projectID,
+		},
+	}, nil
 }
 
 func (pub *GCPPubSubPublisher) Close() error {
 	pub.BasePublisher.StartClose()
 
-	// TODO: Add cleanup
+	pub.mu.Lock()
+	defer pub.mu.Unlock()
+
+	if pub.topic != nil {
+		pub.topic.Stop()
+	}
+	if pub.client != nil {
+		return pub.client.Close()
+	}
+	
 	return nil
 }
