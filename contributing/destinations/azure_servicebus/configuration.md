@@ -6,10 +6,6 @@ Here's a rough document explaining how AzureServiceBus works and how the destina
 
 Azure ServiceBus supports both PubSub (Topic & Subscription) and Queue. From the Publisher (Azure's term is Sender) perspective, it doesn't really care whether it's publishing to a Topic or to a Queue. So, from the destination config, all we need is a single "name" field.
 
-## Authentication
-
-For authentication, we currently support "connection_string" which generally have access to the full Namespace. So if the end-user wants to ensure Outpost only has access to their desired queue or topic, they should create a new Namespace just for Outpost.
-
 ## Message
 
 Whether it's publishing to Topic or Queue, the Publisher needs to send an Azure's Message. Here's the full Golang SDK Message struct:
@@ -18,7 +14,7 @@ Whether it's publishing to Topic or Queue, the Publisher needs to send an Azure'
 // Message is a message with a body and commonly used properties.
 // Properties that are pointers are optional.
 type Message struct {
-	// ApplicationProperties can be used to store custom metadata for a message.
+  // ApplicationProperties can be used to store custom metadata for a message.
 	ApplicationProperties map[string]any
 
 	// Body corresponds to the first []byte array in the Data section of an AMQP message.
@@ -103,3 +99,71 @@ type Config struct {
 ```
 
 If we want to support these, we can either add them to Config, such as `Config.TTL`, or we can also add a suffix like `Config.MessageTTL` to specify that these config would apply to the Message.
+
+## Authentication
+
+For authentication, we currently support "connection_string" which by default have access to the full Namespace.
+
+## Creating Topic/Queue-Specific Access Policy
+
+### For a Topic (Send-only access):
+
+Create a Send-only policy for a specific topic
+
+az servicebus topic authorization-rule create \
+  --resource-group outpost-demo-rg \
+  --namespace-name outpost-demo-sb-${RANDOM_SUFFIX} \
+  --topic-name events \
+  --name SendOnlyPolicy \
+  --rights Send
+
+Get the Topic-Specific Connection String:
+
+az servicebus topic authorization-rule keys list \
+  --resource-group outpost-demo-rg \
+  --namespace-name outpost-demo-sb-${RANDOM_SUFFIX} \
+  --topic-name events \
+  --name SendOnlyPolicy \
+  --query primaryConnectionString \
+  --output tsv
+
+This returns a connection string that can only send to the events topic:
+Endpoint=sb://outpost-demo-sb-a3f2b1.servicebus.windows.net/;SharedAccessKeyName=Send
+OnlyPolicy;SharedAccessKey=xyz789...;EntityPath=events
+
+### For Queues (similar approach):
+
+Create a Send-only policy for a specific queue
+az servicebus queue authorization-rule create \
+  --resource-group outpost-demo-rg \
+  --namespace-name outpost-demo-sb-${RANDOM_SUFFIX} \
+  --queue-name myqueue \
+  --name SendOnlyPolicy \
+  --rights Send
+
+Available Permission Rights:
+
+- Send - Can only send messages
+- Listen - Can only receive messages
+- Manage - Full control (send, receive, manage)
+
+You can combine multiple rights:
+--rights Send Listen  # Can both send and receive
+
+Benefits of Entity-Level Access:
+
+1. Security: Limits blast radius if credentials are compromised
+2. Principle of Least Privilege: Outpost only needs Send permission
+3. Audit Trail: Can track which policy is being used
+4. Rotation: Can rotate entity-specific keys without affecting other services
+
+Important Notes:
+
+- Entity-level connection strings include EntityPath parameter
+- These policies are scoped to a single topic/queue
+- Perfect for production where you want to limit Outpost to only sending to specific
+topics
+- The connection string format is the same, just with limited scope
+
+This is the recommended approach for production use - give Outpost only the minimum
+permissions it needs (Send) and only to the specific topic/queue it should access.
