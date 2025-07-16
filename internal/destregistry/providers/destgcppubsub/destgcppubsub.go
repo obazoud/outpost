@@ -22,7 +22,7 @@ type GCPPubSubDestination struct {
 
 type GCPPubSubDestinationConfig struct {
 	ProjectID string
-	TopicName string
+	Topic     string
 	Endpoint  string // For emulator support
 }
 
@@ -59,7 +59,7 @@ func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination 
 
 	// Create Pub/Sub client options
 	var opts []option.ClientOption
-	
+
 	// Check for emulator endpoint (for testing)
 	if cfg.Endpoint != "" {
 		opts = append(opts,
@@ -79,8 +79,8 @@ func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination 
 	}
 
 	// Get the topic
-	topic := client.Topic(cfg.TopicName)
-	
+	topic := client.Topic(cfg.Topic)
+
 	// Check if topic exists
 	exists, err := topic.Exists(ctx)
 	if err != nil {
@@ -89,7 +89,7 @@ func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination 
 	}
 	if !exists {
 		client.Close()
-		return nil, fmt.Errorf("topic %s does not exist in project %s", cfg.TopicName, cfg.ProjectID)
+		return nil, fmt.Errorf("topic %s does not exist in project %s", cfg.Topic, cfg.ProjectID)
 	}
 
 	return &GCPPubSubPublisher{
@@ -97,7 +97,6 @@ func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination 
 		client:        client,
 		topic:         topic,
 		projectID:     cfg.ProjectID,
-		topicName:     cfg.TopicName,
 	}, nil
 }
 
@@ -108,7 +107,7 @@ func (d *GCPPubSubDestination) resolveMetadata(ctx context.Context, destination 
 
 	return &GCPPubSubDestinationConfig{
 			ProjectID: destination.Config["project_id"],
-			TopicName: destination.Config["topic_name"],
+			Topic: destination.Config["topic"],
 			Endpoint:  destination.Config["endpoint"], // For testing
 		}, &GCPPubSubDestinationCredentials{
 			ServiceAccountJSON: destination.Credentials["service_account_json"],
@@ -117,21 +116,20 @@ func (d *GCPPubSubDestination) resolveMetadata(ctx context.Context, destination 
 
 func (d *GCPPubSubDestination) ComputeTarget(destination *models.Destination) destregistry.DestinationTarget {
 	projectID := destination.Config["project_id"]
-	topicName := destination.Config["topic_name"]
-	
+	topic := destination.Config["topic"]
+
 	return destregistry.DestinationTarget{
-		Target:    fmt.Sprintf("%s/%s", projectID, topicName),
-		TargetURL: fmt.Sprintf("https://console.cloud.google.com/cloudpubsub/topic/detail/%s?project=%s", topicName, projectID),
+		Target:    fmt.Sprintf("%s/%s", projectID, topic),
+		TargetURL: fmt.Sprintf("https://console.cloud.google.com/cloudpubsub/topic/detail/%s?project=%s", topic, projectID),
 	}
 }
 
 type GCPPubSubPublisher struct {
 	*destregistry.BasePublisher
-	
+
 	client    *pubsub.Client
 	topic     *pubsub.Topic
 	projectID string
-	topicName string
 	mu        sync.Mutex
 }
 
@@ -144,7 +142,7 @@ func (pub *GCPPubSubPublisher) Format(ctx context.Context, event *models.Event) 
 
 	// Create metadata
 	metadata := pub.BasePublisher.MakeMetadata(event, time.Now())
-	
+
 	// Convert metadata to Pub/Sub attributes (must be strings)
 	attributes := make(map[string]string)
 	for k, v := range metadata {
@@ -171,22 +169,22 @@ func (pub *GCPPubSubPublisher) Publish(ctx context.Context, event *models.Event)
 
 	// Publish the message
 	result := pub.topic.Publish(ctx, msg)
-	
+
 	// Wait for the publish to complete
 	messageID, err := result.Get(ctx)
 	if err != nil {
 		return &destregistry.Delivery{
-			Status: "failed",
-			Code:   "ERR",
-			Response: map[string]interface{}{
-				"error": err.Error(),
-			},
-		}, destregistry.NewErrDestinationPublishAttempt(err, "gcp_pubsub", map[string]interface{}{
-			"error":     "publish_failed",
-			"project":   pub.projectID,
-			"topic":     pub.topicName,
-			"message":   err.Error(),
-		})
+				Status: "failed",
+				Code:   "ERR",
+				Response: map[string]interface{}{
+					"error": err.Error(),
+				},
+			}, destregistry.NewErrDestinationPublishAttempt(err, "gcp_pubsub", map[string]interface{}{
+				"error":   "publish_failed",
+				"project": pub.projectID,
+				"topic":   pub.topic.ID(),
+				"message": err.Error(),
+			})
 	}
 
 	return &destregistry.Delivery{
@@ -194,7 +192,7 @@ func (pub *GCPPubSubPublisher) Publish(ctx context.Context, event *models.Event)
 		Code:   "OK",
 		Response: map[string]interface{}{
 			"message_id": messageID,
-			"topic":      pub.topicName,
+			"topic":      pub.topic.ID(),
 			"project":    pub.projectID,
 		},
 	}, nil
@@ -212,6 +210,6 @@ func (pub *GCPPubSubPublisher) Close() error {
 	if pub.client != nil {
 		return pub.client.Close()
 	}
-	
+
 	return nil
 }

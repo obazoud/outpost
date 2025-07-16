@@ -154,7 +154,7 @@ func (s *GCPPubSubPublishSuite) SetupSuite() {
 		testutil.DestinationFactory.WithType("gcp_pubsub"),
 		testutil.DestinationFactory.WithConfig(map[string]string{
 			"project_id": mqConfig.GCPPubSub.ProjectID,
-			"topic_name": mqConfig.GCPPubSub.TopicID,
+			"topic": mqConfig.GCPPubSub.TopicID,
 			"endpoint":   endpoint, // For emulator
 		}),
 		testutil.DestinationFactory.WithCredentials(map[string]string{

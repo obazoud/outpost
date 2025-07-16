@@ -9,10 +9,10 @@
       "required": true
     },
     {
-      "key": "topic_name",
+      "key": "topic",
       "type": "text",
-      "label": "Topic Name",
-      "description": "The Pub/Sub topic name",
+      "label": "Topic",
+      "description": "The Pub/Sub topic",
       "required": true
     }
   ],
