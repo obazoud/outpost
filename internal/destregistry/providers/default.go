@@ -4,6 +4,7 @@ import (
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destawskinesis"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destawssqs"
+	"github.com/hookdeck/outpost/internal/destregistry/providers/destgcppubsub"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/desthookdeck"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destrabbitmq"
 	"github.com/hookdeck/outpost/internal/destregistry/providers/destwebhook"
@@ -83,6 +84,12 @@ func RegisterDefault(registry destregistry.Registry, opts RegisterDefaultDestina
 		return err
 	}
 	registry.RegisterProvider("aws_kinesis", awsKinesis)
+
+	gcpPubSub, err := destgcppubsub.New(loader)
+	if err != nil {
+		return err
+	}
+	registry.RegisterProvider("gcp_pubsub", gcpPubSub)
 
 	rabbitmq, err := destrabbitmq.New(loader)
 	if err != nil {
