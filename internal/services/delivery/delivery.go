@@ -96,8 +96,8 @@ func NewService(ctx context.Context,
 		)
 
 		logstoreDriverOpts, err := logstore.MakeDriverOpts(logstore.Config{
-			ClickHouse: cfg.ClickHouse.ToConfig(),
-			Postgres:   &cfg.PostgresURL,
+			// ClickHouse: cfg.ClickHouse.ToConfig(),
+			Postgres: &cfg.PostgresURL,
 		})
 		if err != nil {
 			return nil, err
