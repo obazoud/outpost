@@ -83,7 +83,7 @@ Global configurations are provided through env variables or a YAML file. ConfigM
 | `PORTAL_ORGANIZATION_NAME` | Organization name displayed in the Outpost Portal. | `nil` | No |
 | `PORTAL_PROXY_URL` | URL to proxy the Outpost Portal through. If set, Outpost serves the portal assets, and this URL is used as the base. Must be a valid URL. | `nil` | No |
 | `PORTAL_REFERER_URL` | The expected Referer URL for accessing the portal. This is a security measure. Required if the Outpost Portal is enabled/used. Example: 'https://admin.example.com'. | `nil` | Conditional |
-| `POSTGRES_URL` | Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed. | `nil` | Conditional |
+| `POSTGRES_URL` | Connection URL for PostgreSQL, used for log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. | `nil` | Yes |
 | `PUBLISH_AWS_SQS_ACCESS_KEY_ID` | AWS Access Key ID for the SQS publish queue. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
 | `PUBLISH_AWS_SQS_ENDPOINT` | Custom AWS SQS endpoint URL for the publish queue. Optional. | `nil` | No |
 | `PUBLISH_AWS_SQS_QUEUE` | Name of the SQS queue for publishing events. Required if AWS SQS is the chosen publish MQ provider. | `nil` | Conditional |
@@ -405,8 +405,8 @@ portal:
   referer_url: ""
 
 
-# Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed.
-# Required: Conditional
+# Connection URL for PostgreSQL, used for log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'.
+# Required: Y
 postgres: ""
 
 publishmq:
