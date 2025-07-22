@@ -60,7 +60,7 @@ type Config struct {
 	// Infrastructure
 	Redis RedisConfig `yaml:"redis"`
 	// ClickHouse  ClickHouseConfig `yaml:"clickhouse"`
-	PostgresURL string     `yaml:"postgres" env:"POSTGRES_URL" desc:"Connection URL for PostgreSQL, used as an alternative log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'. Required if ClickHouse is not configured and log storage is needed." required:"C"`
+	PostgresURL string     `yaml:"postgres" env:"POSTGRES_URL" desc:"Connection URL for PostgreSQL, used for log storage. Example: 'postgres://user:pass@host:port/dbname?sslmode=disable'." required:"Y"`
 	MQs         *MQsConfig `yaml:"mqs"`
 
 	// PublishMQ
