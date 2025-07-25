@@ -237,6 +237,8 @@ const Destination = () => {
 
 export default Destination;
 
+const TRUNCATION_LENGTH = 32;
+
 function DestinationDetailsField(props: {
   type: DestinationTypeReference;
   fieldType: "config" | "credentials";
@@ -268,8 +270,8 @@ function DestinationDetailsField(props: {
     <li>
       <span className="body-m">{label}</span>
       <span className="mono-s" title={typeof props.value === "string" && props.fieldType !== "credentials" ? props.value : undefined}>
-        {typeof props.value === "string" && props.value.length > 32
-          ? `${props.value.substring(0, 32)}...`
+        {typeof props.value === "string" && props.value.length > TRUNCATION_LENGTH
+          ? `${props.value.substring(0, TRUNCATION_LENGTH)}...`
           : props.value}
       </span>
     </li>
