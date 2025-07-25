@@ -88,7 +88,7 @@ main()
     process.exit(0);
   })
   .catch((error) => {
-    console.log("Migration failed:", error.message);
+    console.error("Migration failed:", error.message);
 
     askQuestion("Press 'e' and Enter to see the full error details: ").then(
       (answer) => {
