@@ -14,7 +14,7 @@ import {
 } from "../../typings/Destination";
 import getLogo from "../../utils/logo";
 import DestinationSettings from "./DestinationSettings/DestinationSettings";
-import Events, { EventRoutes } from "./Events/Events";
+import { EventRoutes } from "./Events/Events";
 
 // Define the tab interface
 interface Tab {
@@ -237,11 +237,13 @@ const Destination = () => {
 
 export default Destination;
 
+const TRUNCATION_LENGTH = 32;
+
 function DestinationDetailsField(props: {
   type: DestinationTypeReference;
   fieldType: "config" | "credentials";
   fieldKey: string;
-  value: JSX.Element;
+  value: JSX.Element | string;
 }) {
   let label = "";
   if (props.fieldType === "config") {
@@ -267,7 +269,11 @@ function DestinationDetailsField(props: {
   return (
     <li>
       <span className="body-m">{label}</span>
-      <span className="mono-s">{props.value}</span>
+      <span className="mono-s" title={typeof props.value === "string" && props.fieldType !== "credentials" ? props.value : undefined}>
+        {typeof props.value === "string" && props.value.length > TRUNCATION_LENGTH
+          ? `${props.value.substring(0, TRUNCATION_LENGTH)}...`
+          : props.value}
+      </span>
     </li>
   );
 }
