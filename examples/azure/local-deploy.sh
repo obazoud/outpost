@@ -48,9 +48,9 @@ else
   set -a; source "$ENV_FILE"; set +a
 
   # Generate random values for secrets
-  API_KEY_VALUE=$(openssl rand -hex 16)
-  API_JWT_SECRET_VALUE=$(openssl rand -hex 16)
-  AES_ENCRYPTION_SECRET_VALUE=$(openssl rand -hex 16)
+  API_KEY_VALUE=$(openssl rand -hex 32)
+  API_JWT_SECRET_VALUE=$(openssl rand -hex 32)
+  AES_ENCRYPTION_SECRET_VALUE=$(openssl rand -hex 32)
 
   cat > "$RUNTIME_ENV" <<EOF
 # Required
