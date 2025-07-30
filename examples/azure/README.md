@@ -106,16 +106,19 @@ To deploy Outpost, you must run the scripts in the following order:
 
 ### 1. Deploy with the Deployment Script (Recommended)
 
-1.  **Generate Environment Files:**
-    Before deploying to Azure Container Apps, you must first generate the required environment files by running the `dependencies.sh` and `local-deploy.sh` scripts. These scripts provision necessary Azure resources and create the `.env.outpost` and `.env.runtime` files.
+1.  **Prepare Environment Files:**
+    Before deploying, you need the `.env.outpost` and `.env.runtime` files.
 
-    ```bash
-    # To use a specific password (optional):
-    # export PG_PASS=<YOUR_POSTGRES_PASSWORD>
-    ./dependencies.sh
-    ./local-deploy.sh
-    ```
-    > **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.
+    *   **To provision new dependencies (Recommended):** Run the scripts to generate the files automatically.
+        ```bash
+        # To use a specific password (optional):
+        # export PG_PASS=<YOUR_POSTGRES_PASSWORD>
+        ./dependencies.sh
+        ./local-deploy.sh
+        ```
+        > **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.
+
+    *   **To use existing dependencies:** Create `.env.outpost` and `.env.runtime` manually. Refer to the [Environment Variable Reference](#environment-variable-reference) section for details on the required variables.
 
 2.  **Run the Deployment Script:**
     Once the environment files are generated, run the `azure-deploy.sh` script to deploy the Outpost services to Azure Container Apps.
@@ -130,19 +133,18 @@ These instructions outline how to manually deploy Outpost to Azure Container App
 
 #### 1. Prepare Environment Files
 
-First, you need to generate the necessary environment files by running the provided scripts.
+Before deploying manually, ensure you have the `.env.outpost` and `.env.runtime` files.
 
-1.  `./dependencies.sh`: Provisions Azure resources and creates `.env.outpost` with infrastructure details.
-2.  `./local-deploy.sh`: Creates `.env.runtime` with application secrets and copies values from `.env.outpost`.
+*   **To provision new dependencies:** Run the scripts to generate the files automatically.
+    ```bash
+    # To use a specific password (optional):
+    # export PG_PASS=<YOUR_POSTGRES_PASSWORD>
+    ./dependencies.sh
+    ./local-deploy.sh
+    ```
+    > **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.
 
-Run both scripts:
-```bash
-# To use a specific password (optional):
-# export PG_PASS=<YOUR_POSTGRES_PASSWORD>
-./dependencies.sh
-./local-deploy.sh
-```
-> **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.
+*   **To use existing dependencies:** Create `.env.outpost` and `.env.runtime` manually. Refer to the [Environment Variable Reference](#environment-variable-reference) section for details on the required variables.
 
 #### 2. Load Environment Variables
 
@@ -290,3 +292,40 @@ For most users, `azure-deploy.sh` offers a balance of automation, reliability, m
 
 **Summary:**  
 For most users, `azure-deploy.sh` offers a balance of automation, reliability, and maintainability. It is recommended for Outpost deployments unless you require advanced orchestration (AKS) or have very simple workloads (ACI).
+## Environment Variable Reference
+
+If you are not using the `dependencies.sh` and `local-deploy.sh` scripts to provision your infrastructure, you will need to create the `.env.outpost` and `.env.runtime` files manually.
+
+### `.env.outpost`
+
+This file contains variables related to the Azure infrastructure where the services will be deployed.
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `LOCATION` | The Azure region for your resources. | `westeurope` |
+| `RESOURCE_GROUP` | The name of the Azure resource group. | `outpost-azure` |
+| `POSTGRES_URL` | The full connection URL for your PostgreSQL database. | `postgres://user:pass@host:5432/dbname` |
+| `REDIS_HOST` | The hostname of your Redis instance. | `outpost-redis.redis.cache.windows.net` |
+| `REDIS_PORT` | The port for your Redis instance. | `6379` |
+| `REDIS_PASSWORD` | The password for your Redis instance. | `your-redis-password` |
+| `REDIS_DATABASE` | The Redis database number. | `0` |
+| `AZURE_SERVICEBUS_CLIENT_ID` | The Client ID of the service principal for Service Bus access. | `...` |
+| `AZURE_SERVICEBUS_CLIENT_SECRET` | The Client Secret of the service principal. | `...` |
+| `AZURE_SERVICEBUS_SUBSCRIPTION_ID` | Your Azure Subscription ID. | `...` |
+| `AZURE_SERVICEBUS_TENANT_ID` | Your Azure Tenant ID. | `...` |
+| `AZURE_SERVICEBUS_NAMESPACE` | The name of the Service Bus namespace. | `outpost-internal` |
+| `AZURE_SERVICEBUS_RESOURCE_GROUP` | The resource group for the Service Bus. | `outpost-azure` |
+| `AZURE_SERVICEBUS_DELIVERY_TOPIC` | The name of the delivery topic. | `outpost-delivery` |
+| `AZURE_SERVICEBUS_DELIVERY_SUBSCRIPTION` | The name of the delivery subscription. | `outpost-delivery-sub` |
+| `AZURE_SERVICEBUS_LOG_TOPIC` | The name of the log topic. | `outpost-log` |
+| `AZURE_SERVICEBUS_LOG_SUBSCRIPTION` | The name of the log subscription. | `outpost-log-sub` |
+
+### `.env.runtime`
+
+This file contains secrets and runtime configuration for the Outpost services. It includes all variables from `.env.outpost` plus the following application-specific secrets.
+
+| Variable | Description |
+| --- | --- |
+| `API_KEY` | A secret key for securing the Outpost API. |
+| `API_JWT_SECRET` | A secret for signing JWTs. |
+| `AES_ENCRYPTION_SECRET` | A secret for data encryption. |
