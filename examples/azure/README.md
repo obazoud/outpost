@@ -166,7 +166,13 @@ az containerapp env create \
 
 #### 4. Deploy Each Container
 
-Deploy each service as a separate container app. The `--env-vars-from-file .env.runtime` flag provides the full configuration to each container.
+Deploy each service as a separate container app. First, the environment variables from `.env.runtime` must be formatted into a string that can be passed to the Azure CLI.
+
+```bash
+ENV_VARS_STRING=$(grep -v '^#' .env.runtime | sed 's/^export //g' | sed 's/"//g' | tr '\n' ' ')
+```
+
+Now, deploy the containers using the created string.
 
 **Deploy `api` service:**
 ```bash
@@ -177,8 +183,7 @@ az containerapp create \
   --image hookdeck/outpost:v0.4.0 \
   --target-port 3333 \
   --ingress external \
-  --env-vars "SERVICE=api" \
-  --env-vars-from-file .env.runtime
+  --env-vars "SERVICE=api" $ENV_VARS_STRING
 ```
 
 **Deploy `delivery` service:**
@@ -189,8 +194,7 @@ az containerapp create \
   --environment outpost-environment \
   --image hookdeck/outpost:v0.4.0 \
   --ingress internal \
-  --env-vars "SERVICE=delivery" \
-  --env-vars-from-file .env.runtime
+  --env-vars "SERVICE=delivery" $ENV_VARS_STRING
 ```
 
 **Deploy `log` service:**
@@ -201,8 +205,7 @@ az containerapp create \
   --environment outpost-environment \
   --image hookdeck/outpost:v0.4.0 \
   --ingress internal \
-  --env-vars "SERVICE=log" \
-  --env-vars-from-file .env.runtime
+  --env-vars "SERVICE=log" $ENV_VARS_STRING
 ```
 
 ### 3. Validate the Deployment
@@ -295,6 +298,8 @@ For most users, `azure-deploy.sh` offers a balance of automation, reliability, a
 ## Environment Variable Reference
 
 If you are not using the `dependencies.sh` and `local-deploy.sh` scripts to provision your infrastructure, you will need to create the `.env.outpost` and `.env.runtime` files manually.
+
+See the [Configure Azure Service Bus as the Outpost Internal Message Queue](https://outpost.hookdeck.com/docs/guides/service-bus-internal-mq) guide for more details on the environment variables required for Outpost and how to create the values.
 
 ### `.env.outpost`
 
