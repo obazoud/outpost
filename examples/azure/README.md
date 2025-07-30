@@ -9,6 +9,63 @@ Before you begin, ensure you have the following:
 *   [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) installed.
 *   You are logged into your Azure account (`az login`).
 
+## Architecture
+
+This example deploys a distributed architecture on Azure, leveraging managed services for dependencies and Azure Container Apps for the Outpost services.
+
+```mermaid
+graph TD
+    subgraph "External Source"
+        WebhookSource[Event Source]
+    end
+
+    subgraph "Azure Container Apps"
+        APIService["api service (Container)"]
+        DeliveryService["delivery service (Container)"]
+        LogService["log service (Container)"]
+    end
+
+    subgraph "Azure Dependencies"
+        PostgresDB["PostgreSQL (Log Storage)"]
+        ServiceBusDelivery["Azure Service Bus (Delivery Queue)"]
+        ServiceBusLog["Azure Service Bus (Log Queue)"]
+        RedisCache["Redis (Entity Storage)"]
+    end
+
+    subgraph "External Destinations"
+        Delivery[Destination]
+    end
+
+    WebhookSource -- "HTTPS Request" --> APIService
+
+    APIService -- " " --> PostgresDB
+    APIService -- "Stores/Retrieves Session Data" --> RedisCache
+    APIService -- "Enqueues Message" --> ServiceBusDelivery
+
+    ServiceBusDelivery -- "Consumes Message" --> DeliveryService
+    DeliveryService -- " " --> RedisCache
+    DeliveryService -- "Enqueues Log" --> ServiceBusLog
+
+    ServiceBusLog -- "Consumes Log" --> LogService
+    LogService -- "Writes Log" --> PostgresDB
+
+    DeliveryService -- "Sends Events" --> Delivery
+```
+
+### Components
+
+#### Dependencies
+The deployment relies on Azure-managed services for its core dependencies:
+*   **PostgreSQL**: Used for persistent log storage (`log storage`).
+*   **Redis**: Used for entity storage and caching (`entity storage`).
+*   **Azure Service Bus**: Used as the message queue for both the delivery (`delivery queue`) and log (`log queue`) services.
+
+#### Outpost Services
+The Outpost application itself is deployed as three distinct services in Azure Container Apps:
+*   **api**: The public-facing API that receives webhooks (`API Service`).
+*   **delivery**: A backend service that processes and delivers webhooks from the queue (`Delivery Service`).
+*   **log**: A backend service that processes and stores logs (`log service`).
+
 ## Scripts
 
 This example includes three main scripts to manage the deployment:
