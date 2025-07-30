@@ -70,7 +70,7 @@ The Outpost application itself is deployed as three distinct services in Azure C
 
 This example includes three main scripts to manage the deployment:
 
-*   `dependencies.sh`: Provisions all the necessary Azure resources, including PostgreSQL for storage, Redis for caching, and Azure Service Bus for the message queue. It also configures the required permissions for the services to interact with each other.
+*   `dependencies.sh`: Provisions all the necessary Azure resources, including PostgreSQL for storage, Redis for caching, and Azure Service Bus for the message queue. It also configures the required permissions for the services to interact with each other. This script requires a PostgreSQL password, which can be provided via the `--pg-pass` argument or the `PG_PASS` environment variable.
 *   `local-deploy.sh`: Deploys the Outpost services using Docker Compose. It uses the Azure resources provisioned by the `dependencies.sh` script.
 *   `diagnostics.sh`: Runs checks to validate deployments. Use `--local` for the Docker deployment or `--azure` for the Azure Container Apps deployment. The script requires a webhook URL for testing, which can be provided via the `--webhook-url` flag or the `WEBHOOK_URL` environment variable.
 *   `azure-deploy.sh`: Deploys the Outpost services to Azure Container Apps.
@@ -81,7 +81,10 @@ To deploy Outpost, you must run the scripts in the following order:
 
 1.  **Provision Dependencies:**
     ```bash
+    export PG_PASS=<YOUR_POSTGRES_PASSWORD>
     ./dependencies.sh
+    # Or
+    ./dependencies.sh --pg-pass <YOUR_POSTGRES_PASSWORD>
     ```
 
 2.  **Deploy Outpost:**
@@ -108,7 +111,10 @@ To deploy Outpost, you must run the scripts in the following order:
     Before deploying to Azure Container Apps, you must first generate the required environment files by running the `dependencies.sh` and `local-deploy.sh` scripts. These scripts provision necessary Azure resources and create the `.env.outpost` and `.env.runtime` files.
 
     ```bash
+    export PG_PASS=<YOUR_POSTGRES_PASSWORD>
     ./dependencies.sh
+    # Or
+    ./dependencies.sh --pg-pass <YOUR_POSTGRES_PASSWORD>
     ./local-deploy.sh
     ```
     > **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.
@@ -133,7 +139,10 @@ First, you need to generate the necessary environment files by running the provi
 
 Run both scripts:
 ```bash
+export PG_PASS=<YOUR_POSTGRES_PASSWORD>
 ./dependencies.sh
+# Or
+./dependencies.sh --pg-pass <YOUR_POSTGRES_PASSWORD>
 ./local-deploy.sh
 ```
 > **Note:** The `local-deploy.sh` script will also start services locally via Docker Compose. You can stop them with `docker-compose down` after the script finishes if you only intend to deploy to ACA.

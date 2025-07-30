@@ -2,6 +2,28 @@
 
 set -euo pipefail
 
+# Parse command-line arguments
+PG_PASS_ARG=""
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --pg-pass)
+            PG_PASS_ARG="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Set PG_PASS from --pg-pass argument, or PG_PASS env var
+if [[ -n "$PG_PASS_ARG" ]]; then
+  PG_PASS="$PG_PASS_ARG"
+elif [[ -z "${PG_PASS-}" ]]; then
+  echo "Error: PostgreSQL password not set. Please use the --pg-pass argument or set the PG_PASS environment variable."
+  exit 1
+fi
+
 # CONFIG
 ENV_FILE=".env.outpost"
 LOCATION="westeurope"
@@ -9,7 +31,6 @@ RESOURCE_GROUP="outpost-azure"
 PG_NAME="outpost-pg-example"
 PG_DB_NAME="outpost"
 PG_ADMIN="outpostadmin"
-PG_PASS="_dafasd9870asdohu"
 REDIS_NAME="outpost-redis"
 SB_NAMESPACE="outpost-internal"
 SB_DELIVERY_TOPIC="outpost-delivery"
