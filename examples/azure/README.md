@@ -72,7 +72,7 @@ This example includes three main scripts to manage the deployment:
 
 *   `dependencies.sh`: Provisions all the necessary Azure resources, including PostgreSQL for storage, Redis for caching, and Azure Service Bus for the message queue. It also configures the required permissions for the services to interact with each other.
 *   `local-deploy.sh`: Deploys the Outpost services using Docker Compose. It uses the Azure resources provisioned by the `dependencies.sh` script.
-*   `diagnostics.sh`: Runs checks to validate deployments. Use `--local` for the Docker deployment or `--azure` for the Azure Container Apps deployment.
+*   `diagnostics.sh`: Runs checks to validate deployments. Use `--local` for the Docker deployment or `--azure` for the Azure Container Apps deployment. The script requires a webhook URL for testing, which can be provided via the `--webhook-url` flag or the `WEBHOOK_URL` environment variable.
 *   `azure-deploy.sh`: Deploys the Outpost services to Azure Container Apps.
 
 ## Deployment Steps using Outpost Locally
@@ -90,9 +90,14 @@ To deploy Outpost, you must run the scripts in the following order:
     ```
 
 3.  **Run Diagnostics:**
-    This command specifically targets the local Docker deployment.
+    This command specifically targets the local Docker deployment. You will need a public webhook URL for the test.
     ```bash
+    export WEBHOOK_URL=<YOUR_PUBLIC_WEBHOOK_URL>
     bash ./diagnostics.sh --local
+    ```
+    Alternatively, you can use the `--webhook-url` flag:
+    ```bash
+    bash ./diagnostics.sh --local --webhook-url <YOUR_PUBLIC_WEBHOOK_URL>
     ```
     
 ## Deploying Outpost to Azure Container Apps
@@ -194,10 +199,15 @@ az containerapp create \
 
 ### 3. Validate the Deployment
 
-After deploying with either method, you can validate the deployment by running the following script:
+After deploying with either method, you can validate the deployment by running the following script. You will need a public webhook URL for the test.
 
 ```bash
+export WEBHOOK_URL=<YOUR_PUBLIC_WEBHOOK_URL>
 bash ./diagnostics.sh --azure
+```
+Alternatively, you can use the `--webhook-url` flag:
+```bash
+bash ./diagnostics.sh --azure --webhook-url <YOUR_PUBLIC_WEBHOOK_URL>
 ```
 
 ## Azure Deployment Options: Overview, Pros & Cons

@@ -7,19 +7,32 @@ AZURE_CONTAINER_APP_NAME="outpost-api"
 # Argument parsing
 RUN_LOCAL=false
 RUN_AZURE=false
-
+WEBHOOK_URL_FLAG=""
+ 
 if [ "$#" -eq 0 ]; then
     RUN_LOCAL=true
     RUN_AZURE=true
 else
-    for arg in "$@"; do
-        case $arg in
+    while [[ "$#" -gt 0 ]]; do
+        case $1 in
             --local)
             RUN_LOCAL=true
             shift
             ;;
             --azure)
             RUN_AZURE=true
+            shift
+            ;;
+            --webhook-url)
+            if [ -n "$2" ]; then
+                WEBHOOK_URL_FLAG="$2"
+                shift 2
+            else
+                echo "Error: --webhook-url requires a non-empty string argument."
+                exit 1
+            fi
+            ;;
+            *)
             shift
             ;;
         esac
@@ -70,6 +83,17 @@ for VAR in "${REQUIRED_VARS[@]}"; do
   fi
 done
 echo "✅ All required env vars are set."
+ 
+# Webhook URL configuration
+if [ -n "$WEBHOOK_URL_FLAG" ]; then
+  WEBHOOK_URL="$WEBHOOK_URL_FLAG"
+  echo "🔧 Using webhook URL from command line flag."
+elif [ -n "${WEBHOOK_URL:-}" ]; then
+  echo "🔧 Using webhook URL from environment variable."
+else
+  echo "❌ Webhook URL is not set. Please provide it via the --webhook-url flag or the WEBHOOK_URL environment variable."
+  exit 1
+fi
 
 # 2. Host extractions
 PG_HOST=$(echo "$POSTGRES_URL" | sed -E 's|.*@([^:/]+):.*|\1|')
@@ -123,9 +147,6 @@ run_api_tests() {
     local base_url=$1
     echo "🚀 Testing Outpost API at $base_url..."
     TENANT_ID="diagnostics-tenant-x"
-    # Replace this with your own public webhook endpoint for testing
-    WEBHOOK_URL="https://hkdk.events/2mg31x22m2zl6e"
-
     local event_source="local"
     if [[ "$base_url" == *"azurecontainerapps.io"* ]]; then
         event_source="azure"
