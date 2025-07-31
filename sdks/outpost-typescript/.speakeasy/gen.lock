@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: edb58086-83b9-45a3-9095-52bf57a11009
 management:
-  docChecksum: 9d08f718ce55c534f292ba05af3425db
+  docChecksum: 3d3f028a2fdd56804d9ae8a2d95a414b
   docVersion: 0.0.1
-  speakeasyVersion: 1.548.1
-  generationVersion: 2.605.0
-  releaseVersion: 0.2.0
-  configChecksum: 532da1aa2b75a3a3630b0cfd89f7a064
+  speakeasyVersion: 1.593.0
+  generationVersion: 2.669.0
+  releaseVersion: 0.3.0
+  configChecksum: f5c74e03d72ead5a348c5b677ad4b9cc
   repoURL: https://github.com/hookdeck/outpost.git
   repoSubDirectory: sdks/outpost-typescript
   installationURL: https://gitpkg.now.sh/hookdeck/outpost/sdks/outpost-typescript
@@ -15,7 +15,7 @@ features:
   typescript:
     additionalDependencies: 0.1.0
     additionalProperties: 0.1.1
-    core: 3.21.8
+    core: 3.21.17
     defaultEnabledRetries: 0.1.0
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.1.2
@@ -23,13 +23,13 @@ features:
     globalSecurityCallbacks: 0.1.0
     globalServerURLs: 2.82.5
     globals: 2.82.2
-    mcpServer: 0.9.2
+    mcpServer: 0.9.3
     nameOverrides: 2.81.2
     nullables: 0.1.1
     responseFormat: 0.2.3
     retries: 2.83.0
-    sdkHooks: 0.2.0
-    unions: 2.85.8
+    sdkHooks: 0.3.0
+    unions: 2.85.11
 generatedFiles:
   - .gitattributes
   - .npmignore
@@ -41,17 +41,23 @@ generatedFiles:
   - docs/models/components/awskinesiscredentials.md
   - docs/models/components/awssqsconfig.md
   - docs/models/components/awssqscredentials.md
+  - docs/models/components/azureservicebusconfig.md
+  - docs/models/components/azureservicebuscredentials.md
   - docs/models/components/deliveryattempt.md
   - docs/models/components/destination.md
   - docs/models/components/destinationawskinesis.md
   - docs/models/components/destinationawskinesistype.md
   - docs/models/components/destinationawssqs.md
   - docs/models/components/destinationawssqstype.md
+  - docs/models/components/destinationazureservicebus.md
+  - docs/models/components/destinationazureservicebustype.md
   - docs/models/components/destinationcreate.md
   - docs/models/components/destinationcreateawskinesis.md
   - docs/models/components/destinationcreateawskinesistype.md
   - docs/models/components/destinationcreateawssqs.md
   - docs/models/components/destinationcreateawssqstype.md
+  - docs/models/components/destinationcreateazureservicebus.md
+  - docs/models/components/destinationcreateazureservicebustype.md
   - docs/models/components/destinationcreatehookdeck.md
   - docs/models/components/destinationcreatehookdecktype.md
   - docs/models/components/destinationcreaterabbitmq.md
@@ -77,6 +83,7 @@ generatedFiles:
   - docs/models/components/hookdeckcredentials.md
   - docs/models/components/portalredirect.md
   - docs/models/components/publishrequest.md
+  - docs/models/components/publishresponse.md
   - docs/models/components/rabbitmqconfig.md
   - docs/models/components/rabbitmqcredentials.md
   - docs/models/components/security.md
@@ -159,6 +166,10 @@ generatedFiles:
   - docs/sdks/tenants/README.md
   - docs/sdks/topics/README.md
   - eslint.config.mjs
+  - examples/.env.template
+  - examples/README.md
+  - examples/healthCheck.example.ts
+  - examples/package.json
   - jsr.json
   - package.json
   - src/core.ts
@@ -250,13 +261,17 @@ generatedFiles:
   - src/models/components/awskinesiscredentials.ts
   - src/models/components/awssqsconfig.ts
   - src/models/components/awssqscredentials.ts
+  - src/models/components/azureservicebusconfig.ts
+  - src/models/components/azureservicebuscredentials.ts
   - src/models/components/deliveryattempt.ts
   - src/models/components/destination.ts
   - src/models/components/destinationawskinesis.ts
   - src/models/components/destinationawssqs.ts
+  - src/models/components/destinationazureservicebus.ts
   - src/models/components/destinationcreate.ts
   - src/models/components/destinationcreateawskinesis.ts
   - src/models/components/destinationcreateawssqs.ts
+  - src/models/components/destinationcreateazureservicebus.ts
   - src/models/components/destinationcreatehookdeck.ts
   - src/models/components/destinationcreaterabbitmq.ts
   - src/models/components/destinationcreatewebhook.ts
@@ -276,6 +291,7 @@ generatedFiles:
   - src/models/components/index.ts
   - src/models/components/portalredirect.ts
   - src/models/components/publishrequest.ts
+  - src/models/components/publishresponse.ts
   - src/models/components/rabbitmqconfig.ts
   - src/models/components/rabbitmqcredentials.ts
   - src/models/components/security.ts
@@ -292,7 +308,9 @@ generatedFiles:
   - src/models/errors/index.ts
   - src/models/errors/internalservererror.ts
   - src/models/errors/notfounderror.ts
+  - src/models/errors/outposterror.ts
   - src/models/errors/ratelimitederror.ts
+  - src/models/errors/responsevalidationerror.ts
   - src/models/errors/sdkvalidationerror.ts
   - src/models/errors/timeouterror.ts
   - src/models/errors/unauthorizederror.ts
@@ -443,7 +461,7 @@ examples:
         application/json: {"topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
       responses:
         "200":
-          application/json: {"id": "des_kns_xyz", "type": "aws_kinesis", "topics": ["user.created", "user.updated"], "disabled_at": null, "created_at": "2024-03-10T15:30:00Z", "config": {"stream_name": "production-events", "region": "eu-west-1"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/new-handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
   deleteTenantDestination:
     SuccessExample:
       parameters:
@@ -496,6 +514,8 @@ examples:
           application/json: {}
         "511":
           application/json: {}
+        "202":
+          application/json: {"id": "evt_abc123xyz789"}
   listTenantDestinationTypeSchemas:
     DestinationTypesExample:
       parameters:

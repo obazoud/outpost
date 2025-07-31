@@ -6,7 +6,6 @@
 import { GetTenantDestinationTypeSchemaRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetTenantDestinationTypeSchemaRequest = {
-  tenantId: "<id>",
   type: "hookdeck",
 };
 ```

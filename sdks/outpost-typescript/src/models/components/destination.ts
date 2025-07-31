@@ -19,6 +19,12 @@ import {
   DestinationAWSSQS$outboundSchema,
 } from "./destinationawssqs.js";
 import {
+  DestinationAzureServiceBus,
+  DestinationAzureServiceBus$inboundSchema,
+  DestinationAzureServiceBus$Outbound,
+  DestinationAzureServiceBus$outboundSchema,
+} from "./destinationazureservicebus.js";
+import {
   DestinationHookdeck,
   DestinationHookdeck$inboundSchema,
   DestinationHookdeck$Outbound,
@@ -41,8 +47,9 @@ export type Destination =
   | (DestinationWebhook & { type: "webhook" })
   | (DestinationAWSSQS & { type: "aws_sqs" })
   | (DestinationRabbitMQ & { type: "rabbitmq" })
-  | (DestinationHookdeck & { type: "hookdeck" })
-  | (DestinationAWSKinesis & { type: "aws_kinesis" });
+  | (DestinationAWSKinesis & { type: "aws_kinesis" })
+  | (DestinationAzureServiceBus & { type: "azure_servicebus" })
+  | (DestinationHookdeck & { type: "hookdeck" });
 
 /** @internal */
 export const Destination$inboundSchema: z.ZodType<
@@ -65,13 +72,18 @@ export const Destination$inboundSchema: z.ZodType<
       type: v.type,
     })),
   ),
-  DestinationHookdeck$inboundSchema.and(
-    z.object({ type: z.literal("hookdeck") }).transform((v) => ({
+  DestinationAWSKinesis$inboundSchema.and(
+    z.object({ type: z.literal("aws_kinesis") }).transform((v) => ({
       type: v.type,
     })),
   ),
-  DestinationAWSKinesis$inboundSchema.and(
-    z.object({ type: z.literal("aws_kinesis") }).transform((v) => ({
+  DestinationAzureServiceBus$inboundSchema.and(
+    z.object({ type: z.literal("azure_servicebus") }).transform((v) => ({
+      type: v.type,
+    })),
+  ),
+  DestinationHookdeck$inboundSchema.and(
+    z.object({ type: z.literal("hookdeck") }).transform((v) => ({
       type: v.type,
     })),
   ),
@@ -82,8 +94,9 @@ export type Destination$Outbound =
   | (DestinationWebhook$Outbound & { type: "webhook" })
   | (DestinationAWSSQS$Outbound & { type: "aws_sqs" })
   | (DestinationRabbitMQ$Outbound & { type: "rabbitmq" })
-  | (DestinationHookdeck$Outbound & { type: "hookdeck" })
-  | (DestinationAWSKinesis$Outbound & { type: "aws_kinesis" });
+  | (DestinationAWSKinesis$Outbound & { type: "aws_kinesis" })
+  | (DestinationAzureServiceBus$Outbound & { type: "azure_servicebus" })
+  | (DestinationHookdeck$Outbound & { type: "hookdeck" });
 
 /** @internal */
 export const Destination$outboundSchema: z.ZodType<
@@ -106,13 +119,18 @@ export const Destination$outboundSchema: z.ZodType<
       type: v.type,
     })),
   ),
-  DestinationHookdeck$outboundSchema.and(
-    z.object({ type: z.literal("hookdeck") }).transform((v) => ({
+  DestinationAWSKinesis$outboundSchema.and(
+    z.object({ type: z.literal("aws_kinesis") }).transform((v) => ({
       type: v.type,
     })),
   ),
-  DestinationAWSKinesis$outboundSchema.and(
-    z.object({ type: z.literal("aws_kinesis") }).transform((v) => ({
+  DestinationAzureServiceBus$outboundSchema.and(
+    z.object({ type: z.literal("azure_servicebus") }).transform((v) => ({
+      type: v.type,
+    })),
+  ),
+  DestinationHookdeck$outboundSchema.and(
+    z.object({ type: z.literal("hookdeck") }).transform((v) => ({
       type: v.type,
     })),
   ),
