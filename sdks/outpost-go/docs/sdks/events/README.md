@@ -20,6 +20,7 @@ Retrieves a list of events for the tenant, supporting cursor navigation (details
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="listTenantEvents" method="get" path="/{tenant_id}/events" -->
 ```go
 package main
 
@@ -34,12 +35,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.List(ctx, outpostgo.String("<id>"), nil, nil)
+    res, err := s.Events.List(ctx, nil, nil)
     if err != nil {
         log.Fatal(err)
     }
@@ -84,6 +86,7 @@ Retrieves details for a specific event.
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="getTenantEvent" method="get" path="/{tenant_id}/events/{event_id}" -->
 ```go
 package main
 
@@ -98,12 +101,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.Get(ctx, "<id>", outpostgo.String("<id>"))
+    res, err := s.Events.Get(ctx, "<id>")
     if err != nil {
         log.Fatal(err)
     }
@@ -147,6 +151,7 @@ Retrieves a list of delivery attempts for a specific event, including response d
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="listTenantEventDeliveries" method="get" path="/{tenant_id}/events/{event_id}/deliveries" -->
 ```go
 package main
 
@@ -161,12 +166,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.ListDeliveries(ctx, "<id>", outpostgo.String("<id>"))
+    res, err := s.Events.ListDeliveries(ctx, "<id>")
     if err != nil {
         log.Fatal(err)
     }
@@ -210,6 +216,7 @@ Retrieves events associated with a specific destination for the tenant.
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="listTenantEventsByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events" -->
 ```go
 package main
 
@@ -224,12 +231,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.ListByDestination(ctx, "<id>", outpostgo.String("<id>"), nil)
+    res, err := s.Events.ListByDestination(ctx, "<id>", nil)
     if err != nil {
         log.Fatal(err)
     }
@@ -274,6 +282,7 @@ Retrieves a specific event associated with a specific destination for the tenant
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="getTenantEventByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}" -->
 ```go
 package main
 
@@ -288,12 +297,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.GetByDestination(ctx, "<id>", "<id>", outpostgo.String("<id>"))
+    res, err := s.Events.GetByDestination(ctx, "<id>", "<id>")
     if err != nil {
         log.Fatal(err)
     }
@@ -338,6 +348,7 @@ Triggers a retry for a failed event delivery.
 
 ### Example Usage
 
+<!-- UsageSnippet language="go" operationID="retryTenantEvent" method="post" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}/retry" -->
 ```go
 package main
 
@@ -352,12 +363,13 @@ func main() {
     ctx := context.Background()
 
     s := outpostgo.New(
+        outpostgo.WithTenantID("<id>"),
         outpostgo.WithSecurity(components.Security{
             AdminAPIKey: outpostgo.String("<YOUR_BEARER_TOKEN_HERE>"),
         }),
     )
 
-    res, err := s.Events.Retry(ctx, "<id>", "<id>", outpostgo.String("<id>"))
+    res, err := s.Events.Retry(ctx, "<id>", "<id>")
     if err != nil {
         log.Fatal(err)
     }

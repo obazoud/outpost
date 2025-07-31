@@ -12,19 +12,21 @@ import (
 type DestinationType string
 
 const (
-	DestinationTypeWebhook    DestinationType = "webhook"
-	DestinationTypeAwsSqs     DestinationType = "aws_sqs"
-	DestinationTypeRabbitmq   DestinationType = "rabbitmq"
-	DestinationTypeHookdeck   DestinationType = "hookdeck"
-	DestinationTypeAwsKinesis DestinationType = "aws_kinesis"
+	DestinationTypeWebhook         DestinationType = "webhook"
+	DestinationTypeAwsSqs          DestinationType = "aws_sqs"
+	DestinationTypeRabbitmq        DestinationType = "rabbitmq"
+	DestinationTypeHookdeck        DestinationType = "hookdeck"
+	DestinationTypeAwsKinesis      DestinationType = "aws_kinesis"
+	DestinationTypeAzureServicebus DestinationType = "azure_servicebus"
 )
 
 type Destination struct {
-	DestinationWebhook    *DestinationWebhook    `queryParam:"inline"`
-	DestinationAWSSQS     *DestinationAWSSQS     `queryParam:"inline"`
-	DestinationRabbitMQ   *DestinationRabbitMQ   `queryParam:"inline"`
-	DestinationHookdeck   *DestinationHookdeck   `queryParam:"inline"`
-	DestinationAWSKinesis *DestinationAWSKinesis `queryParam:"inline"`
+	DestinationWebhook         *DestinationWebhook         `queryParam:"inline"`
+	DestinationAWSSQS          *DestinationAWSSQS          `queryParam:"inline"`
+	DestinationRabbitMQ        *DestinationRabbitMQ        `queryParam:"inline"`
+	DestinationHookdeck        *DestinationHookdeck        `queryParam:"inline"`
+	DestinationAWSKinesis      *DestinationAWSKinesis      `queryParam:"inline"`
+	DestinationAzureServiceBus *DestinationAzureServiceBus `queryParam:"inline"`
 
 	Type DestinationType
 }
@@ -89,6 +91,18 @@ func CreateDestinationAwsKinesis(awsKinesis DestinationAWSKinesis) Destination {
 	}
 }
 
+func CreateDestinationAzureServicebus(azureServicebus DestinationAzureServiceBus) Destination {
+	typ := DestinationTypeAzureServicebus
+
+	typStr := DestinationAzureServiceBusType(typ)
+	azureServicebus.Type = typStr
+
+	return Destination{
+		DestinationAzureServiceBus: &azureServicebus,
+		Type:                       typ,
+	}
+}
+
 func (u *Destination) UnmarshalJSON(data []byte) error {
 
 	type discriminator struct {
@@ -146,6 +160,15 @@ func (u *Destination) UnmarshalJSON(data []byte) error {
 		u.DestinationAWSKinesis = destinationAWSKinesis
 		u.Type = DestinationTypeAwsKinesis
 		return nil
+	case "azure_servicebus":
+		destinationAzureServiceBus := new(DestinationAzureServiceBus)
+		if err := utils.UnmarshalJSON(data, &destinationAzureServiceBus, "", true, false); err != nil {
+			return fmt.Errorf("could not unmarshal `%s` into expected (Type == azure_servicebus) type DestinationAzureServiceBus within Destination: %w", string(data), err)
+		}
+
+		u.DestinationAzureServiceBus = destinationAzureServiceBus
+		u.Type = DestinationTypeAzureServicebus
+		return nil
 	}
 
 	return fmt.Errorf("could not unmarshal `%s` into any supported union types for Destination", string(data))
@@ -170,6 +193,10 @@ func (u Destination) MarshalJSON() ([]byte, error) {
 
 	if u.DestinationAWSKinesis != nil {
 		return utils.MarshalJSON(u.DestinationAWSKinesis, "", true)
+	}
+
+	if u.DestinationAzureServiceBus != nil {
+		return utils.MarshalJSON(u.DestinationAzureServiceBus, "", true)
 	}
 
 	return nil, errors.New("could not marshal union type Destination: all fields are null")
