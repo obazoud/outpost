@@ -19,6 +19,13 @@ def run():
         print("Please set the ADMIN_API_KEY environment variable.")
         sys.exit(1)
 
+    sdk = Outpost(
+        security=models.Security(admin_api_key=admin_api_key),
+        server_url=f"{server_url}/api/v1",
+    )
+
+    sdk.tenants.upsert(tenant_id=tenant_id)
+
     print(
         """
 You can create a topic or queue specific connection string with
@@ -82,11 +89,6 @@ az servicebus queue authorization-rule keys list \\
     ).ask()
     if topic_or_queue_name is None:
         sys.exit(0)
-
-    sdk = Outpost(
-        security=models.Security(admin_api_key=admin_api_key),
-        server_url=f"{server_url}/api/v1",
-    )
 
     try:
         resp = sdk.destinations.create(

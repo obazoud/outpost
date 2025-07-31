@@ -18,7 +18,11 @@ async function createDestination() {
     security: { adminApiKey: ADMIN_API_KEY },
     serverURL: `${SERVER_URL}/api/v1`,
   });
-  
+
+  await outpostAdmin.tenants.upsert({
+    tenantId: TENANT_ID,
+  });
+
   const { destinationType } = await inquirer.prompt([
     {
       type: 'list',

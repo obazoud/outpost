@@ -51,4 +51,10 @@ The source code for the TypeScript SDK can be found in the [`sdks/outpost-typesc
         npm run create-destination
         ```
 
-    Review the respective `.ts` files (`index.ts`, `auth.ts`, `create-destination.ts`) for details on what each example does.
+    *   **To run the publish event example (from `publish-event.ts`):**
+        This example demonstrates publishing an event to a topic.
+        ```bash
+        npm run publish-event
+        ```
+
+    Review the respective `.ts` files (`index.ts`, `auth.ts`, `create-destination.ts`, `publish-event.ts`) for details on what each example does.

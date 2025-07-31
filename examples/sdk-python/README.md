@@ -48,5 +48,9 @@ The source code for the Python SDK can be found in the [`sdks/outpost-python/`](
         ```bash
         python app.py create-destination
         ```
+    *   **To run the publish event example:**
+        ```bash
+        python app.py publish-event
+        ```
 
     Review the `app.py` file and the `example/` directory for more details on the implementation.

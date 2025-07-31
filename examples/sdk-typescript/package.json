@@ -14,6 +14,7 @@
   "scripts": {
     "start": "node --loader ts-node/esm index.ts",
     "auth": "node --loader ts-node/esm auth.ts",
-    "create-destination": "node --loader ts-node/esm create-destination.ts"
+    "create-destination": "node --loader ts-node/esm create-destination.ts",
+    "publish-event": "node --loader ts-node/esm publish-event.ts"
   }
 }

@@ -27,6 +27,19 @@ func runCreateDestinationExample() {
 		serverURL = "http://localhost:3333"
 	}
 
+	client := outpostgo.New(
+		outpostgo.WithSecurity(components.Security{
+			AdminAPIKey: &adminAPIKey,
+		}),
+		outpostgo.WithServerURL(fmt.Sprintf("%s/api/v1", serverURL)),
+	)
+
+	_, err := client.Tenants.Upsert(context.Background(), &tenantID)
+
+	if err != nil {
+		log.Fatalf("Error upserting tenant: %v", err)
+	}
+
 	fmt.Print(`
 You can create a topic or queue specific connection string with send-only permissions using the Azure CLI.
 Please replace $RESOURCE_GROUP, $NAMESPACE_NAME, and $TOPIC_NAME with your actual values.
@@ -84,13 +97,6 @@ az servicebus queue authorization-rule keys list \
 		log.Fatalf("Prompt failed %v\n", err)
 	}
 
-	client := outpostgo.New(
-		outpostgo.WithSecurity(components.Security{
-			AdminAPIKey: &adminAPIKey,
-		}),
-		outpostgo.WithServerURL(fmt.Sprintf("%s/api/v1", serverURL)),
-	)
-
 	topics := components.CreateTopicsTopicsEnum(components.TopicsEnumWildcard)
 
 	destination := components.CreateDestinationCreateAzureServicebus(
@@ -105,17 +111,17 @@ az servicebus queue authorization-rule keys list \
 		},
 	)
 
-	res, err := client.Destinations.Create(context.Background(), destination, &tenantID)
+	createRes, err := client.Destinations.Create(context.Background(), destination, &tenantID)
 	if err != nil {
 		log.Fatalf("Error creating destination: %v", err)
 	}
 
-	if res.Destination != nil {
+	if createRes.Destination != nil {
 		fmt.Println("Destination created successfully:")
 		// Using a simple print for brevity, a real application might use JSON marshalling
-		fmt.Printf("  ID: %s\n", res.Destination.DestinationAzureServiceBus.ID)
-		fmt.Printf("  Name: %s\n", res.Destination.DestinationAzureServiceBus.Config.Name)
-		fmt.Printf("  Type: %s\n", res.Destination.Type)
+		fmt.Printf("  ID: %s\n", createRes.Destination.DestinationAzureServiceBus.ID)
+		fmt.Printf("  Name: %s\n", createRes.Destination.DestinationAzureServiceBus.Config.Name)
+		fmt.Printf("  Type: %s\n", createRes.Destination.Type)
 	} else {
 		fmt.Println("Destination creation did not return a destination object.")
 	}
