@@ -13,7 +13,7 @@ if (!ADMIN_API_KEY) {
   process.exit(1);
 }
 
-async function createDestination() {
+async function main() {
   const outpostAdmin = new Outpost({
     security: { adminApiKey: ADMIN_API_KEY },
     serverURL: `${SERVER_URL}/api/v1`,
@@ -122,4 +122,4 @@ az servicebus queue authorization-rule keys list \\
   }
 }
 
-createDestination();
+main();
