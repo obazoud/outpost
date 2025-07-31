@@ -33,3 +33,9 @@ value: models.DestinationHookdeck = /* values here */
 value: models.DestinationAWSKinesis = /* values here */
 ```
 
+### `models.DestinationAzureServiceBus`
+
+```python
+value: models.DestinationAzureServiceBus = /* values here */
+```
+
