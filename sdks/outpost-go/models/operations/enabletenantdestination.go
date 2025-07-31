@@ -92,3 +92,10 @@ func (o *EnableTenantDestinationResponse) GetDestinationAwsKinesis() *components
 	}
 	return nil
 }
+
+func (o *EnableTenantDestinationResponse) GetDestinationAzureServicebus() *components.DestinationAzureServiceBus {
+	if v := o.GetDestination(); v != nil {
+		return v.DestinationAzureServiceBus
+	}
+	return nil
+}

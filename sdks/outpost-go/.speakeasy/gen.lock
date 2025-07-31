@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: f0627709-5a00-43ac-8678-ca716d6f379c
 management:
-  docChecksum: 09a46accc53e3497235bb404b206f5b1
+  docChecksum: 3d3f028a2fdd56804d9ae8a2d95a414b
   docVersion: 0.0.1
-  speakeasyVersion: 1.548.1
-  generationVersion: 2.605.0
-  releaseVersion: 0.2.1
-  configChecksum: 39ed4c8c2c8738d9dcd5b67deb776110
+  speakeasyVersion: 1.593.0
+  generationVersion: 2.669.0
+  releaseVersion: 0.3.0
+  configChecksum: f3bcf03bfde867a784160194946cc34d
   repoURL: https://github.com/hookdeck/outpost.git
   repoSubDirectory: sdks/outpost-go
   installationURL: https://github.com/hookdeck/outpost/sdks/outpost-go
@@ -14,7 +14,7 @@ features:
   go:
     additionalDependencies: 0.1.0
     additionalProperties: 0.1.2
-    core: 3.7.5
+    core: 3.9.1
     defaultEnabledRetries: 0.2.0
     envVarSecurityUsage: 0.3.2
     flattening: 2.81.1
@@ -26,9 +26,9 @@ features:
     nameOverrides: 2.81.2
     nullables: 0.1.1
     responseFormat: 0.1.2
-    retries: 2.83.2
-    sdkHooks: 0.1.0
-    unions: 2.85.10
+    retries: 2.84.0
+    sdkHooks: 0.2.0
+    unions: 2.85.12
 generatedFiles:
   - .gitattributes
   - /models/apierrors/badrequesterror.go
@@ -41,13 +41,17 @@ generatedFiles:
   - /models/components/awskinesiscredentials.go
   - /models/components/awssqsconfig.go
   - /models/components/awssqscredentials.go
+  - /models/components/azureservicebusconfig.go
+  - /models/components/azureservicebuscredentials.go
   - /models/components/deliveryattempt.go
   - /models/components/destination.go
   - /models/components/destinationawskinesis.go
   - /models/components/destinationawssqs.go
+  - /models/components/destinationazureservicebus.go
   - /models/components/destinationcreate.go
   - /models/components/destinationcreateawskinesis.go
   - /models/components/destinationcreateawssqs.go
+  - /models/components/destinationcreateazureservicebus.go
   - /models/components/destinationcreatehookdeck.go
   - /models/components/destinationcreaterabbitmq.go
   - /models/components/destinationcreatewebhook.go
@@ -116,17 +120,23 @@ generatedFiles:
   - docs/models/components/awskinesiscredentials.md
   - docs/models/components/awssqsconfig.md
   - docs/models/components/awssqscredentials.md
+  - docs/models/components/azureservicebusconfig.md
+  - docs/models/components/azureservicebuscredentials.md
   - docs/models/components/deliveryattempt.md
   - docs/models/components/destination.md
   - docs/models/components/destinationawskinesis.md
   - docs/models/components/destinationawskinesistype.md
   - docs/models/components/destinationawssqs.md
   - docs/models/components/destinationawssqstype.md
+  - docs/models/components/destinationazureservicebus.md
+  - docs/models/components/destinationazureservicebustype.md
   - docs/models/components/destinationcreate.md
   - docs/models/components/destinationcreateawskinesis.md
   - docs/models/components/destinationcreateawskinesistype.md
   - docs/models/components/destinationcreateawssqs.md
   - docs/models/components/destinationcreateawssqstype.md
+  - docs/models/components/destinationcreateazureservicebus.md
+  - docs/models/components/destinationcreateazureservicebustype.md
   - docs/models/components/destinationcreatehookdeck.md
   - docs/models/components/destinationcreatehookdecktype.md
   - docs/models/components/destinationcreaterabbitmq.md
@@ -259,6 +269,7 @@ generatedFiles:
   - events.go
   - go.mod
   - health.go
+  - internal/config/sdkconfiguration.go
   - internal/globals/globals.go
   - internal/hooks/hooks.go
   - internal/utils/contenttype.go
@@ -390,7 +401,7 @@ examples:
         application/json: {"topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
       responses:
         "200":
-          application/json: {"id": "des_kns_xyz", "type": "aws_kinesis", "topics": ["user.created", "user.updated"], "disabled_at": null, "created_at": "2024-03-10T15:30:00Z", "config": {"stream_name": "production-events", "region": "eu-west-1"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/new-handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
   deleteTenantDestination:
     SuccessExample:
       parameters:
