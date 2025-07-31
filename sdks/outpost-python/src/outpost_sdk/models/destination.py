@@ -3,6 +3,10 @@
 from __future__ import annotations
 from .destinationawskinesis import DestinationAWSKinesis, DestinationAWSKinesisTypedDict
 from .destinationawssqs import DestinationAWSSQS, DestinationAWSSQSTypedDict
+from .destinationazureservicebus import (
+    DestinationAzureServiceBus,
+    DestinationAzureServiceBusTypedDict,
+)
 from .destinationhookdeck import DestinationHookdeck, DestinationHookdeckTypedDict
 from .destinationrabbitmq import DestinationRabbitMQ, DestinationRabbitMQTypedDict
 from .destinationwebhook import DestinationWebhook, DestinationWebhookTypedDict
@@ -20,6 +24,7 @@ DestinationTypedDict = TypeAliasType(
         DestinationRabbitMQTypedDict,
         DestinationHookdeckTypedDict,
         DestinationAWSKinesisTypedDict,
+        DestinationAzureServiceBusTypedDict,
     ],
 )
 
@@ -31,6 +36,7 @@ Destination = Annotated[
         Annotated[DestinationRabbitMQ, Tag("rabbitmq")],
         Annotated[DestinationHookdeck, Tag("hookdeck")],
         Annotated[DestinationAWSKinesis, Tag("aws_kinesis")],
+        Annotated[DestinationAzureServiceBus, Tag("azure_servicebus")],
     ],
     Discriminator(lambda m: get_discriminator(m, "type", "type")),
 ]

@@ -1,12 +1,12 @@
 lockVersion: 2.0.0
 id: da774284-22d9-4b6c-bb26-1c3fc9f2c7ee
 management:
-  docChecksum: 9d08f718ce55c534f292ba05af3425db
+  docChecksum: 3d3f028a2fdd56804d9ae8a2d95a414b
   docVersion: 0.0.1
-  speakeasyVersion: 1.548.1
-  generationVersion: 2.605.0
-  releaseVersion: 0.2.0
-  configChecksum: 69ffbd3cdb2c5ff26968adc0dac0491c
+  speakeasyVersion: 1.593.0
+  generationVersion: 2.669.0
+  releaseVersion: 0.3.0
+  configChecksum: 3b13091ed8addea8fde7b0db3bd41f0b
   repoURL: https://github.com/hookdeck/outpost.git
   repoSubDirectory: sdks/outpost-python
   installationURL: https://github.com/hookdeck/outpost.git#subdirectory=sdks/outpost-python
@@ -15,7 +15,7 @@ features:
   python:
     additionalDependencies: 1.0.0
     additionalProperties: 1.0.1
-    core: 5.18.1
+    core: 5.19.5
     defaultEnabledRetries: 0.2.0
     enumUnions: 0.1.0
     envVarSecurityUsage: 0.3.2
@@ -30,11 +30,10 @@ features:
     nullables: 1.0.1
     responseFormat: 1.0.1
     retries: 3.0.2
-    sdkHooks: 1.0.1
+    sdkHooks: 1.1.0
     unions: 3.0.4
 generatedFiles:
   - .gitattributes
-  - .python-version
   - .vscode/settings.json
   - USAGE.md
   - docs/errors/badrequesterror.md
@@ -47,6 +46,8 @@ generatedFiles:
   - docs/models/awskinesiscredentials.md
   - docs/models/awssqsconfig.md
   - docs/models/awssqscredentials.md
+  - docs/models/azureservicebusconfig.md
+  - docs/models/azureservicebuscredentials.md
   - docs/models/createtenantdestinationglobals.md
   - docs/models/createtenantdestinationrequest.md
   - docs/models/deletetenantdestinationglobals.md
@@ -59,11 +60,15 @@ generatedFiles:
   - docs/models/destinationawskinesistype.md
   - docs/models/destinationawssqs.md
   - docs/models/destinationawssqstype.md
+  - docs/models/destinationazureservicebus.md
+  - docs/models/destinationazureservicebustype.md
   - docs/models/destinationcreate.md
   - docs/models/destinationcreateawskinesis.md
   - docs/models/destinationcreateawskinesistype.md
   - docs/models/destinationcreateawssqs.md
   - docs/models/destinationcreateawssqstype.md
+  - docs/models/destinationcreateazureservicebus.md
+  - docs/models/destinationcreateazureservicebustype.md
   - docs/models/destinationcreatehookdeck.md
   - docs/models/destinationcreatehookdecktype.md
   - docs/models/destinationcreaterabbitmq.md
@@ -129,6 +134,7 @@ generatedFiles:
   - docs/models/listtenanttopicsrequest.md
   - docs/models/portalredirect.md
   - docs/models/publishrequest.md
+  - docs/models/publishresponse.md
   - docs/models/rabbitmqconfig.md
   - docs/models/rabbitmqcredentials.md
   - docs/models/retrytenanteventglobals.md
@@ -177,8 +183,11 @@ generatedFiles:
   - src/outpost_sdk/errors/apierror.py
   - src/outpost_sdk/errors/badrequest_error.py
   - src/outpost_sdk/errors/internalservererror.py
+  - src/outpost_sdk/errors/no_response_error.py
   - src/outpost_sdk/errors/notfound_error.py
+  - src/outpost_sdk/errors/outposterror.py
   - src/outpost_sdk/errors/ratelimited_error.py
+  - src/outpost_sdk/errors/responsevalidationerror.py
   - src/outpost_sdk/errors/timeout_error.py
   - src/outpost_sdk/errors/unauthorized_error.py
   - src/outpost_sdk/events.py
@@ -189,6 +198,8 @@ generatedFiles:
   - src/outpost_sdk/models/awskinesiscredentials.py
   - src/outpost_sdk/models/awssqsconfig.py
   - src/outpost_sdk/models/awssqscredentials.py
+  - src/outpost_sdk/models/azureservicebusconfig.py
+  - src/outpost_sdk/models/azureservicebuscredentials.py
   - src/outpost_sdk/models/createtenantdestinationop.py
   - src/outpost_sdk/models/deletetenantdestinationop.py
   - src/outpost_sdk/models/deletetenantop.py
@@ -196,9 +207,11 @@ generatedFiles:
   - src/outpost_sdk/models/destination.py
   - src/outpost_sdk/models/destinationawskinesis.py
   - src/outpost_sdk/models/destinationawssqs.py
+  - src/outpost_sdk/models/destinationazureservicebus.py
   - src/outpost_sdk/models/destinationcreate.py
   - src/outpost_sdk/models/destinationcreateawskinesis.py
   - src/outpost_sdk/models/destinationcreateawssqs.py
+  - src/outpost_sdk/models/destinationcreateazureservicebus.py
   - src/outpost_sdk/models/destinationcreatehookdeck.py
   - src/outpost_sdk/models/destinationcreaterabbitmq.py
   - src/outpost_sdk/models/destinationcreatewebhook.py
@@ -235,6 +248,7 @@ generatedFiles:
   - src/outpost_sdk/models/listtenanttopicsop.py
   - src/outpost_sdk/models/portalredirect.py
   - src/outpost_sdk/models/publishrequest.py
+  - src/outpost_sdk/models/publishresponse.py
   - src/outpost_sdk/models/rabbitmqconfig.py
   - src/outpost_sdk/models/rabbitmqcredentials.py
   - src/outpost_sdk/models/retrytenanteventop.py
@@ -271,6 +285,7 @@ generatedFiles:
   - src/outpost_sdk/utils/retries.py
   - src/outpost_sdk/utils/security.py
   - src/outpost_sdk/utils/serializers.py
+  - src/outpost_sdk/utils/unmarshal_json_response.py
   - src/outpost_sdk/utils/url.py
   - src/outpost_sdk/utils/values.py
 examples:
@@ -378,7 +393,7 @@ examples:
         application/json: {"topics": "*", "config": {"server_url": "localhost:5672", "exchange": "my-exchange", "tls": "false"}, "credentials": {"username": "guest", "password": "guest"}}
       responses:
         "200":
-          application/json: {"id": "des_kns_xyz", "type": "aws_kinesis", "topics": ["user.created", "user.updated"], "disabled_at": null, "created_at": "2024-03-10T15:30:00Z", "config": {"stream_name": "production-events", "region": "eu-west-1"}, "credentials": {"key": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}}
+          application/json: {"id": "des_webhook_123", "type": "webhook", "topics": ["user.created"], "disabled_at": null, "created_at": "2024-02-15T10:00:00Z", "config": {"url": "https://my-service.com/webhook/new-handler"}, "credentials": {"secret": "whsec_abc123def456", "previous_secret": "whsec_prev789xyz012", "previous_secret_invalid_at": "2024-02-16T10:00:00Z"}}
   deleteTenantDestination:
     SuccessExample:
       parameters:
@@ -431,6 +446,8 @@ examples:
           application/json: {}
         "511":
           application/json: {}
+        "202":
+          application/json: {"id": "evt_abc123xyz789"}
   listTenantDestinationTypeSchemas:
     DestinationTypesExample:
       parameters:

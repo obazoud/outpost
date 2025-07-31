@@ -20,17 +20,19 @@ Retrieves a list of events for the tenant, supporting cursor navigation (details
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="listTenantEvents" method="get" path="/{tenant_id}/events" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.events.list(tenant_id="<id>")
+    res = outpost.events.list()
 
     # Handle response
     print(res)
@@ -71,17 +73,19 @@ Retrieves details for a specific event.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="getTenantEvent" method="get" path="/{tenant_id}/events/{event_id}" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.events.get(event_id="<id>", tenant_id="<id>")
+    res = outpost.events.get(event_id="<id>")
 
     # Handle response
     print(res)
@@ -121,17 +125,19 @@ Retrieves a list of delivery attempts for a specific event, including response d
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="listTenantEventDeliveries" method="get" path="/{tenant_id}/events/{event_id}/deliveries" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.events.list_deliveries(event_id="<id>", tenant_id="<id>")
+    res = outpost.events.list_deliveries(event_id="<id>")
 
     # Handle response
     print(res)
@@ -171,17 +177,19 @@ Retrieves events associated with a specific destination for the tenant.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="listTenantEventsByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.events.list_by_destination(destination_id="<id>", tenant_id="<id>")
+    res = outpost.events.list_by_destination(destination_id="<id>")
 
     # Handle response
     print(res)
@@ -222,17 +230,19 @@ Retrieves a specific event associated with a specific destination for the tenant
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="getTenantEventByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.events.get_by_destination(destination_id="<id>", event_id="<id>", tenant_id="<id>")
+    res = outpost.events.get_by_destination(destination_id="<id>", event_id="<id>")
 
     # Handle response
     print(res)
@@ -273,17 +283,19 @@ Triggers a retry for a failed event delivery.
 
 ### Example Usage
 
+<!-- UsageSnippet language="python" operationID="retryTenantEvent" method="post" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}/retry" -->
 ```python
 from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    outpost.events.retry(destination_id="<id>", event_id="<id>", tenant_id="<id>")
+    outpost.events.retry(destination_id="<id>", event_id="<id>")
 
     # Use the SDK ...
 
