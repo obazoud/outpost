@@ -37,8 +37,16 @@ The source code for the Python SDK can be found in the [`sdks/outpost-python/`](
 
 2.  **Run the example script:**
     *(Ensure you are inside the Poetry shell activated in the setup step)*
-    ```bash
-    python app.py
-    ```
 
-    This executes `app.py`, showcasing SDK functionalities. Review `app.py` for details.
+    The `app.py` script is now a command-line interface (CLI) that accepts different commands to run specific examples.
+
+    *   **To run the API Key and JWT client auth example:**
+        ```bash
+        python app.py auth
+        ```
+    *   **To run the create destination example:**
+        ```bash
+        python app.py create-destination
+        ```
+
+    Review the `app.py` file and the `example/` directory for more details on the implementation.
