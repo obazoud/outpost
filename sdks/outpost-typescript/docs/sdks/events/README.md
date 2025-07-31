@@ -20,21 +20,20 @@ Retrieves a list of events for the tenant, supporting cursor navigation (details
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="listTenantEvents" method="get" path="/{tenant_id}/events" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
 });
 
 async function run() {
-  const result = await outpost.events.list({
-    tenantId: "<id>",
-  });
+  const result = await outpost.events.list({});
 
-  // Handle the result
   console.log(result);
 }
 
@@ -52,24 +51,20 @@ import { eventsList } from "@hookdeck/outpost-sdk/funcs/eventsList.js";
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
 });
 
 async function run() {
-  const res = await eventsList(outpost, {
-    tenantId: "<id>",
-  });
-
-  if (!res.ok) {
-    throw res.error;
+  const res = await eventsList(outpost, {});
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsList failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  // Handle the result
-  console.log(result);
 }
 
 run();
@@ -109,10 +104,12 @@ Retrieves details for a specific event.
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="getTenantEvent" method="get" path="/{tenant_id}/events/{event_id}" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -120,11 +117,9 @@ const outpost = new Outpost({
 
 async function run() {
   const result = await outpost.events.get({
-    tenantId: "<id>",
     eventId: "<id>",
   });
 
-  // Handle the result
   console.log(result);
 }
 
@@ -142,6 +137,7 @@ import { eventsGet } from "@hookdeck/outpost-sdk/funcs/eventsGet.js";
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -149,18 +145,14 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await eventsGet(outpost, {
-    tenantId: "<id>",
     eventId: "<id>",
   });
-
-  if (!res.ok) {
-    throw res.error;
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsGet failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  // Handle the result
-  console.log(result);
 }
 
 run();
@@ -200,10 +192,12 @@ Retrieves a list of delivery attempts for a specific event, including response d
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="listTenantEventDeliveries" method="get" path="/{tenant_id}/events/{event_id}/deliveries" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -211,11 +205,9 @@ const outpost = new Outpost({
 
 async function run() {
   const result = await outpost.events.listDeliveries({
-    tenantId: "<id>",
     eventId: "<id>",
   });
 
-  // Handle the result
   console.log(result);
 }
 
@@ -233,6 +225,7 @@ import { eventsListDeliveries } from "@hookdeck/outpost-sdk/funcs/eventsListDeli
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -240,18 +233,14 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await eventsListDeliveries(outpost, {
-    tenantId: "<id>",
     eventId: "<id>",
   });
-
-  if (!res.ok) {
-    throw res.error;
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsListDeliveries failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  // Handle the result
-  console.log(result);
 }
 
 run();
@@ -291,10 +280,12 @@ Retrieves events associated with a specific destination for the tenant.
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="listTenantEventsByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -302,11 +293,9 @@ const outpost = new Outpost({
 
 async function run() {
   const result = await outpost.events.listByDestination({
-    tenantId: "<id>",
     destinationId: "<id>",
   });
 
-  // Handle the result
   console.log(result);
 }
 
@@ -324,6 +313,7 @@ import { eventsListByDestination } from "@hookdeck/outpost-sdk/funcs/eventsListB
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -331,18 +321,14 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await eventsListByDestination(outpost, {
-    tenantId: "<id>",
     destinationId: "<id>",
   });
-
-  if (!res.ok) {
-    throw res.error;
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsListByDestination failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  // Handle the result
-  console.log(result);
 }
 
 run();
@@ -382,10 +368,12 @@ Retrieves a specific event associated with a specific destination for the tenant
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="getTenantEventByDestination" method="get" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -393,12 +381,10 @@ const outpost = new Outpost({
 
 async function run() {
   const result = await outpost.events.getByDestination({
-    tenantId: "<id>",
     destinationId: "<id>",
     eventId: "<id>",
   });
 
-  // Handle the result
   console.log(result);
 }
 
@@ -416,6 +402,7 @@ import { eventsGetByDestination } from "@hookdeck/outpost-sdk/funcs/eventsGetByD
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -423,19 +410,15 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await eventsGetByDestination(outpost, {
-    tenantId: "<id>",
     destinationId: "<id>",
     eventId: "<id>",
   });
-
-  if (!res.ok) {
-    throw res.error;
+  if (res.ok) {
+    const { value: result } = res;
+    console.log(result);
+  } else {
+    console.log("eventsGetByDestination failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  // Handle the result
-  console.log(result);
 }
 
 run();
@@ -475,10 +458,12 @@ Triggers a retry for a failed event delivery.
 
 ### Example Usage
 
+<!-- UsageSnippet language="typescript" operationID="retryTenantEvent" method="post" path="/{tenant_id}/destinations/{destination_id}/events/{event_id}/retry" -->
 ```typescript
 import { Outpost } from "@hookdeck/outpost-sdk";
 
 const outpost = new Outpost({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -486,7 +471,6 @@ const outpost = new Outpost({
 
 async function run() {
   await outpost.events.retry({
-    tenantId: "<id>",
     destinationId: "<id>",
     eventId: "<id>",
   });
@@ -508,6 +492,7 @@ import { eventsRetry } from "@hookdeck/outpost-sdk/funcs/eventsRetry.js";
 // Use `OutpostCore` for best tree-shaking performance.
 // You can create one instance of it to use across an application.
 const outpost = new OutpostCore({
+  tenantId: "<id>",
   security: {
     adminApiKey: "<YOUR_BEARER_TOKEN_HERE>",
   },
@@ -515,18 +500,15 @@ const outpost = new OutpostCore({
 
 async function run() {
   const res = await eventsRetry(outpost, {
-    tenantId: "<id>",
     destinationId: "<id>",
     eventId: "<id>",
   });
-
-  if (!res.ok) {
-    throw res.error;
+  if (res.ok) {
+    const { value: result } = res;
+    
+  } else {
+    console.log("eventsRetry failed:", res.error);
   }
-
-  const { value: result } = res;
-
-  
 }
 
 run();

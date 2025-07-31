@@ -71,24 +71,6 @@ const value: components.DestinationRabbitMQ = {
 };
 ```
 
-### `components.DestinationHookdeck`
-
-```typescript
-const value: components.DestinationHookdeck = {
-  id: "des_hkd_abc",
-  type: "hookdeck",
-  topics: [
-    "*",
-  ],
-  disabledAt: null,
-  createdAt: new Date("2024-04-01T10:00:00Z"),
-  config: {},
-  credentials: {
-    token: "hd_token_...",
-  },
-};
-```
-
 ### `components.DestinationAWSKinesis`
 
 ```typescript
@@ -108,6 +90,45 @@ const value: components.DestinationAWSKinesis = {
   credentials: {
     key: "AKIAIOSFODNN7EXAMPLE",
     secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  },
+};
+```
+
+### `components.DestinationAzureServiceBus`
+
+```typescript
+const value: components.DestinationAzureServiceBus = {
+  id: "des_azuresb_123",
+  type: "azure_servicebus",
+  topics: [
+    "*",
+  ],
+  disabledAt: null,
+  createdAt: new Date("2024-05-01T10:00:00Z"),
+  config: {
+    name: "my-queue-or-topic",
+  },
+  credentials: {
+    connectionString:
+      "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123",
+  },
+};
+```
+
+### `components.DestinationHookdeck`
+
+```typescript
+const value: components.DestinationHookdeck = {
+  id: "des_hkd_abc",
+  type: "hookdeck",
+  topics: [
+    "*",
+  ],
+  disabledAt: null,
+  createdAt: new Date("2024-04-01T10:00:00Z"),
+  config: {},
+  credentials: {
+    token: "hd_token_...",
   },
 };
 ```
