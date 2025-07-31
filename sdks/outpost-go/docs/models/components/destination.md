@@ -33,3 +33,9 @@ destination := components.CreateDestinationHookdeck(components.DestinationHookde
 destination := components.CreateDestinationAwsKinesis(components.DestinationAWSKinesis{/* values here */})
 ```
 
+### DestinationAzureServiceBus
+
+```go
+destination := components.CreateDestinationAzureServicebus(components.DestinationAzureServiceBus{/* values here */})
+```
+
