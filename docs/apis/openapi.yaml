@@ -210,6 +210,23 @@ components:
           description: Optional AWS Session Token (for temporary credentials).
           example: "AQoDYXdzEPT//////////wEXAMPLE..."
 
+    AzureServiceBusConfig:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: The name of the Azure Service Bus queue or topic to publish messages to.
+          example: "my-queue-or-topic"
+    AzureServiceBusCredentials:
+      type: object
+      required: [connection_string]
+      properties:
+        connection_string:
+          type: string
+          description: The connection string for the Azure Service Bus namespace.
+          example: "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123"
+
     # Type-Specific Destination Schemas (for Responses)
     DestinationWebhook:
       type: object
@@ -484,6 +501,59 @@ components:
           key: "AKIAIOSFODNN7EXAMPLE"
           secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 
+    DestinationAzureServiceBus:
+      type: object
+      required: [id, type, topics, config, credentials, created_at, disabled_at]
+      properties:
+        id:
+          type: string
+          description: Control plane generated ID or user provided ID for the destination.
+          example: "des_12345"
+        type:
+          type: string
+          description: Type of the destination.
+          enum: [azure_servicebus]
+          example: "azure_servicebus"
+        topics:
+          $ref: "#/components/schemas/Topics"
+        disabled_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: ISO Date when the destination was disabled, or null if enabled.
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: ISO Date when the destination was created.
+          example: "2024-01-01T00:00:00Z"
+        config:
+          $ref: "#/components/schemas/AzureServiceBusConfig"
+        credentials:
+          $ref: "#/components/schemas/AzureServiceBusCredentials"
+        target:
+          type: string
+          description: A human-readable representation of the destination target (Azure Service Bus queue/topic name). Read-only.
+          readOnly: true
+          example: "my-queue-or-topic"
+        target_url:
+          type: string
+          format: url
+          nullable: true # Can construct Azure portal URL
+          description: A URL link to the destination target (Azure Portal link to the Service Bus). Read-only.
+          readOnly: true
+          example: "https://portal.azure.com/#@tenant-id/resource/subscriptions/subscription-id/resourceGroups/resource-group/providers/Microsoft.ServiceBus/namespaces/namespace-name/queues/queue-name"
+      example:
+        id: "des_azuresb_123"
+        type: "azure_servicebus"
+        topics: ["*"]
+        disabled_at: null
+        created_at: "2024-05-01T10:00:00Z"
+        config:
+          name: "my-queue-or-topic"
+        credentials:
+          connection_string: "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123"
+
     # Polymorphic Destination Schema (for Responses)
     Destination:
       oneOf:
@@ -492,6 +562,7 @@ components:
         - $ref: "#/components/schemas/DestinationRabbitMQ"
         - $ref: "#/components/schemas/DestinationHookdeck"
         - $ref: "#/components/schemas/DestinationAWSKinesis"
+        - $ref: "#/components/schemas/DestinationAzureServiceBus"
       discriminator:
         propertyName: type
         mapping:
@@ -500,6 +571,7 @@ components:
           rabbitmq: "#/components/schemas/DestinationRabbitMQ"
           hookdeck: "#/components/schemas/DestinationHookdeck"
           aws_kinesis: "#/components/schemas/DestinationAWSKinesis"
+          azure_servicebus: "#/components/schemas/DestinationAzureServiceBus"
 
     DestinationCreateWebhook:
       type: object
@@ -592,6 +664,25 @@ components:
         credentials:
           $ref: "#/components/schemas/AWSKinesisCredentials"
 
+    DestinationCreateAzureServiceBus:
+      type: object
+      required: [type, topics, config, credentials]
+      properties:
+        id:
+          type: string
+          description: Optional user-provided ID. A UUID will be generated if empty.
+          example: "user-provided-id"
+        type:
+          type: string
+          description: Type of the destination. Must be 'azure_servicebus'.
+          enum: [azure_servicebus]
+        topics:
+          $ref: "#/components/schemas/Topics"
+        config:
+          $ref: "#/components/schemas/AzureServiceBusConfig"
+        credentials:
+          $ref: "#/components/schemas/AzureServiceBusCredentials"
+
     # Polymorphic Destination Creation Schema (for Request Bodies)
     DestinationCreate:
       oneOf:
@@ -600,6 +691,7 @@ components:
         - $ref: "#/components/schemas/DestinationCreateRabbitMQ"
         - $ref: "#/components/schemas/DestinationCreateHookdeck"
         - $ref: "#/components/schemas/DestinationCreateAWSKinesis"
+        - $ref: "#/components/schemas/DestinationCreateAzureServiceBus"
       discriminator:
         propertyName: type
         mapping:
@@ -608,6 +700,7 @@ components:
           rabbitmq: "#/components/schemas/DestinationCreateRabbitMQ"
           hookdeck: "#/components/schemas/DestinationCreateHookdeck"
           aws_kinesis: "#/components/schemas/DestinationCreateAWSKinesis"
+          azure_servicebus: "#/components/schemas/DestinationCreateAzureServiceBus"
 
     # Type-Specific Destination Update Schemas (for Request Bodies)
     WebhookCredentialsUpdate:
