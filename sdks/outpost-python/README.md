@@ -255,12 +255,13 @@ from outpost_sdk import Outpost, models
 
 
 with Outpost(
+    tenant_id="<id>",
     security=models.Security(
         admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
     ),
 ) as outpost:
 
-    res = outpost.tenants.upsert(tenant_id="<id>")
+    res = outpost.tenants.upsert()
 
     # Handle response
     print(res)
@@ -310,35 +311,18 @@ with Outpost(
 <!-- Start Error Handling [errors] -->
 ## Error Handling
 
-Handling errors in this SDK should largely match your expectations. All operations return a response object or raise an exception.
+[`OutpostError`](./src/outpost_sdk/errors/outposterror.py) is the base class for all HTTP error responses. It has the following properties:
 
-By default, an API error will raise a errors.APIError exception, which has the following properties:
-
-| Property        | Type             | Description           |
-|-----------------|------------------|-----------------------|
-| `.status_code`  | *int*            | The HTTP status code  |
-| `.message`      | *str*            | The error message     |
-| `.raw_response` | *httpx.Response* | The raw HTTP response |
-| `.body`         | *str*            | The response content  |
-
-When custom error responses are specified for an operation, the SDK may also raise their associated exceptions. You can refer to respective *Errors* tables in SDK docs for more details on possible exception types for each operation. For example, the `check_async` method may raise the following exceptions:
-
-| Error Type                 | Status Code                  | Content Type     |
-| -------------------------- | ---------------------------- | ---------------- |
-| errors.NotFoundError       | 404                          | application/json |
-| errors.UnauthorizedError   | 401, 403, 407                | application/json |
-| errors.TimeoutErrorT       | 408                          | application/json |
-| errors.RateLimitedError    | 429                          | application/json |
-| errors.BadRequestError     | 400, 413, 414, 415, 422, 431 | application/json |
-| errors.TimeoutErrorT       | 504                          | application/json |
-| errors.NotFoundError       | 501, 505                     | application/json |
-| errors.InternalServerError | 500, 502, 503, 506, 507, 508 | application/json |
-| errors.BadRequestError     | 510                          | application/json |
-| errors.UnauthorizedError   | 511                          | application/json |
-| errors.APIError            | 4XX, 5XX                     | \*/\*            |
+| Property           | Type             | Description                                                                             |
+| ------------------ | ---------------- | --------------------------------------------------------------------------------------- |
+| `err.message`      | `str`            | Error message                                                                           |
+| `err.status_code`  | `int`            | HTTP response status code eg `404`                                                      |
+| `err.headers`      | `httpx.Headers`  | HTTP response headers                                                                   |
+| `err.body`         | `str`            | HTTP body. Can be empty string if no body is returned.                                  |
+| `err.raw_response` | `httpx.Response` | Raw HTTP response                                                                       |
+| `err.data`         |                  | Optional. Some errors may contain structured data. [See Error Classes](#error-classes). |
 
 ### Example
-
 ```python
 from outpost_sdk import Outpost, errors
 
@@ -352,40 +336,45 @@ with Outpost() as outpost:
         # Handle response
         print(res)
 
-    except errors.NotFoundError as e:
-        # handle e.data: errors.NotFoundErrorData
-        raise(e)
-    except errors.UnauthorizedError as e:
-        # handle e.data: errors.UnauthorizedErrorData
-        raise(e)
-    except errors.TimeoutErrorT as e:
-        # handle e.data: errors.TimeoutErrorTData
-        raise(e)
-    except errors.RateLimitedError as e:
-        # handle e.data: errors.RateLimitedErrorData
-        raise(e)
-    except errors.BadRequestError as e:
-        # handle e.data: errors.BadRequestErrorData
-        raise(e)
-    except errors.TimeoutErrorT as e:
-        # handle e.data: errors.TimeoutErrorTData
-        raise(e)
-    except errors.NotFoundError as e:
-        # handle e.data: errors.NotFoundErrorData
-        raise(e)
-    except errors.InternalServerError as e:
-        # handle e.data: errors.InternalServerErrorData
-        raise(e)
-    except errors.BadRequestError as e:
-        # handle e.data: errors.BadRequestErrorData
-        raise(e)
-    except errors.UnauthorizedError as e:
-        # handle e.data: errors.UnauthorizedErrorData
-        raise(e)
-    except errors.APIError as e:
-        # handle exception
-        raise(e)
+
+    except errors.OutpostError as e:
+        # The base class for HTTP error responses
+        print(e.message)
+        print(e.status_code)
+        print(e.body)
+        print(e.headers)
+        print(e.raw_response)
+
+        # Depending on the method different errors may be thrown
+        if isinstance(e, errors.NotFoundError):
+            print(e.data.message)  # Optional[str]
+            print(e.data.additional_properties)  # Optional[Dict[str, Any]]
 ```
+
+### Error Classes
+**Primary errors:**
+* [`OutpostError`](./src/outpost_sdk/errors/outposterror.py): The base class for HTTP error responses.
+  * [`BadRequestError`](./src/outpost_sdk/errors/badrequesterror.py): A collection of codes that generally means the end user got something wrong in making the request.
+  * [`UnauthorizedError`](./src/outpost_sdk/errors/unauthorizederror.py): A collection of codes that generally means the client was not authenticated correctly for the request they want to make.
+  * [`NotFoundError`](./src/outpost_sdk/errors/notfounderror.py): Status codes relating to the resource/entity they are requesting not being found or endpoints/routes not existing.
+  * [`TimeoutErrorT`](./src/outpost_sdk/errors/timeouterrort.py): Timeouts occurred with the request.
+  * [`RateLimitedError`](./src/outpost_sdk/errors/ratelimitederror.py): Status codes relating to the client being rate limited by the server. Status code `429`.
+  * [`InternalServerError`](./src/outpost_sdk/errors/internalservererror.py): A collection of status codes that generally mean the server failed in an unexpected way.
+
+<details><summary>Less common errors (5)</summary>
+
+<br />
+
+**Network errors:**
+* [`httpx.RequestError`](https://www.python-httpx.org/exceptions/#httpx.RequestError): Base class for request errors.
+    * [`httpx.ConnectError`](https://www.python-httpx.org/exceptions/#httpx.ConnectError): HTTP client was unable to make a request to a server.
+    * [`httpx.TimeoutException`](https://www.python-httpx.org/exceptions/#httpx.TimeoutException): HTTP request timed out.
+
+
+**Inherit from [`OutpostError`](./src/outpost_sdk/errors/outposterror.py)**:
+* [`ResponseValidationError`](./src/outpost_sdk/errors/responsevalidationerror.py): Type mismatch between the response data and the expected Pydantic model. Provides access to the Pydantic validation error via the `cause` attribute.
+
+</details>
 <!-- End Error Handling [errors] -->
 
 <!-- Start Server Selection [server] -->
