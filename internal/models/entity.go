@@ -288,19 +288,24 @@ func (m *entityStoreImpl) CreateDestination(ctx context.Context, destination Des
 
 func (m *entityStoreImpl) UpsertDestination(ctx context.Context, destination Destination) error {
 	key := redisDestinationID(destination.ID, destination.TenantID)
-	_, err := m.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
-		credentialsBytes, err := destination.Credentials.MarshalBinary()
-		if err != nil {
-			return err
-		}
-		encryptedCredentials, err := m.cipher.Encrypt(credentialsBytes)
-		if err != nil {
-			return err
-		}
+
+	// Pre-marshal and encrypt credentials BEFORE starting Redis transaction
+	// This isolates marshaling failures from Redis transaction failures
+	credentialsBytes, err := destination.Credentials.MarshalBinary()
+	if err != nil {
+		return fmt.Errorf("invalid destination credentials: %w", err)
+	}
+	encryptedCredentials, err := m.cipher.Encrypt(credentialsBytes)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt destination credentials: %w", err)
+	}
+
+	// All marshaling and encryption successful - now perform Redis operations
+	_, err = m.redisClient.TxPipelined(ctx, func(r redis.Pipeliner) error {
 		// Support overriding deleted resources
 		r.Persist(ctx, key)
 		r.HDel(ctx, key, "deleted_at")
-		// Set the new destination values
+		// Set the new destination values with pre-processed data
 		r.HSet(ctx, key, "id", destination.ID)
 		r.HSet(ctx, key, "type", destination.Type)
 		r.HSet(ctx, key, "topics", &destination.Topics)
