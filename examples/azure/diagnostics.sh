@@ -120,25 +120,54 @@ echo "🔐 Testing Azure Service Bus permissions..."
 if ! command -v jq &> /dev/null; then
     echo "   -> ❌ jq is not installed, which is required for this check. Skipping permissions test."
 else
-    SCOPE="/subscriptions/$AZURE_SERVICEBUS_SUBSCRIPTION_ID/resourceGroups/$AZURE_SERVICEBUS_RESOURCE_GROUP/providers/Microsoft.ServiceBus/namespaces/$AZURE_SERVICEBUS_NAMESPACE"
+    # Define the two scopes we will check against
+    NAMESPACE_SCOPE="/subscriptions/$AZURE_SERVICEBUS_SUBSCRIPTION_ID/resourceGroups/$AZURE_SERVICEBUS_RESOURCE_GROUP/providers/Microsoft.ServiceBus/namespaces/$AZURE_SERVICEBUS_NAMESPACE"
+    TOPIC_SCOPE="$NAMESPACE_SCOPE/topics/$AZURE_SERVICEBUS_DELIVERY_TOPIC"
 
     echo "   (Getting Service Principal Object ID...)"
     # Note: This command relies on the user being logged into the az CLI
     SP_OBJECT_ID=$(az ad sp show --id "$AZURE_SERVICEBUS_CLIENT_ID" --query "id" -o tsv)
+
     if [ -z "$SP_OBJECT_ID" ]; then
         echo "   -> ❌ Could not retrieve Service Principal Object ID. Please check your Azure login and that the SP exists."
     else
+        permission_found=false
+        # Function to check for a specific role assignment at a specific scope
         check_role() {
             local role_name=$1
-            echo "   (Checking for role: '$role_name')..."
-            if az role assignment list --assignee "$SP_OBJECT_ID" --scope "$SCOPE" --query "contains([].roleDefinitionName, '$role_name')" | grep -q "true"; then
-                echo "   -> ✅ Service principal has the required '$role_name' role."
+            local scope=$2
+            local scope_name=$3 # A friendly name for the scope for logging
+
+            echo "   (Checking for role: '$role_name' at $scope_name scope...)"
+            if az role assignment list --assignee "$SP_OBJECT_ID" --scope "$scope" --query "contains([].roleDefinitionName, '$role_name')" | grep -q "true"; then
+                echo "   -> ✅ Service principal has the required '$role_name' role at the $scope_name scope."
+                permission_found=true
             else
-                echo "   -> ❌ Service principal does NOT have the required '$role_name' role."
-                echo "      To fix, run: az role assignment create --assignee \"$SP_OBJECT_ID\" --role \"$role_name\" --scope \"$SCOPE\""
+                echo "   -> No '$role_name' role found at $scope_name scope."
             fi
         }
-        check_role "Azure Service Bus Data Owner"
+
+        # 1. Check for Data Owner at the Namespace level (highest privilege)
+        check_role "Azure Service Bus Data Owner" "$NAMESPACE_SCOPE" "Namespace"
+
+        # 2. Check for Data Sender at the Namespace level
+        check_role "Azure Service Bus Data Sender" "$NAMESPACE_SCOPE" "Namespace"
+
+        # 3. Check for Data Sender at the Topic level (most specific)
+        check_role "Azure Service Bus Data Sender" "$TOPIC_SCOPE" "Topic"
+
+        # If none of the checks passed, show a final error
+        if [ "$permission_found" = false ]; then
+            echo ""
+            echo "   -> ❌ PERMISSION FAILURE: The Service Principal does NOT have the required permissions to publish to topic '$AZURE_SERVICEBUS_DELIVERY_TOPIC'."
+            echo "      To fix, grant the 'Azure Service Bus Data Sender' role at either the Namespace or the specific Topic scope."
+            echo "      (Alternatively, 'Azure Service Bus Data Owner' at the Namespace level also works)."
+            echo "      Run one of the following commands:"
+            echo "      Namespace Level: az role assignment create --assignee \"$SP_OBJECT_ID\" --role \"Azure Service Bus Data Sender\" --scope \"$NAMESPACE_SCOPE\""
+            echo "      Topic Level:     az role assignment create --assignee \"$SP_OBJECT_ID\" --role \"Azure Service Bus Data Sender\" --scope \"$TOPIC_SCOPE\""
+        else
+            echo "   -> ✅ Permissions are sufficient for publishing."
+        fi
     fi
 fi
 

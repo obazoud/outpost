@@ -94,7 +94,7 @@ if ! az redis show --name "$REDIS_NAME" --resource-group "$RESOURCE_GROUP" &>/de
     --location "$LOCATION" \
     --sku Basic \
     --vm-size c0
-    --enable-non-ssl-port # Comment out or remove if you only want SSL
+    --enable-non-ssl-port \ # Comment out or remove if you only want SSL
 else
   echo "✅ Redis instance already exists"
 fi
