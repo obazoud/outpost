@@ -1,53 +1,26 @@
 ---
-title: "Outpost Quickstart: Docker with RabbitMQ or AWS SQS via LocalStack"
+title: "Outpost Quickstart: Railway"
 ---
 
-Local Docker setup for Outpost using Docker Compose. This setup includes:
-
-- Outpost services (API, delivery, and log processors). See the [architecture](/docs/concepts#architecture) for more details.
-- Redis as KV and entity storage
-- PostgreSQL as log storage
-- RabbitMQ or AWS SQS via LocalStack for message queuing
+Deploy Outpost to Railway with a one-click deployment. Railway provides a hosted cloud platform that automatically handles infrastructure provisioning and scaling.
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/engine/install/)
+- [Railway account](https://railway.com)
 
 ## Setup
 
-1. Clone the Outpost repo:
+1. Deploy Outpost to Railway using the one-click deployment button:
 
-   ```sh
-   git clone https://github.com/hookdeck/outpost.git
+   [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/outpost-starter?referralCode=NRulS_)
+
+2. Once the deployment is complete, configure your `TOPICS` environment variable to the topics supported for destination subscriptions, publishing, and routing of events. For example:
+
+   ```
+   TOPICS=user.created,user.updated,user.deleted
    ```
 
-2. Navigate to `outpost/examples/docker-compose/`:
-
-   ```sh
-   cd outpost/examples/docker-compose/
-   ```
-
-3. Create a `.env` file from the top-level example file:
-
-```sh
-cp .env.example .env
-```
-
-4. Update the `$API_KEY` value within the new `.env` file.
-
-5. There are two options to run Outpost locally for this quickstart. Choose one of the following:
-
-   1. With RabbitMQ:
-
-   ```sh
-   docker-compose -f compose.yml -f compose-rabbitmq.yml -f compose-postgres.yml up
-   ```
-
-   2. With SQS via LocalStack:
-
-   ```sh
-   docker-compose -f compose.yml -f compose-awssqs.yml -f compose-postgres.yml up
-   ```
+3. Note the generated `API_KEY` environment variable value and the public Railway URL of your Outpost instance for authentication and API requests.
 
 ## Verify Installation
 
@@ -56,6 +29,8 @@ cp .env.example .env
 You can use shell variables to store the tenant ID and API key for easier use in the following commands:
 
 ```sh
+# Replace with your actual Railway app public URL, found in the Railway dashboard under "Domains"
+OUTPOST_URL=https://your-railway-app.railway.app
 TENANT_ID=your_org_name
 API_KEY=your_api_key
 URL=your_webhook_url
@@ -63,18 +38,18 @@ URL=your_webhook_url
 
 :::
 
-1. Check that the services are running:
+1. Check that the services are running by replacing `$OUTPOST_URL` with your Railway public URL:
 
    ```sh
-   curl localhost:3333/api/v1/healthz
+   curl $OUTPOST_URL/api/v1/healthz
    ```
 
    Wait until you get an `OK` response.
 
-2. Create a tenant with the following command, replacing `$TENANT_ID` with a unique identifier such as "your_org_name", and the `$API_KEY` with the value you set in your `.env`:
+2. Create a tenant with the following command, replacing `$TENANT_ID` with a unique identifier such as "your_org_name", and the `$API_KEY` with the value from your Railway environment variables:
 
    ```sh
-   curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID" \
+   curl --location --request PUT "$OUTPOST_URL/api/v1/$TENANT_ID" \
    --header "Authorization: Bearer $API_KEY"
    ```
 
@@ -83,7 +58,7 @@ URL=your_webhook_url
 4. Create a webhook destination where events will be delivered to using the following command. Again, replace `$TENANT_ID` and `$API_KEY`. Also, replace `$URL` with the webhook destination's URL:
 
    ```sh
-   curl --location "localhost:3333/api/v1/$TENANT_ID/destinations" \
+   curl --location "$OUTPOST_URL/api/v1/$TENANT_ID/destinations" \
    --header "Content-Type: application/json" \
    --header "Authorization: Bearer $API_KEY" \
    --data '{
@@ -98,7 +73,7 @@ URL=your_webhook_url
 5. Publish an event, remembering to replace `$API_KEY` and `$TENANT_ID`:
 
    ```sh
-   curl --location "localhost:3333/api/v1/publish" \
+   curl --location "$OUTPOST_URL/api/v1/publish" \
    --header "Content-Type: application/json" \
    --header "Authorization: Bearer $API_KEY" \
    --data '{
@@ -119,14 +94,14 @@ URL=your_webhook_url
 7. Get an Outpost portal link for the tenant:
 
    ```sh
-   curl "localhost:3333/api/v1/$TENANT_ID/portal" \
+   curl "$OUTPOST_URL/api/v1/$TENANT_ID/portal" \
    --header "Authorization: Bearer $API_KEY"
    ```
 
    The response will look something like the following:
 
    ```json
-   { "redirect_url": "http://localhost:3333?token=$TOKEN" }
+   { "redirect_url": "https://$OUTPOST_URL?token=$TOKEN" }
    ```
 
    The `token` value is an API-generated JWT.
