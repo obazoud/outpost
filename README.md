@@ -132,7 +132,7 @@ Outpost is running on `localhost:3333`. Use this value as your `$OUTPOST_URL`.
 > You can use shell variables to store the tenant ID and API key for easier use in the following commands:
 >
 > ```sh
-> OUTPOST_URL=localhost:3333
+> OUTPOST_URL=http://localhost:3333
 > TENANT_ID=your_org_name
 > API_KEY=your_api_key
 > URL=your_webhook_url
