@@ -86,6 +86,16 @@ _The Outpost documentation is built using the [Zudoku documentation framework](h
 
 ## Quickstart
 
+### Deploy to Railway
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/outpost-starter?referralCode=NRulS_)
+
+Once the deployment is complete, configure your `TOPICS` environment variable to the topics supported for destination subscriptions, publishing, and routing of events. For example, `TOPICS=user.created,user.updated,user.deleted`.
+
+Once deployed, you'll need the public Railway URL of your Outpost instance (referred to as `$OUTPOST_URL` below) and the generated `API_KEY` environment variable value to authenticate requests.
+
+### Deploy locally with Docker
+
 Ensure you have [Docker](https://docs.docker.com/engine/install/) installed.
 
 Clone the Outpost repo:
@@ -114,27 +124,35 @@ Start the Outpost dependencies and services:
 docker-compose -f compose.yml -f compose-rabbitmq.yml -f compose-postgres.yml up
 ```
 
+Outpost is running on `localhost:3333`. Use this value as your `$OUTPOST_URL`.
+
+### Try out Outpost
+
+> [!TIP]  
+> You can use shell variables to store the tenant ID and API key for easier use in the following commands:
+>
+> ```sh
+> OUTPOST_URL=localhost:3333
+> TENANT_ID=your_org_name
+> API_KEY=your_api_key
+> URL=your_webhook_url
+> ```
+
+
 Check the services are running:
 
 ```sh
-curl localhost:3333/api/v1/healthz
+curl $OUTPOST_URL/api/v1/healthz
 ```
 
 Wait until you get a `OK%` response.
 
 Create a tenant with the following command, replacing `$TENANT_ID` with a unique identifier such as "your_org_name", and the `$API_KEY` with the value you set in your `.env`:
 
-> [!TIP]  
-> You can use shell variables to store the tenant ID and API key for easier use in the following commands:
->
-> ```sh
-> TENANT_ID=your_org_name
-> API_KEY=your_api_key
-> URL=your_webhook_url
-> ```
+
 
 ```sh
-curl --location --request PUT "localhost:3333/api/v1/$TENANT_ID" \
+curl --location --request PUT "$OUTPOST_URL/api/v1/$TENANT_ID" \
 --header "Authorization: Bearer $API_KEY"
 ```
 
@@ -143,7 +161,7 @@ Run a local server exposed via a localtunnel or use a hosted service such as the
 Create a webhook destination where events will be delivered to with the following command. Again, replace `$TENANT_ID` and `$API_KEY`. Also, replace `$URL` with the webhook destinations URL:
 
 ```sh
-curl --location "localhost:3333/api/v1/$TENANT_ID/destinations" \
+curl --location "$OUTPOST_URL/api/v1/$TENANT_ID/destinations" \
 --header "Content-Type: application/json" \
 --header "Authorization: Bearer $API_KEY" \
 --data '{
@@ -158,7 +176,7 @@ curl --location "localhost:3333/api/v1/$TENANT_ID/destinations" \
 Publish an event, remembering to replace `$API_KEY` and `$TENANT_ID`:
 
 ```sh
-curl --location "localhost:3333/api/v1/publish" \
+curl --location "$OUTPOST_URL/api/v1/publish" \
 --header "Content-Type: application/json" \
 --header "Authorization: Bearer $API_KEY" \
 --data '{
@@ -179,14 +197,14 @@ Check the logs on your server or your webhook capture tool for the delivered eve
 Get an Outpost portal link for the tenant:
 
 ```sh
-curl "localhost:3333/api/v1/$TENANT_ID/portal" \
+curl "$OUTPOST_URL/api/v1/$TENANT_ID/portal" \
 --header "Authorization: Bearer $API_KEY"
 ```
 
 The response will look something like the following:
 
 ```json
-{ "redirect_url": "http://localhost:3333?token=$TOKEN" }
+{ "redirect_url": "http://$OUTPOST_URL?token=$TOKEN" }
 ```
 
 The `token` value is an API-generated JWT.

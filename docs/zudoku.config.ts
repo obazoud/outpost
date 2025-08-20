@@ -94,6 +94,11 @@ const config: ZudokuConfig = {
             label: "Kubernetes",
             id: "quickstarts/kubernetes",
           },
+          {
+            type: "doc",
+            label: "Railway",
+            id: "quickstarts/railway",
+          },
         ],
       },
       {
