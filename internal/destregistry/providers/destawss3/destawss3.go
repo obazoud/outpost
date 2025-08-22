@@ -145,7 +145,7 @@ func (p *AWSS3Provider) ComputeTarget(destination *models.Destination) destregis
 	region := destination.Config["region"]
 	return destregistry.DestinationTarget{
 		Target:    fmt.Sprintf("%s in %s", bucket, region),
-		TargetURL: "",
+		TargetURL: fmt.Sprintf("https://s3.console.aws.amazon.com/s3/buckets/%s?region=%s", bucket, region),
 	}
 }
 
