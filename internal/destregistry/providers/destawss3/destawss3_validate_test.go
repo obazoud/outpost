@@ -19,8 +19,7 @@ func TestAWSS3Destination_Validate(t *testing.T) {
 		testutil.DestinationFactory.WithConfig(map[string]string{
 			"bucket":        "my-bucket",
 			"region":        "us-east-1",
-			"key_prefix":    "events/",
-			"key_suffix":    ".json",
+			"key_template":  `join('', ['events/', metadata."event-id", '.json'])`,
 			"storage_class": "STANDARD",
 		}),
 		testutil.DestinationFactory.WithCredentials(map[string]string{
@@ -100,6 +99,29 @@ func TestAWSS3Destination_Validate(t *testing.T) {
 		assert.Equal(t, "enum", validationErr.Errors[0].Type)
 	})
 
+	t.Run("should validate invalid key template", func(t *testing.T) {
+		t.Parallel()
+		invalidDestination := testutil.DestinationFactory.Any(
+			testutil.DestinationFactory.WithType("aws_s3"),
+			testutil.DestinationFactory.WithConfig(map[string]string{
+				"bucket":        "my-bucket",
+				"region":        "us-east-1",
+				"key_template":  "invalid[template",
+				"storage_class": "STANDARD",
+			}),
+			testutil.DestinationFactory.WithCredentials(map[string]string{
+				"key":     "test-key",
+				"secret":  "test-secret",
+				"session": "test-session",
+			}),
+		)
+		err := awsS3Destination.Validate(context.Background(), &invalidDestination)
+		var validationErr *destregistry.ErrDestinationValidation
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Equal(t, "config.key_template", validationErr.Errors[0].Field)
+		assert.Equal(t, "pattern", validationErr.Errors[0].Type)
+	})
+
 	t.Run("should validate missing credentials", func(t *testing.T) {
 		t.Parallel()
 		invalidDestination := validDestination
@@ -128,4 +150,5 @@ func TestAWSS3Destination_ComputeTarget(t *testing.T) {
 
 	target := awsS3Destination.ComputeTarget(&destination)
 	assert.Equal(t, "my-bucket in us-east-1", target.Target)
+	assert.Equal(t, "https://s3.console.aws.amazon.com/s3/buckets/my-bucket?region=us-east-1", target.TargetURL)
 }

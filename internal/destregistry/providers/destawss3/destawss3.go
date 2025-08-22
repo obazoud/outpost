@@ -18,19 +18,22 @@ import (
 	"github.com/hookdeck/outpost/internal/destregistry"
 	"github.com/hookdeck/outpost/internal/destregistry/metadata"
 	"github.com/hookdeck/outpost/internal/models"
+	"github.com/jmespath/go-jmespath"
 )
+
+// Default template that generates keys with timestamp and event ID
+// Using join to concatenate the timestamp, underscore, event-id, and .json extension
+const defaultKeyTemplate = `join('', [time.rfc3339_nano, '_', metadata."event-id", '.json'])`
 
 // AWSS3Config is the configuration for an S3 destination
 type AWSS3Config struct {
-	Bucket           string
-	Region           string
-	KeyPrefix        string
-	KeySuffix        string
-	IncludeTimestamp bool
-	IncludeEventID   bool
-	StorageClass     string
-	Endpoint         string // Optional endpoint for testing
+	Bucket       string
+	Region       string
+	KeyTemplate  string // JMESPath expression for generating S3 keys
+	StorageClass string
+	Endpoint     string // Optional endpoint for testing
 }
+
 
 // AWSS3Credentials is the credentials for an S3 destination
 type AWSS3Credentials struct {
@@ -102,11 +105,8 @@ func (p *AWSS3Provider) CreatePublisher(ctx context.Context, destination *models
 	return NewAWSS3Publisher(
 		client,
 		cfg.Bucket,
-		cfg.KeyPrefix,
-		cfg.KeySuffix,
+		cfg.KeyTemplate,
 		cfg.StorageClass,
-		cfg.IncludeTimestamp,
-		cfg.IncludeEventID,
 	), nil
 }
 
@@ -116,18 +116,7 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 		return nil, nil, err
 	}
 
-	includeTimestamp := true
-	if tsStr, ok := destination.Config["include_timestamp"]; ok {
-		includeTimestamp = tsStr == "true" || tsStr == "on"
-	}
-
-	includeEventID := true
-	if eidStr, ok := destination.Config["include_event_id"]; ok {
-		includeEventID = eidStr == "true" || eidStr == "on"
-	}
-
 	sc := destination.Config["storage_class"]
-
 	_, err := parseStorageClass(sc)
 	if err != nil {
 		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
@@ -138,15 +127,28 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 		})
 	}
 
+	// Use custom template if provided, otherwise use default
+	keyTemplate := destination.Config["key_template"]
+	if keyTemplate == "" {
+		keyTemplate = defaultKeyTemplate
+	}
+
+	// Validate the JMESPath expression by compiling it
+	if _, err := jmespath.Compile(keyTemplate); err != nil {
+		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+			{
+				Field: "config.key_template",
+				Type:  "pattern",
+			},
+		})
+	}
+
 	return &AWSS3Config{
-			Bucket:           destination.Config["bucket"],
-			Region:           destination.Config["region"],
-			KeyPrefix:        destination.Config["key_prefix"],
-			KeySuffix:        destination.Config["key_suffix"],
-			StorageClass:     sc,
-			IncludeTimestamp: includeTimestamp,
-			IncludeEventID:   includeEventID,
-			Endpoint:         destination.Config["endpoint"],
+			Bucket:       destination.Config["bucket"],
+			Region:       destination.Config["region"],
+			KeyTemplate:  keyTemplate,
+			StorageClass: sc,
+			Endpoint:     destination.Config["endpoint"],
 		}, &AWSS3Credentials{
 			Key:     destination.Credentials["key"],
 			Secret:  destination.Credentials["secret"],
@@ -169,13 +171,10 @@ func (p *AWSS3Provider) ComputeTarget(destination *models.Destination) destregis
 // AWSS3Publisher is the S3 publisher implementation
 type AWSS3Publisher struct {
 	*destregistry.BasePublisher
-	client           *s3.Client
-	bucket           string
-	keyPrefix        string
-	keySuffix        string
-	includeTimestamp bool
-	includeEventID   bool
-	storageClass     string
+	client       *s3.Client
+	bucket       string
+	keyTemplate  *jmespath.JMESPath
+	storageClass string
 }
 
 func (p *AWSS3Publisher) Close() error {
@@ -183,44 +182,74 @@ func (p *AWSS3Publisher) Close() error {
 	return nil
 }
 
-func (p *AWSS3Publisher) makeKey(event *models.Event) (string, error) {
-	sb := &strings.Builder{}
+// parseTimeFields converts an event time to pre-parsed time components
+func parseTimeFields(t time.Time) map[string]interface{} {
+	utc := t.UTC()
+	return map[string]interface{}{
+		"year":         fmt.Sprintf("%04d", utc.Year()),
+		"month":        fmt.Sprintf("%02d", utc.Month()),
+		"day":          fmt.Sprintf("%02d", utc.Day()),
+		"hour":         fmt.Sprintf("%02d", utc.Hour()),
+		"minute":       fmt.Sprintf("%02d", utc.Minute()),
+		"second":       fmt.Sprintf("%02d", utc.Second()),
+		"date":         utc.Format("2006-01-02"),
+		"datetime":     utc.Format("2006-01-02T15:04:05"),
+		"unix":         fmt.Sprintf("%d", utc.Unix()),
+		"rfc3339":      utc.Format(time.RFC3339),
+		"rfc3339_nano": utc.Format(time.RFC3339Nano),
+	}
+}
 
-	if len(p.keyPrefix) > 0 {
-		if _, err := sb.WriteString(p.keyPrefix); err != nil {
-			return "", fmt.Errorf("failed to append key prefix: %w", err)
-		}
+func (p *AWSS3Publisher) makeKey(event *models.Event, metadata map[string]string) (string, error) {
+	// Convert event data to map[string]interface{}
+	dataMap := make(map[string]interface{})
+	for k, v := range event.Data {
+		dataMap[k] = v
 	}
 
-	if p.includeTimestamp {
-		if _, err := sb.WriteString(event.Time.UTC().Format(time.RFC3339Nano)); err != nil {
-			return "", fmt.Errorf("failed to append timestamp: %w", err)
-		}
-
-		if p.includeEventID {
-			if _, err := sb.WriteString("_"); err != nil {
-				return "", fmt.Errorf("failed to append underscore before event ID: %w", err)
-			}
-		}
+	// Convert metadata to map[string]interface{} for JMESPath
+	metadataMap := make(map[string]interface{})
+	for k, v := range metadata {
+		metadataMap[k] = v
 	}
 
-	if p.includeEventID {
-		if _, err := sb.WriteString(event.ID); err != nil {
-			return "", fmt.Errorf("failed to append event ID: %w", err)
+	// Build the data structure for JMESPath evaluation
+	templateData := map[string]interface{}{
+		"data":     dataMap,
+		"metadata": metadataMap,
+		"time":     parseTimeFields(event.Time),
+	}
+
+	// Evaluate the JMESPath expression
+	result, err := p.keyTemplate.Search(templateData)
+	if err != nil {
+		return "", fmt.Errorf("failed to evaluate key template: %w", err)
+	}
+
+	// Convert result to string
+	var key string
+	switch v := result.(type) {
+	case string:
+		key = v
+	case float64:
+		key = fmt.Sprintf("%g", v)
+	case int:
+		key = fmt.Sprintf("%d", v)
+	case bool:
+		key = fmt.Sprintf("%t", v)
+	default:
+		// For complex types or nil, try to convert to string
+		if v == nil {
+			return "", fmt.Errorf("key template produced nil result")
 		}
+		key = fmt.Sprintf("%v", v)
 	}
 
-	if len(p.keySuffix) > 0 {
-		if _, err := sb.WriteString(p.keySuffix); err != nil {
-			return "", fmt.Errorf("failed to append key suffix: %w", err)
-		}
+	if key == "" {
+		return "", fmt.Errorf("key template produced empty string")
 	}
 
-	if sb.Len() == 0 {
-		return "", fmt.Errorf("makeKey result cannot be empty")
-	}
-
-	return sb.String(), nil
+	return key, nil
 }
 
 func (p *AWSS3Publisher) getStorageClass() (types.StorageClass, error) {
@@ -238,7 +267,10 @@ func (p *AWSS3Publisher) Format(_ context.Context, event *models.Event) (*s3.Put
 		return nil, err
 	}
 
-	key, err := p.makeKey(event)
+	// Get merged metadata (system + event metadata)
+	metadata := p.BasePublisher.MakeMetadata(event, time.Now())
+
+	key, err := p.makeKey(event, metadata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create S3 key: %w", err)
 	}
@@ -252,9 +284,6 @@ func (p *AWSS3Publisher) Format(_ context.Context, event *models.Event) (*s3.Put
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute checksum: %w", err)
 	}
-
-	// Get merged metadata (system + event metadata)
-	metadata := p.BasePublisher.MakeMetadata(event, time.Now())
 
 	return &s3.PutObjectInput{
 		Bucket:            awssdk.String(p.bucket),
@@ -322,17 +351,20 @@ func parseStorageClass(storageClass string) (types.StorageClass, error) {
 // NewAWSS3Publisher exposed for testing
 func NewAWSS3Publisher(
 	client *s3.Client,
-	bucket, keyPrefix, keySuffix, storageClass string,
-	includeTimestamp, includeEventID bool,
+	bucket, keyTemplateStr, storageClass string,
 ) *AWSS3Publisher {
+	// Compile the JMESPath expression (we assume it's already validated)
+	tmpl, err := jmespath.Compile(keyTemplateStr)
+	if err != nil {
+		// This should not happen as template is validated in resolveConfig
+		panic(fmt.Sprintf("invalid key template: %v", err))
+	}
+
 	return &AWSS3Publisher{
-		BasePublisher:    &destregistry.BasePublisher{},
-		client:           client,
-		bucket:           bucket,
-		keyPrefix:        keyPrefix,
-		keySuffix:        keySuffix,
-		includeTimestamp: includeTimestamp,
-		includeEventID:   includeEventID,
-		storageClass:     storageClass,
+		BasePublisher: &destregistry.BasePublisher{},
+		client:        client,
+		bucket:        bucket,
+		keyTemplate:   tmpl,
+		storageClass:  storageClass,
 	}
 }

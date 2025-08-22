@@ -202,14 +202,11 @@ func (s *S3PublishSuite) SetupSuite() {
 	dest := testutil.DestinationFactory.Any(
 		testutil.DestinationFactory.WithType("aws_s3"),
 		testutil.DestinationFactory.WithConfig(map[string]string{
-			"bucket":           s.bucket,
-			"region":           "us-east-1",
-			"key_prefix":       "test/",
-			"key_suffix":       ".json",
-			"storage_class":    "STANDARD",
-			"include_timestamp": "on",
-			"include_event_id":  "on",
-			"endpoint":         endpoint, // Use LocalStack endpoint
+			"bucket":        s.bucket,
+			"region":        "us-east-1",
+			"key_template":  `join('/', ['test', time.rfc3339_nano, metadata."event-id", '.json'])`,
+			"storage_class": "STANDARD",
+			"endpoint":      endpoint, // Use LocalStack endpoint
 		}),
 		testutil.DestinationFactory.WithCredentials(map[string]string{
 			"key":    "test",
