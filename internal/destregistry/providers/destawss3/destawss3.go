@@ -29,6 +29,7 @@ type AWSS3Config struct {
 	IncludeTimestamp bool
 	IncludeEventID   bool
 	StorageClass     string
+	Endpoint         string // Optional endpoint for testing
 }
 
 // AWSS3Credentials is the credentials for an S3 destination
@@ -75,7 +76,15 @@ func (p *AWSS3Provider) createS3Client(ctx context.Context, cfg *AWSS3Config, cr
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
-	return s3.NewFromConfig(sdkConfig), nil
+	s3Options := []func(*s3.Options){}
+	if cfg.Endpoint != "" {
+		s3Options = append(s3Options, func(o *s3.Options) {
+			o.BaseEndpoint = awssdk.String(cfg.Endpoint)
+			o.UsePathStyle = true // Required for LocalStack
+		})
+	}
+
+	return s3.NewFromConfig(sdkConfig, s3Options...), nil
 }
 
 // CreatePublisher creates a new S3 publisher for the given destination
@@ -132,6 +141,7 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 			StorageClass:     sc,
 			IncludeTimestamp: includeTimestamp,
 			IncludeEventID:   includeEventID,
+			Endpoint:         destination.Config["endpoint"],
 		}, &AWSS3Credentials{
 			Key:     destination.Credentials["key"],
 			Secret:  destination.Credentials["secret"],
