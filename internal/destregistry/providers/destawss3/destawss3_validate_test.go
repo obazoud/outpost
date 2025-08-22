@@ -94,8 +94,10 @@ func TestAWSS3Destination_Validate(t *testing.T) {
 		invalidDestination := validDestination
 		invalidDestination.Config["storage_class"] = "INVALID"
 		err := awsS3Destination.Validate(context.Background(), &invalidDestination)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid storage class")
+		var validationErr *destregistry.ErrDestinationValidation
+		assert.ErrorAs(t, err, &validationErr)
+		assert.Equal(t, "config.storage_class", validationErr.Errors[0].Field)
+		assert.Equal(t, "enum", validationErr.Errors[0].Type)
 	})
 
 	t.Run("should validate missing credentials", func(t *testing.T) {

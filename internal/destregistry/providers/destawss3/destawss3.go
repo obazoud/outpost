@@ -130,7 +130,12 @@ func (p *AWSS3Provider) resolveConfig(ctx context.Context, destination *models.D
 
 	_, err := parseStorageClass(sc)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid storage class %q: %w", sc, err)
+		return nil, nil, destregistry.NewErrDestinationValidation([]destregistry.ValidationErrorDetail{
+			{
+				Field: "config.storage_class",
+				Type:  "enum",
+			},
+		})
 	}
 
 	return &AWSS3Config{
