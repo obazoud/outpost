@@ -43,7 +43,7 @@
     {
       "key": "include_event_id",
       "type": "checkbox",
-      "label": "Include Event ID in Object Key ",
+      "label": "Include Event ID in Object Key",
       "description": "Whether to include the event ID in the object key after the prefix and timestamp",
       "default": "on"
     },
