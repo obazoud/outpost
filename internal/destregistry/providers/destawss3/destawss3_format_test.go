@@ -45,7 +45,12 @@ func TestAWSS3Publisher_Format(t *testing.T) {
 	assert.Equal(t, expectedKey, *input.Key)
 	assert.Equal(t, types.StorageClassStandard, input.StorageClass)
 	assert.Equal(t, "application/json", *input.ContentType)
-	assert.Equal(t, map[string]string(event.Metadata), input.Metadata)
+	
+	// Verify metadata includes both event and system metadata
+	assert.Equal(t, "meta_value", input.Metadata["meta_key"], "event metadata should be preserved")
+	assert.Equal(t, event.ID, input.Metadata["event-id"], "event-id should be in metadata")
+	assert.Equal(t, event.Topic, input.Metadata["topic"], "topic should be in metadata")
+	assert.NotEmpty(t, input.Metadata["timestamp"], "timestamp should be in metadata")
 
 	// Verify checksum
 	data, _ := json.Marshal(event.Data)

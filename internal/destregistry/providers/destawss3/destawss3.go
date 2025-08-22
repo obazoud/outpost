@@ -245,11 +245,14 @@ func (p *AWSS3Publisher) Format(_ context.Context, event *models.Event) (*s3.Put
 		return nil, fmt.Errorf("failed to compute checksum: %w", err)
 	}
 
+	// Get merged metadata (system + event metadata)
+	metadata := p.BasePublisher.MakeMetadata(event, time.Now())
+
 	return &s3.PutObjectInput{
 		Bucket:            awssdk.String(p.bucket),
 		Key:               awssdk.String(key),
 		Body:              bytes.NewReader(data),
-		Metadata:          event.Metadata,
+		Metadata:          metadata,
 		StorageClass:      storageClass,
 		ContentType:       awssdk.String("application/json"),
 		ChecksumSHA256:    awssdk.String(checksumSha256),
