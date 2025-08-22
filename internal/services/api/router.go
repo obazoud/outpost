@@ -129,7 +129,11 @@ func NewRouter(
 	r.Use(telemetry.MakeSentryHandler())
 	r.Use(otelgin.Middleware(cfg.ServiceName))
 	r.Use(MetricsMiddleware())
-	r.Use(LoggerMiddleware(logger))
+
+	// Create sanitizer for secure request body logging on 5xx errors
+	sanitizer := NewRequestBodySanitizer(cfg.Registry)
+	r.Use(LoggerMiddlewareWithSanitizer(logger, sanitizer))
+
 	r.Use(LatencyMiddleware()) // LatencyMiddleware must be after Metrics & Logger to fully capture latency first
 
 	// Application logic

@@ -58,6 +58,9 @@ API_KEY="$API_KEY_VALUE"
 API_JWT_SECRET="$API_JWT_SECRET_VALUE"
 AES_ENCRYPTION_SECRET="$AES_ENCRYPTION_SECRET_VALUE"
 
+# Not required, but recommended
+# TOPICS=diagnostics.test,order.created,order.updated,order.deleted
+
 # Required for Postgres logging
 POSTGRES_URL=$POSTGRES_URL
 
