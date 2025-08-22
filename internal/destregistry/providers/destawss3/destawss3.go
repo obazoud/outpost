@@ -268,11 +268,7 @@ func (p *AWSS3Publisher) Publish(ctx context.Context, event *models.Event) (*des
 
 	input, err := p.Format(ctx, event)
 	if err != nil {
-		return nil, destregistry.NewErrDestinationPublishAttempt(
-			err,
-			"aws_s3",
-			map[string]interface{}{"error": "format_failed", "message": err.Error()},
-		)
+		return nil, err
 	}
 
 	_, err = p.client.PutObject(ctx, input)
