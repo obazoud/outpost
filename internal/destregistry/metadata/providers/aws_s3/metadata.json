@@ -20,39 +20,20 @@
       "pattern": "^[a-z]{2}-[a-z]+-[0-9]+$"
     },
     {
-      "key": "key_prefix",
+      "key": "key_template",
       "type": "text",
-      "label": "Object Key Prefix",
-      "description": "Optional prefix to prepend to object keys",
-      "required": false
-    },
-    {
-      "key": "key_suffix",
-      "type": "text",
-      "label": "Object Key Suffix",
-      "description": "Optional suffix to append to object keys",
-      "required": false
-    },
-    {
-      "key": "include_timestamp",
-      "type": "checkbox",
-      "label": "Include Timestamp in Object Key",
-      "description": "Whether to include a timestamp in the object key after the prefix",
-      "default": "on"
-    },
-    {
-      "key": "include_event_id",
-      "type": "checkbox",
-      "label": "Include Event ID in Object Key",
-      "description": "Whether to include the event ID in the object key after the prefix and timestamp",
-      "default": "on"
+      "label": "Object Key Template",
+      "description": "JMESPath expression for generating S3 object keys. Default: join('', [time.rfc3339_nano, '_', metadata.\"event-id\", '.json'])",
+      "required": false,
+      "placeholder": "join('/', [time.year, time.month, time.day, metadata.\"event-id\", '.json'])"
     },
     {
       "key": "storage_class",
       "type": "text",
       "label": "S3 Storage Class",
       "description": "The storage class for the S3 objects (e.g., STANDARD, INTELLIGENT_TIERING, GLACIER, etc.)",
-      "required": false
+      "required": false,
+      "default": "STANDARD"
     }
   ],
   "credential_fields": [
