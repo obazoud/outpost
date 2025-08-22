@@ -45,7 +45,7 @@ func TestAWSS3Publisher_Format(t *testing.T) {
 	assert.Equal(t, expectedKey, *input.Key)
 	assert.Equal(t, types.StorageClassStandard, input.StorageClass)
 	assert.Equal(t, "application/json", *input.ContentType)
-	
+
 	// Verify metadata includes both event and system metadata
 	assert.Equal(t, "meta_value", input.Metadata["meta_key"], "event metadata should be preserved")
 	assert.Equal(t, event.ID, input.Metadata["event-id"], "event-id should be in metadata")
@@ -54,8 +54,8 @@ func TestAWSS3Publisher_Format(t *testing.T) {
 
 	// Verify checksum
 	data, _ := json.Marshal(event.Data)
-	hasher := sha256.Sum256(data)
-	expectedChecksum := base64.StdEncoding.EncodeToString(hasher[:])
+	checksum := sha256.Sum256(data)
+	expectedChecksum := base64.StdEncoding.EncodeToString(checksum[:])
 	assert.Equal(t, expectedChecksum, *input.ChecksumSHA256)
 }
 

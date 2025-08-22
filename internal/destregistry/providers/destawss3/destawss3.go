@@ -223,15 +223,8 @@ func (p *AWSS3Publisher) getStorageClass() (types.StorageClass, error) {
 }
 
 func (p *AWSS3Publisher) getChecksums(payload []byte) (string, error) {
-	hasher := sha256.New()
-
-	if _, err := hasher.Write(payload); err != nil {
-		return "", err
-	}
-
-	checksum := hasher.Sum(nil)
-
-	return base64.StdEncoding.EncodeToString(checksum), nil
+	checksum := sha256.Sum256(payload)
+	return base64.StdEncoding.EncodeToString(checksum[:]), nil
 }
 
 func (p *AWSS3Publisher) Format(_ context.Context, event *models.Event) (*s3.PutObjectInput, error) {
