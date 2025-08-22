@@ -81,17 +81,6 @@ func (d *GCPPubSubDestination) CreatePublisher(ctx context.Context, destination 
 	// Get the topic
 	topic := client.Topic(cfg.Topic)
 
-	// Check if topic exists
-	exists, err := topic.Exists(ctx)
-	if err != nil {
-		client.Close()
-		return nil, fmt.Errorf("failed to check topic existence: %w", err)
-	}
-	if !exists {
-		client.Close()
-		return nil, fmt.Errorf("topic %s does not exist in project %s", cfg.Topic, cfg.ProjectID)
-	}
-
 	return &GCPPubSubPublisher{
 		BasePublisher: &destregistry.BasePublisher{},
 		client:        client,
@@ -107,7 +96,7 @@ func (d *GCPPubSubDestination) resolveMetadata(ctx context.Context, destination 
 
 	return &GCPPubSubDestinationConfig{
 			ProjectID: destination.Config["project_id"],
-			Topic: destination.Config["topic"],
+			Topic:     destination.Config["topic"],
 			Endpoint:  destination.Config["endpoint"], // For testing
 		}, &GCPPubSubDestinationCredentials{
 			ServiceAccountJSON: destination.Credentials["service_account_json"],
