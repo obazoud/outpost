@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
 
 interface OverviewStatsProps {
   stats: {
-    totalDestinations: number
-    totalEvents: number
-  }
+    totalDestinations: number;
+    totalEvents: number;
+  };
 }
 
 export default function OverviewStats({ stats }: OverviewStatsProps) {
@@ -13,7 +13,9 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Destinations</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Total Destinations
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.totalDestinations}</div>
@@ -29,9 +31,7 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.totalEvents}</div>
-          <p className="text-xs text-gray-500 mt-1">
-            Events processed
-          </p>
+          <p className="text-xs text-gray-500 mt-1">Events processed</p>
         </CardContent>
       </Card>
 
@@ -41,9 +41,7 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
         </CardHeader>
         <CardContent>
           <Badge variant="success">Active</Badge>
-          <p className="text-xs text-gray-500 mt-1">
-            All systems operational
-          </p>
+          <p className="text-xs text-gray-500 mt-1">All systems operational</p>
         </CardContent>
       </Card>
 
@@ -53,13 +51,13 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <a 
+            <a
               href="/dashboard/event-destinations"
               className="block text-sm text-blue-600 hover:text-blue-500"
             >
               Manage destinations →
             </a>
-            <a 
+            <a
               href="/dashboard/event-destinations/new"
               className="block text-sm text-blue-600 hover:text-blue-500"
             >
@@ -69,5 +67,5 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

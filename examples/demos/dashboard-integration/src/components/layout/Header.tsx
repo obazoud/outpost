@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useSession, signOut } from 'next-auth/react'
-import { Button } from '@/components/ui/Button'
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/components/ui/Button";
 
 export default function Header() {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -16,7 +16,7 @@ export default function Header() {
               Event Dashboard
             </Link>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {session?.user && (
               <>
@@ -26,7 +26,7 @@ export default function Header() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => signOut({ callbackUrl: '/auth/login' })}
+                  onClick={() => signOut({ callbackUrl: "/auth/login" })}
                 >
                   Sign out
                 </Button>
@@ -36,5 +36,5 @@ export default function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

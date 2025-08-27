@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { formatDateTime } from '@/lib/utils'
-import type { Event } from '@/types/dashboard'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { formatDateTime } from "@/lib/utils";
+import type { Event } from "@/types/dashboard";
 
 interface RecentActivityProps {
-  events: Event[]
+  events: Event[];
 }
 
 export default function RecentActivity({ events }: RecentActivityProps) {
@@ -18,7 +18,7 @@ export default function RecentActivity({ events }: RecentActivityProps) {
           <p className="text-sm text-gray-500">No recent events to display.</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -33,13 +33,13 @@ export default function RecentActivity({ events }: RecentActivityProps) {
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium">{event.topic}</span>
-                  <Badge 
+                  <Badge
                     variant={
-                      event.status === 'delivered' 
-                        ? 'success' 
-                        : event.status === 'failed' 
-                        ? 'error' 
-                        : 'default'
+                      event.status === "delivered"
+                        ? "success"
+                        : event.status === "failed"
+                          ? "error"
+                          : "default"
                     }
                   >
                     {event.status}
@@ -54,5 +54,5 @@ export default function RecentActivity({ events }: RecentActivityProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

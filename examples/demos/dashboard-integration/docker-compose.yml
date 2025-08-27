@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Shared PostgreSQL instance with multiple databases
@@ -41,7 +41,7 @@ services:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
-      - "15672:15672"  # Management UI
+      - "15672:15672" # Management UI
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:

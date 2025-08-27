@@ -32,14 +32,17 @@ export async function createTenant(tenantId: string): Promise<void> {
     });
     logger.info(`Tenant created successfully in Outpost`, { tenantId, tenant });
   } catch (error) {
-    logger.error(`Error creating tenant in Outpost: ${tenantId}`, { error, tenantId });
+    logger.error(`Error creating tenant in Outpost: ${tenantId}`, {
+      error,
+      tenantId,
+    });
     throw error;
   }
 }
 
 export async function getPortalUrl(
   tenantId: string,
-  theme?: string
+  theme?: string,
 ): Promise<string> {
   try {
     const outpost = getOutpostClient();
@@ -65,13 +68,16 @@ export async function getTenantOverview(tenantId: string) {
 
     // Get destinations for this tenant
     const destinationsResponse = await outpost.destinations.list({ tenantId });
-    logger.debug(`Destinations found`, { tenantId, count: destinationsResponse?.length });
-    
+    logger.debug(`Destinations found`, {
+      tenantId,
+      count: destinationsResponse?.length,
+    });
+
     // Transform destinations to match our interface
-    const destinations = Array.isArray(destinationsResponse) 
+    const destinations = Array.isArray(destinationsResponse)
       ? destinationsResponse.map((dest: any) => ({
           ...dest,
-          enabled: dest.disabledAt === null // Convert disabledAt to enabled boolean
+          enabled: dest.disabledAt === null, // Convert disabledAt to enabled boolean
         }))
       : [];
 
@@ -81,10 +87,19 @@ export async function getTenantOverview(tenantId: string) {
 
     try {
       const eventsResponse = await outpost.events.list({ tenantId });
-      // Handle SDK response structure correctly
-      const eventsData = Array.isArray(eventsResponse) ? eventsResponse : (eventsResponse as any)?.data || [];
-      recentEvents = eventsData.slice(0, 10);
-      totalEvents = eventsData.length;
+      // Handle paginated API response structure
+      if (eventsResponse && typeof eventsResponse === "object") {
+        // Check if it's a paginated response with data array
+        if ("data" in eventsResponse && Array.isArray(eventsResponse.data)) {
+          recentEvents = eventsResponse.data.slice(0, 10);
+          totalEvents =
+            (eventsResponse as any).count || eventsResponse.data.length;
+        } else if (Array.isArray(eventsResponse)) {
+          // Direct array response
+          recentEvents = eventsResponse.slice(0, 10);
+          totalEvents = eventsResponse.length;
+        }
+      }
       logger.debug(`Events found`, { tenantId, totalEvents });
     } catch (error) {
       logger.warn("Could not fetch events", { error, tenantId });
@@ -102,10 +117,10 @@ export async function getTenantOverview(tenantId: string) {
       },
     };
 
-    logger.debug(`Complete overview retrieved for tenant: ${tenantId}`, { 
-      tenantId, 
+    logger.debug(`Complete overview retrieved for tenant: ${tenantId}`, {
+      tenantId,
       destinationCount: overview.stats.totalDestinations,
-      eventCount: overview.stats.totalEvents 
+      eventCount: overview.stats.totalEvents,
     });
     return overview;
   } catch (error) {

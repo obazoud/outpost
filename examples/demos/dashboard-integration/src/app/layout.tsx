@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Dashboard Integration Demo",
-  description: "Next.js application demonstrating seamless integration with Outpost",
+  description:
+    "Next.js application demonstrating seamless integration with Outpost",
 };
 
 export default function RootLayout({

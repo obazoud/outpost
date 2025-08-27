@@ -1,28 +1,28 @@
-import NextAuth from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import PostgresAdapter from '@auth/pg-adapter'
-import bcrypt from 'bcryptjs'
-import pool from './db'
-import { getUserByEmail } from './db'
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import PostgresAdapter from "@auth/pg-adapter";
+import bcrypt from "bcryptjs";
+import pool from "./db";
+import { getUserByEmail } from "./db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PostgresAdapter(pool),
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          return null;
         }
 
-        const user = await getUserByEmail(credentials.email as string)
-        
+        const user = await getUserByEmail(credentials.email as string);
+
         if (!user) {
-          return null
+          return null;
         }
 
         // For demo purposes, we'll skip password verification
@@ -36,32 +36,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id.toString(),
           email: user.email,
           name: user.name,
-        }
+        };
       },
     }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   pages: {
-    signIn: '/auth/login',
-    error: '/auth/error',
+    signIn: "/auth/login",
+    error: "/auth/error",
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
+        session.user.id = token.id as string;
       }
-      return session
+      return session;
     },
   },
-  // Remove trustHost for production, but for development this allows 
+  // Remove trustHost for production, but for development this allows
   // NextAuth to work without NEXTAUTH_URL
   trustHost: true,
-})
+});

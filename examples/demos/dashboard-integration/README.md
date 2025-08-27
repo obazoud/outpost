@@ -19,31 +19,35 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 ## Setup
 
 1. **Clone and navigate to the project**:
+
    ```bash
    cd examples/demos/dashboard-integration
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**:
+
    ```bash
    # Dashboard application configuration
    cp .env.example .env.local
-   
+
    # Outpost configuration
    cp .env.outpost.example .env.outpost
    ```
-   
+
    The default configurations should work for local development. For production, update the secrets in both files.
 
 4. **Start the complete stack** (PostgreSQL, Redis, RabbitMQ, and Outpost):
+
    ```bash
    docker-compose up -d
    ```
-   
+
    This will start:
    - `postgres` - PostgreSQL with separate databases for dashboard and Outpost (port 5432)
    - `redis` - Redis for Outpost (port 6379)
@@ -53,12 +57,15 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
    - `outpost-log` - Outpost log service
 
 5. **Wait for services to be healthy**:
+
    ```bash
    docker-compose ps
    ```
+
    Wait until all services show "healthy" status. This may take 1-2 minutes on first startup.
 
 6. **Run the dashboard application**:
+
    ```bash
    npm run dev
    ```
@@ -95,25 +102,25 @@ This demo represents a common integration scenario where:
 
 ### Dashboard Application (.env.local)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | Dashboard PostgreSQL connection | `postgresql://dashboard:dashboard@localhost:5432/dashboard_integration` |
-| `NEXTAUTH_SECRET` | Auth.js secret key | `your-secret-here` |
-| `OUTPOST_BASE_URL` | Outpost base URL | `http://localhost:3333` |
-| `OUTPOST_API_KEY` | Outpost API key | `demo-api-key-change-in-production` |
-| `LOG_LEVEL` | Application logging level (`error`, `warn`, `info`, `debug`) | `info` |
+| Variable           | Description                                                  | Example                                                                 |
+| ------------------ | ------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `DATABASE_URL`     | Dashboard PostgreSQL connection                              | `postgresql://dashboard:dashboard@localhost:5432/dashboard_integration` |
+| `NEXTAUTH_SECRET`  | Auth.js secret key                                           | `your-secret-here`                                                      |
+| `OUTPOST_BASE_URL` | Outpost base URL                                             | `http://localhost:3333`                                                 |
+| `OUTPOST_API_KEY`  | Outpost API key                                              | `demo-api-key-change-in-production`                                     |
+| `LOG_LEVEL`        | Application logging level (`error`, `warn`, `info`, `debug`) | `info`                                                                  |
 
 ### Outpost Configuration (.env.outpost)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `API_KEY` | Outpost API key | `demo-api-key-change-in-production` |
-| `API_JWT_SECRET` | JWT signing secret | `demo-jwt-secret-change-in-production` |
-| `POSTGRES_URL` | Outpost PostgreSQL connection | `postgres://outpost:outpost@postgres:5432/outpost` |
-| `REDIS_HOST` | Redis hostname | `redis` |
-| `RABBITMQ_SERVER_URL` | RabbitMQ connection | `amqp://guest:guest@rabbitmq:5672` |
-| `PORTAL_ORGANIZATION_NAME` | Portal branding | `API Platform Demo` |
-| `PORTAL_REFERER_URL` | Dashboard URL for "Back to" navigation link in portal | `http://localhost:3000` |
+| Variable                   | Description                                           | Example                                            |
+| -------------------------- | ----------------------------------------------------- | -------------------------------------------------- |
+| `API_KEY`                  | Outpost API key                                       | `demo-api-key-change-in-production`                |
+| `API_JWT_SECRET`           | JWT signing secret                                    | `demo-jwt-secret-change-in-production`             |
+| `POSTGRES_URL`             | Outpost PostgreSQL connection                         | `postgres://outpost:outpost@postgres:5432/outpost` |
+| `REDIS_HOST`               | Redis hostname                                        | `redis`                                            |
+| `RABBITMQ_SERVER_URL`      | RabbitMQ connection                                   | `amqp://guest:guest@rabbitmq:5672`                 |
+| `PORTAL_ORGANIZATION_NAME` | Portal branding                                       | `API Platform Demo`                                |
+| `PORTAL_REFERER_URL`       | Dashboard URL for "Back to" navigation link in portal | `http://localhost:3000`                            |
 
 ## Docker Services
 
@@ -139,6 +146,7 @@ The docker-compose.yml includes the complete stack:
 ## Troubleshooting
 
 ### Services not starting
+
 ```bash
 # Check service status
 docker-compose ps
@@ -152,6 +160,7 @@ docker-compose restart
 ```
 
 ### Database connection issues
+
 ```bash
 # Check PostgreSQL is ready
 docker-compose exec postgres pg_isready -U dashboard -d dashboard_integration
@@ -159,6 +168,7 @@ docker-compose exec postgres pg_isready -U outpost -d outpost
 ```
 
 ### Outpost API not responding
+
 ```bash
 # Check if Outpost API is healthy
 curl http://localhost:3333/healthz
