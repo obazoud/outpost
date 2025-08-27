@@ -64,7 +64,7 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
    ```
 
 7. **Access the application**:
-   - Dashboard: [http://localhost:4000](http://localhost:4000)
+   - Dashboard: [http://localhost:3000](http://localhost:3000)
    - Outpost API: [http://localhost:3333](http://localhost:3333)
    - RabbitMQ Management: [http://localhost:15672](http://localhost:15672) (guest/guest)
 
@@ -113,6 +113,7 @@ This demo represents a common integration scenario where:
 | `REDIS_HOST` | Redis hostname | `redis` |
 | `RABBITMQ_SERVER_URL` | RabbitMQ connection | `amqp://guest:guest@rabbitmq:5672` |
 | `PORTAL_ORGANIZATION_NAME` | Portal branding | `API Platform Demo` |
+| `PORTAL_REFERER_URL` | Dashboard URL for "Back to" navigation link in portal | `http://localhost:3000` |
 
 ## Docker Services
 
