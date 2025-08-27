@@ -28,8 +28,11 @@ export default function RecentActivity({ events }: RecentActivityProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {events.slice(0, 5).map((event) => (
-            <div key={event.id} className="flex items-center justify-between">
+          {events.slice(0, 5).map((event, index) => (
+            <div
+              key={`${event.id}-${(event as any).destination_id || index}`}
+              className="flex items-center justify-between"
+            >
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm font-medium">{event.topic}</span>
@@ -38,15 +41,15 @@ export default function RecentActivity({ events }: RecentActivityProps) {
                       event.status === "delivered"
                         ? "success"
                         : event.status === "failed"
-                          ? "error"
-                          : "default"
+                        ? "error"
+                        : "default"
                     }
                   >
                     {event.status}
                   </Badge>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {formatDateTime(event.createdAt)}
+                  {formatDateTime((event as any).time || event.createdAt)}
                 </p>
               </div>
             </div>

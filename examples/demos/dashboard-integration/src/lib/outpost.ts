@@ -42,7 +42,7 @@ export async function createTenant(tenantId: string): Promise<void> {
 
 export async function getPortalUrl(
   tenantId: string,
-  theme?: string,
+  theme?: string
 ): Promise<string> {
   try {
     const outpost = getOutpostClient();
@@ -102,7 +102,27 @@ export async function getTenantOverview(tenantId: string) {
       }
       logger.debug(`Events found`, { tenantId, totalEvents });
     } catch (error) {
-      logger.warn("Could not fetch events", { error, tenantId });
+      // Handle SDK validation error - the API response is valid but SDK expects different format
+      if (error && typeof error === "object" && "rawValue" in error) {
+        const rawResponse = (error as any).rawValue;
+        if (
+          rawResponse &&
+          typeof rawResponse === "object" &&
+          "data" in rawResponse &&
+          Array.isArray(rawResponse.data)
+        ) {
+          recentEvents = rawResponse.data.slice(0, 10);
+          totalEvents = rawResponse.count || rawResponse.data.length;
+          logger.debug(`Events extracted from validation error`, {
+            tenantId,
+            totalEvents,
+          });
+        } else {
+          logger.warn("Could not fetch events", { error, tenantId });
+        }
+      } else {
+        logger.warn("Could not fetch events", { error, tenantId });
+      }
     }
 
     const overview = {
