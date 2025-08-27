@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import logger from './logger'
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -25,7 +26,7 @@ export async function getUserTenant(userId: string): Promise<User | null> {
     )
     return result.rows[0] || null
   } catch (error) {
-    console.error('Error fetching user tenant:', error)
+    logger.error('Error fetching user tenant', { error, userId })
     return null
   }
 }
@@ -42,9 +43,11 @@ export async function createUser(userData: {
        RETURNING id, name, email, "emailVerified", image, "createdAt", "updatedAt"`,
       [userData.email, userData.name || null]
     )
-    return result.rows[0]
+    const newUser = result.rows[0]
+    logger.info('User created successfully', { userId: newUser.id, email: userData.email })
+    return newUser
   } catch (error) {
-    console.error('Error creating user:', error)
+    logger.error('Error creating user', { error, email: userData.email })
     throw error
   }
 }
@@ -57,7 +60,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     )
     return result.rows[0] || null
   } catch (error) {
-    console.error('Error fetching user by email:', error)
+    logger.error('Error fetching user by email', { error, email })
     return null
   }
 }

@@ -3,6 +3,7 @@ import { createUser, getUserByEmail } from '../../../../lib/db'
 import { createTenant } from '../../../../lib/outpost'
 import { generateTenantId } from '../../../../lib/utils'
 import { registerSchema } from '../../../../lib/validations'
+import logger from '../../../../lib/logger'
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,19 +27,25 @@ export async function POST(request: NextRequest) {
 
     // Create tenant in Outpost using the user ID
     const tenantId = generateTenantId(user.id.toString())
-    console.log(`Attempting to create tenant: ${tenantId} for user: ${user.id}`)
+    logger.info(`Creating Outpost tenant for new user registration`, { 
+      userId: user.id, 
+      tenantId, 
+      email: validatedData.email 
+    })
     
     try {
       await createTenant(tenantId)
-      console.log(`✅ Tenant created successfully: ${tenantId}`)
-      console.log(`🎉 User ${user.id} registered with tenant ${tenantId}`)
+      logger.info(`User registration completed successfully with Outpost tenant`, { 
+        userId: user.id, 
+        tenantId,
+        email: validatedData.email 
+      })
     } catch (outpostError) {
-      console.error('❌ Failed to create Outpost tenant:', outpostError)
-      console.error('❌ Tenant creation error details:', {
+      logger.error('Failed to create Outpost tenant during registration', {
+        error: outpostError,
         tenantId,
         userId: user.id,
-        errorMessage: outpostError?.message,
-        errorStack: outpostError?.stack
+        email: validatedData.email
       })
       // Continue with registration even if tenant creation fails
       // In production, you might want to retry or handle this differently
@@ -49,7 +56,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error: any) {
-    console.error('Registration error:', error)
+    logger.error('Registration error', { error, errorMessage: error?.message })
     
     if (error.errors) {
       // Validation error

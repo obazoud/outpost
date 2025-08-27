@@ -101,6 +101,7 @@ This demo represents a common integration scenario where:
 | `NEXTAUTH_SECRET` | Auth.js secret key | `your-secret-here` |
 | `OUTPOST_BASE_URL` | Outpost base URL | `http://localhost:3333` |
 | `OUTPOST_API_KEY` | Outpost API key | `demo-api-key-change-in-production` |
+| `LOG_LEVEL` | Application logging level (`error`, `warn`, `info`, `debug`) | `info` |
 
 ### Outpost Configuration (.env.outpost)
 

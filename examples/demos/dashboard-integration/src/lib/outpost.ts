@@ -1,4 +1,5 @@
 import { Outpost } from "@hookdeck/outpost-sdk";
+import logger from "./logger";
 
 let outpostClient: Outpost | null = null;
 
@@ -23,15 +24,15 @@ export function getOutpostClient(): Outpost {
 
 export async function createTenant(tenantId: string): Promise<void> {
   try {
-    console.log(`🔄 Creating tenant in Outpost: ${tenantId}`);
+    logger.info(`Creating tenant in Outpost: ${tenantId}`);
     const outpost = getOutpostClient();
 
     const tenant = await outpost.tenants.upsert({
       tenantId,
     });
-    console.log(`✅ Tenant created successfully in Outpost:`, tenant);
+    logger.info(`Tenant created successfully in Outpost`, { tenantId, tenant });
   } catch (error) {
-    console.error(`❌ Error creating tenant in Outpost: ${tenantId}`, error);
+    logger.error(`Error creating tenant in Outpost: ${tenantId}`, { error, tenantId });
     throw error;
   }
 }
@@ -48,23 +49,23 @@ export async function getPortalUrl(
     });
     return result.redirectUrl || "";
   } catch (error) {
-    console.error("Error getting portal URL:", error);
+    logger.error("Error getting portal URL", { error, tenantId, theme });
     throw error;
   }
 }
 
 export async function getTenantOverview(tenantId: string) {
   try {
-    console.log(`🔄 Getting tenant overview for: ${tenantId}`);
+    logger.debug(`Getting tenant overview for: ${tenantId}`);
     const outpost = getOutpostClient();
 
     // Get tenant details
     const tenant = await outpost.tenants.get({ tenantId });
-    console.log(`✅ Tenant found:`, tenant);
+    logger.debug(`Tenant found`, { tenantId, tenant });
 
     // Get destinations for this tenant
     const destinationsResponse = await outpost.destinations.list({ tenantId });
-    console.log(`✅ Destinations found:`, destinationsResponse);
+    logger.debug(`Destinations found`, { tenantId, count: destinationsResponse?.length });
     
     // Transform destinations to match our interface
     const destinations = Array.isArray(destinationsResponse) 
@@ -84,9 +85,9 @@ export async function getTenantOverview(tenantId: string) {
       const eventsData = Array.isArray(eventsResponse) ? eventsResponse : (eventsResponse as any)?.data || [];
       recentEvents = eventsData.slice(0, 10);
       totalEvents = eventsData.length;
-      console.log(`✅ Events found: ${totalEvents}`);
+      logger.debug(`Events found`, { tenantId, totalEvents });
     } catch (error) {
-      console.warn("Could not fetch events:", error);
+      logger.warn("Could not fetch events", { error, tenantId });
     }
 
     const overview = {
@@ -101,10 +102,14 @@ export async function getTenantOverview(tenantId: string) {
       },
     };
 
-    console.log(`✅ Complete overview for tenant: ${tenantId}`, overview);
+    logger.debug(`Complete overview retrieved for tenant: ${tenantId}`, { 
+      tenantId, 
+      destinationCount: overview.stats.totalDestinations,
+      eventCount: overview.stats.totalEvents 
+    });
     return overview;
   } catch (error) {
-    console.error("Error getting tenant overview:", error);
+    logger.error("Error getting tenant overview", { error, tenantId });
     throw error;
   }
 }
