@@ -153,6 +153,9 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 - JWT tokens for API authentication
 
 ### Integration Points
+
+For detailed implementation guidance with code examples, see **[INTEGRATION_DETAILS.md](./INTEGRATION_DETAILS.md)**.
+
 1. User registration triggers Outpost tenant creation
 2. Dashboard aggregates data from Outpost API
 3. Portal access generates authenticated Outpost URLs
