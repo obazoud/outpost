@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import Link from "next/link";
 
 interface OverviewStatsProps {
   stats: {
@@ -51,18 +52,18 @@ export default function OverviewStats({ stats }: OverviewStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <a
+            <Link
               href="/dashboard/event-destinations"
               className="block text-sm text-blue-600 hover:text-blue-500"
             >
               Manage destinations →
-            </a>
-            <a
+            </Link>
+            <Link
               href="/dashboard/event-destinations/new"
               className="block text-sm text-blue-600 hover:text-blue-500"
             >
               Create destination →
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>

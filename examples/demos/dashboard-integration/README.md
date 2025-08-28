@@ -7,6 +7,7 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 - **API Platform Dashboard**: Complete user dashboard for an API/SaaS platform
 - **Integrated Event Management**: Seamless Outpost integration for webhook/event destinations
 - **Automatic Tenant Provisioning**: Users get Outpost tenants created automatically when they sign up
+- **Event Testing Playground**: Interactive interface for testing event publishing to configured destinations
 - **Unified User Experience**: Event destination management feels like a native part of the platform
 - **Production-Ready Patterns**: Demonstrates real-world integration patterns for API platforms
 
@@ -42,6 +43,14 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 
    The default configurations should work for local development. For production, update the secrets in both files.
 
+   Update the `TOPICS` environment variable in `.env.outpost` to include the event topics you want to support:
+
+   ```bash
+   TOPICS=user.created,user.updated,order.completed,payment.processed,subscription.created
+   ```
+
+   For a full list of Outpost configuration options, see [Outpost Configuration](https://outpost.hookdeck.com/docs/references/configuration)
+
 4. **Start the complete stack** (PostgreSQL, Redis, RabbitMQ, and Outpost):
 
    ```bash
@@ -49,6 +58,7 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
    ```
 
    This will start:
+
    - `postgres` - PostgreSQL with separate databases for dashboard and Outpost (port 5432)
    - `redis` - Redis for Outpost (port 6379)
    - `rabbitmq` - Message queue for Outpost (port 5672, management UI on 15672)
@@ -72,31 +82,81 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 
 7. **Access the application**:
    - Dashboard: [http://localhost:3000](http://localhost:3000)
-   - Outpost API: [http://localhost:3333](http://localhost:3333)
+   - Outpost API: `http://localhost:3333/api/v1`
    - RabbitMQ Management: [http://localhost:15672](http://localhost:15672) (guest/guest)
 
-## Usage
+## Application Structure
 
-1. **Sign up for the API platform** - Register as a new user of the fictitious API platform
-2. **Access your platform dashboard** - View your API usage, account info, and available features
-3. **Manage Event Destinations** - Click "Event Destinations" to configure webhooks for your API events
-4. **Seamless Portal Experience** - Get redirected to Outpost's full-featured destination management interface
+### Pages
+- `/` - Landing page with registration and login links
+- `/auth/register` - User registration form
+- `/auth/login` - User login form
+- `/dashboard` - Main dashboard with overview statistics and recent events
+- `/dashboard/playground` - Interactive event testing interface
+- `/dashboard/event-destinations/[...path]` - Portal integration routes
 
-## Use Case
+### Core Functionality
 
-This demo represents a common integration scenario where:
+#### User Registration and Authentication
+- User registration creates platform account and automatically provisions Outpost tenant
+- NextAuth.js handles authentication with credential-based login
+- User ID from platform database becomes tenant ID in Outpost
+- JWT tokens secure API routes
 
-- **API Platform**: Your SaaS provides APIs that generate events (user signups, payments, data processing, etc.)
-- **Customer Need**: Your customers need to receive these events via webhooks to their own systems
-- **Outpost Integration**: Instead of building webhook infrastructure from scratch, you integrate Outpost
-- **User Experience**: Your customers manage event destinations through what feels like your native platform
+#### Dashboard Overview
+- Displays real-time statistics from Outpost API (total destinations, total events)
+- Shows recent events with status indicators
+- Lists configured destinations with type, URL, and enabled status
+- Provides navigation to destination management and playground
+
+#### Event Playground
+- Interactive form for testing event publishing
+- Destination dropdown populated from user's configured destinations
+- Topic dropdown populated from Outpost API (`/api/topics`)
+- JSON payload editor with validation
+- Real-time event publishing to selected destination
+- Response display with success/error details
+
+#### Portal Integration
+- Seamless redirection to Outpost portal for destination management
+- Server-side portal URL generation with authentication
+- Deep linking support for specific portal pages
+- Branded portal experience with return navigation
+
+## API Endpoints
+
+### Dashboard APIs
+- `GET /api/overview` - Returns dashboard statistics and recent events from Outpost
+- `GET /api/topics` - Returns available topics from Outpost configuration
+- `POST /api/playground/trigger` - Publishes test events via Outpost SDK
+
+### Authentication APIs
+- `POST /api/auth/register` - Creates user account and Outpost tenant
+- NextAuth.js provides login/logout/session endpoints
+
+### Portal Integration
+- `GET /dashboard/event-destinations` - Redirects to Outpost portal root
+- `GET /dashboard/event-destinations/[...path]` - Redirects to specific portal pages
 
 ## Architecture
 
-- **Platform Frontend**: Next.js application representing your API platform's dashboard
-- **User Management**: Auth.js with PostgreSQL for platform user accounts
-- **Outpost Integration**: Official TypeScript SDK for tenant and portal management
-- **Seamless Handoff**: Server-side route handlers for transparent portal access
+### Frontend (Next.js)
+- React components with Tailwind CSS for styling
+- NextAuth.js for authentication
+- Custom hooks for data fetching (`useOverview`, `useTopics`)
+- Responsive design with loading states and error handling
+
+### Backend Integration
+- Next.js API routes for server-side operations
+- Outpost TypeScript SDK for all Outpost interactions
+- PostgreSQL for platform user management (separate from Outpost database)
+- JWT tokens for API authentication
+
+### Integration Points
+1. User registration triggers Outpost tenant creation
+2. Dashboard aggregates data from Outpost API
+3. Portal access generates authenticated Outpost URLs
+4. Playground publishes events directly via Outpost SDK
 
 ## Environment Variables
 
@@ -119,6 +179,7 @@ This demo represents a common integration scenario where:
 | `POSTGRES_URL`             | Outpost PostgreSQL connection                         | `postgres://outpost:outpost@postgres:5432/outpost` |
 | `REDIS_HOST`               | Redis hostname                                        | `redis`                                            |
 | `RABBITMQ_SERVER_URL`      | RabbitMQ connection                                   | `amqp://guest:guest@rabbitmq:5672`                 |
+| `TOPICS`                   | Available event topics (comma-separated)             | `user.created,order.completed,payment.processed`   |
 | `PORTAL_ORGANIZATION_NAME` | Portal branding                                       | `API Platform Demo`                                |
 | `PORTAL_REFERER_URL`       | Dashboard URL for "Back to" navigation link in portal | `http://localhost:3000`                            |
 
@@ -153,7 +214,7 @@ docker-compose ps
 
 # View logs for a specific service
 docker-compose logs outpost-api
-docker-compose logs dashboard-postgres
+docker-compose logs postgres
 
 # Restart services
 docker-compose restart
@@ -177,19 +238,57 @@ curl http://localhost:3333/healthz
 docker-compose logs outpost-api
 ```
 
-## Integration Points
+### Topics not loading in playground
 
-1. **User Onboarding** → Platform user registration automatically provisions Outpost tenant
-2. **Dashboard Overview** → Display event/webhook statistics from Outpost API in platform dashboard
-3. **Destination Management** → "Event Destinations" nav item seamlessly redirects to Outpost portal
-4. **Branded Experience** → Users experience webhook management as part of your platform, not a separate tool
+Ensure the `TOPICS` environment variable is set in `.env.outpost`:
 
-## Key Integration Patterns
+```bash
+TOPICS=user.created,user.updated,order.completed,payment.processed
+```
 
-This demo illustrates several important patterns for API platform integration:
+Restart the Outpost services after updating:
 
-- **Transparent Tenant Management**: Outpost tenants are created automatically and hidden from users
-- **Single Sign-On Experience**: Users don't need separate Outpost accounts
-- **Embedded Navigation**: Event destinations appear as a natural part of the platform navigation
-- **Contextual Data Display**: Platform dashboard shows relevant Outpost data (destination counts, recent events)
-- **Seamless Handoff**: Clicking "Event Destinations" feels like navigating to another page in your app
+```bash
+docker-compose restart outpost-api
+```
+
+## Use Case
+
+This demo represents a common integration scenario where:
+
+- **API Platform**: Your SaaS provides APIs that generate events (user signups, payments, data processing, etc.)
+- **Customer Need**: Your customers need to receive these events via webhooks to their own systems
+- **Outpost Integration**: Instead of building webhook infrastructure from scratch, you integrate Outpost
+- **User Experience**: Your customers manage event destinations through what feels like your native platform
+
+## Integration Patterns
+
+This demo demonstrates several integration patterns:
+
+- **Transparent Tenant Management**: Outpost tenants are created automatically during user registration and hidden from end users
+- **Embedded Navigation**: Event destinations appear as a native part of the platform navigation
+- **Portal Integration**: Server-side URL generation provides seamless access to Outpost's management interface
+- **Data Aggregation**: Platform dashboard displays relevant Outpost statistics alongside application metrics
+- **Event Testing**: Built-in playground allows testing events against real configured destinations
+
+## Technical Implementation
+
+### User Flow
+1. User registers account → Creates Outpost tenant automatically
+2. User logs in → Receives platform session with JWT
+3. User views dashboard → Data aggregated from Outpost API
+4. User manages destinations → Redirected to authenticated Outpost portal
+5. User tests events → Playground publishes to actual destinations via Outpost SDK
+
+### Security
+- Password hashing with bcryptjs
+- JWT token validation on API routes
+- Zod schema validation for form inputs
+- SQL injection prevention via parameterized queries
+- Environment variables for API keys and secrets
+
+### Error Handling
+- Form validation with user-friendly error messages
+- API error responses with appropriate HTTP status codes
+- Loading states and skeleton screens for data fetching
+- Fallback UI for failed API calls

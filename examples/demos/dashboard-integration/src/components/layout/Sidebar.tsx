@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: "Overview", href: "/dashboard" },
   { name: "Event Destinations", href: "/dashboard/event-destinations" },
+  { name: "Playground", href: "/dashboard/playground" },
 ];
 
 export default function Sidebar() {
@@ -24,7 +25,7 @@ export default function Sidebar() {
                 "group flex items-center px-2 py-2 text-sm font-medium rounded-md",
                 pathname === item.href
                   ? "bg-gray-100 text-gray-900"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )}
             >
               {item.name}

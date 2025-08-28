@@ -1,8 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useOverview } from "@/hooks/useOverview";
 import OverviewStats from "@/components/dashboard/OverviewStats";
 import RecentActivity from "@/components/dashboard/RecentActivity";
@@ -10,16 +9,6 @@ import RecentActivity from "@/components/dashboard/RecentActivity";
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { data: overview, loading, error } = useOverview();
-  const searchParams = useSearchParams();
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("welcome") === "true") {
-      setShowWelcome(true);
-      // Auto-hide the welcome message after 5 seconds
-      setTimeout(() => setShowWelcome(false), 5000);
-    }
-  }, [searchParams]);
 
   if (loading) {
     return (
@@ -67,38 +56,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {showWelcome && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-green-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
-                Welcome to your dashboard! 🎉
-              </h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p>
-                  Your account has been created and you're ready to start
-                  managing event destinations. Click "Event Destinations" to get
-                  started!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {overview && (
         <>
           <OverviewStats stats={overview.stats} />
@@ -113,12 +70,12 @@ export default function DashboardPage() {
               {overview.destinations.length === 0 ? (
                 <p className="text-sm text-gray-500">
                   No destinations configured yet.{" "}
-                  <a
+                  <Link
                     href="/dashboard/event-destinations"
                     className="text-blue-600 hover:text-blue-500"
                   >
                     Add your first destination →
-                  </a>
+                  </Link>
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -150,12 +107,12 @@ export default function DashboardPage() {
                     </a>
                   ))}
                   <div className="pt-2">
-                    <a
+                    <Link
                       href="/dashboard/event-destinations"
                       className="text-sm text-blue-600 hover:text-blue-500"
                     >
                       Manage all destinations →
-                    </a>
+                    </Link>
                   </div>
                 </div>
               )}

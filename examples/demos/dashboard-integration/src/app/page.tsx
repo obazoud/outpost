@@ -7,7 +7,7 @@ export default function Home() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Dashboard Integration Demo
+            Outpost Dashboard Integration Demo
           </h1>
           <p className="text-lg text-gray-600 mb-8">
             Experience seamless integration between authentication and Outpost
