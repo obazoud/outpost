@@ -30,7 +30,7 @@ export default function PlaygroundPage() {
   const { status } = useSession();
   const router = useRouter();
   const { data: destinations, loading: destinationsLoading, error: destinationsError } = useDestinations();
-  const { data: topics, loading: topicsLoading, error: topicsError } = useTopics();
+  const { loading: topicsLoading, error: topicsError } = useTopics();
   const [formData, setFormData] = useState<FormData>({
     destinationId: "",
     topic: "",
@@ -55,6 +55,26 @@ export default function PlaygroundPage() {
     }
   }, [status, router]);
 
+  // Get the currently selected destination
+  const selectedDestination = destinations.find(
+    (dest) => dest.id === formData.destinationId
+  );
+
+  // Get available topics for the selected destination
+  const availableTopics = selectedDestination?.topics || [];
+
+  // Clear topic selection when destination changes if current topic is not available
+  useEffect(() => {
+    if (
+      formData.destinationId &&
+      formData.topic &&
+      selectedDestination &&
+      !selectedDestination.topics.includes(formData.topic)
+    ) {
+      setFormData((prev) => ({ ...prev, topic: "" }));
+    }
+  }, [formData.destinationId, formData.topic, selectedDestination]);
+
   const validateForm = (): boolean => {
     const errors: Partial<FormData> = {};
 
@@ -64,6 +84,8 @@ export default function PlaygroundPage() {
 
     if (!formData.topic.trim()) {
       errors.topic = "Topic is required";
+    } else if (selectedDestination && !selectedDestination.topics.includes(formData.topic)) {
+      errors.topic = "Selected topic is not available for this destination";
     }
 
     if (!formData.eventData.trim()) {
@@ -240,23 +262,23 @@ export default function PlaygroundPage() {
                 className={
                   formErrors.topic ? "border-red-300" : ""
                 }
-                disabled={topicsLoading}
+                disabled={topicsLoading || !formData.destinationId}
               >
                 <option value="">
                   {topicsLoading
                     ? "Loading topics..."
+                    : !formData.destinationId
+                    ? "Select a destination first"
+                    : availableTopics.length === 0
+                    ? "No topics available for this destination"
                     : "Select a topic"}
                 </option>
-                {topics.map((topic) => (
-                  <option key={topic} value={topic}>
-                    {topic}
-                  </option>
-                ))}
-                {topics.length === 0 && !topicsLoading && (
-                  <option value="" disabled>
-                    No topics available
-                  </option>
-                )}
+                {formData.destinationId &&
+                  availableTopics.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
               </Select>
               {formErrors.topic && (
                 <p className="mt-1 text-sm text-red-600">{formErrors.topic}</p>
@@ -264,6 +286,11 @@ export default function PlaygroundPage() {
               {topicsError && (
                 <p className="mt-1 text-sm text-red-600">
                   Failed to load topics: {topicsError}
+                </p>
+              )}
+              {formData.destinationId && availableTopics.length === 0 && !topicsLoading && (
+                <p className="mt-1 text-sm text-amber-600">
+                  This destination is not subscribed to any topics. Configure topics in the destination settings.
                 </p>
               )}
             </div>

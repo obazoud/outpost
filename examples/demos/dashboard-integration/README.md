@@ -112,7 +112,7 @@ A Next.js application demonstrating how to integrate Outpost with an API platfor
 #### Event Playground
 - Interactive form for testing event publishing
 - Destination dropdown populated from user's configured destinations
-- Topic dropdown populated from Outpost API (`/api/topics`)
+- Topic dropdown shows only topics that the selected destination is subscribed to
 - JSON payload editor with validation
 - Real-time event publishing to selected destination
 - Response display with success/error details
