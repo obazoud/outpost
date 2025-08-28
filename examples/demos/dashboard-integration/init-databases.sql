@@ -64,11 +64,15 @@ CREATE TABLE users
   email VARCHAR(255) NOT NULL UNIQUE,
   "emailVerified" TIMESTAMPTZ,
   image TEXT,
+  hashed_password TEXT,
   "createdAt" TIMESTAMPTZ DEFAULT NOW(),
   "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
  
   PRIMARY KEY (id)
 );
+
+-- Create index on email for faster lookups
+CREATE INDEX idx_users_email ON users (email);
 
 -- Connect to outpost database to set up schema permissions
 \c outpost;

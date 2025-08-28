@@ -25,12 +25,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // For demo purposes, we'll skip password verification
-        // In a real app, you'd verify the hashed password here
-        // const isPasswordValid = await bcrypt.compare(credentials.password as string, user.hashedPassword)
-        // if (!isPasswordValid) {
-        //   return null
-        // }
+        // Verify the password against the hashed password
+        if (!user.hashedPassword) {
+          return null;
+        }
+
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.hashedPassword
+        );
+        if (!isPasswordValid) {
+          return null;
+        }
 
         return {
           id: user.id.toString(),

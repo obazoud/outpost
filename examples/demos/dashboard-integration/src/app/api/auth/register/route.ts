@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { createUser, getUserByEmail } from "../../../../lib/db";
 import { createTenant } from "../../../../lib/outpost";
 import { generateTenantId } from "../../../../lib/utils";
@@ -15,14 +16,18 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { message: "User already exists" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // Create user in database
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
+
+    // Create user in database with hashed password
     const user = await createUser({
       email: validatedData.email,
       name: validatedData.name,
+      hashedPassword,
     });
 
     // Create tenant in Outpost using the user ID
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           tenantId,
           email: validatedData.email,
-        },
+        }
       );
     } catch (outpostError) {
       logger.error("Failed to create Outpost tenant during registration", {
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { message: "User created successfully" },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error: any) {
     logger.error("Registration error", { error, errorMessage: error?.message });
@@ -65,13 +70,13 @@ export async function POST(request: NextRequest) {
       // Validation error
       return NextResponse.json(
         { message: "Validation failed", errors: error.errors },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

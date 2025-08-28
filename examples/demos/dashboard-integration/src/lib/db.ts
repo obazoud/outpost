@@ -14,6 +14,7 @@ export interface User {
   email: string;
   emailVerified?: Date | null;
   image?: string | null;
+  hashedPassword?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,8 +22,8 @@ export interface User {
 export async function getUserTenant(userId: string): Promise<User | null> {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, "emailVerified", image, "createdAt", "updatedAt" FROM users WHERE id = $1',
-      [userId],
+      'SELECT id, name, email, "emailVerified", image, hashed_password as "hashedPassword", "createdAt", "updatedAt" FROM users WHERE id = $1',
+      [userId]
     );
     return result.rows[0] || null;
   } catch (error) {
@@ -38,10 +39,10 @@ export async function createUser(userData: {
 }): Promise<User> {
   try {
     const result = await pool.query(
-      `INSERT INTO users (email, name, "createdAt", "updatedAt") 
-       VALUES ($1, $2, NOW(), NOW()) 
-       RETURNING id, name, email, "emailVerified", image, "createdAt", "updatedAt"`,
-      [userData.email, userData.name || null],
+      `INSERT INTO users (email, name, hashed_password, "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, NOW(), NOW())
+       RETURNING id, name, email, "emailVerified", image, hashed_password as "hashedPassword", "createdAt", "updatedAt"`,
+      [userData.email, userData.name || null, userData.hashedPassword || null]
     );
     const newUser = result.rows[0];
     logger.info("User created successfully", {
@@ -58,8 +59,8 @@ export async function createUser(userData: {
 export async function getUserByEmail(email: string): Promise<User | null> {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, "emailVerified", image, "createdAt", "updatedAt" FROM users WHERE email = $1',
-      [email],
+      'SELECT id, name, email, "emailVerified", image, hashed_password as "hashedPassword", "createdAt", "updatedAt" FROM users WHERE email = $1',
+      [email]
     );
     return result.rows[0] || null;
   } catch (error) {
