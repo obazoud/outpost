@@ -232,34 +232,20 @@ components:
       properties:
         bucket:
           type: string
-          description: The name of the S3 bucket.
+          description: The name of your AWS S3 bucket.
           example: "my-bucket"
         region:
           type: string
-          description: The AWS region where the bucket is located.
+          description: The AWS region where your bucket is located.
           pattern: "^[a-z]{2}-[a-z]+-[0-9]+$"
           example: "us-east-1"
-        key_prefix:
+        key_template:
           type: string
-          description: Optional prefix added to object keys.
-          example: "events/"
-        key_suffix:
-          type: string
-          description: Optional suffix appended to object keys.
-          example: ".json"
-        include_timestamp:
-          type: string
-          enum: ["true", "false"]
-          description: Whether to include the event timestamp in the object key. Defaults to "true".
-          example: "true"
-        include_event_id:
-          type: string
-          enum: ["true", "false"]
-          description: Whether to include the event ID in the object key. Defaults to "true".
-          example: "true"
+          description: JMESPath expression for generating S3 object keys. Default is join('', [time.rfc3339_nano, '_', metadata."event-id", '.json']).
+          example: "join('/', [time.year, time.month, time.day, metadata.\"event-id\", '.json'])"
         storage_class:
           type: string
-          description: Optional S3 storage class for the object.
+          description: The storage class for the S3 objects (e.g., STANDARD, INTELLIGENT_TIERING, GLACIER, etc.). Defaults to "STANDARD".
           example: "STANDARD"
     AWSS3Credentials:
       type: object
