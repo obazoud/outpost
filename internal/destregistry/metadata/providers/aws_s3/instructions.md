@@ -66,27 +66,13 @@ The AWS S3 destination supports the following configuration options:
 
 - **Bucket Name**: The name of your S3 bucket where events will be stored
 - **AWS Region**: The AWS region where your bucket is located (e.g., `us-east-1`)
+- **Access Key ID**: The Access Key ID for the IAM user with S3 permissions
+- **Secret Access Key**: The Secret Access Key for the IAM user with S3 permissions
 
 ### Optional Configuration
 
-- **Object Key Prefix**: Optional prefix to prepend to object keys (e.g., `events/`)
-- **Object Key Suffix**: Optional suffix to append to object keys (e.g., `.json`)
-- **Include Timestamp**: Whether to include the event timestamp in the object key (default: enabled)
-- **Include Event ID**: Whether to include the event ID in the object key (default: enabled)
+- **Object Key Template**: JMESPath expression for generating S3 object keys. Default: `join('', [time.rfc3339_nano, '_', metadata."event-id", '.json'])`. This will result in object keys like `2025-09-02T22:01:25.918524Z_fb20727a-d41b-4002-b55d-0de461be0cf2.json`.
 - **S3 Storage Class**: The storage class for objects (e.g., `STANDARD`, `INTELLIGENT_TIERING`, `GLACIER`)
-
-### Object Key Generation
-
-Object keys are generated using the following pattern:
-```
-[key_prefix][timestamp][_][event_id][key_suffix]
-```
-
-The following examples use "events/" as the prefix and ".json" as the suffix:
-- If both timestamp and event ID are enabled: `events/2024-03-20T12:00:00.123456789Z_eee56889-6924-42e6-9d08-6c6b22928fb0.json`
-- If only timestamp is enabled: `events/2024-03-20T12:00:00.123456789Z.json`
-- If only event ID is enabled: `events/eee56889-6924-42e6-9d08-6c6b22928fb0.json`
-- If neither is enabled: `events/.json` (not a good idea, keys will collide)
 
 ### Storage Classes
 
