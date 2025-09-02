@@ -14,7 +14,7 @@ const config: ZudokuConfig = {
     favicon: "https://outpost.hookdeck.com/docs/icon.svg",
     title: "%s | Outpost",
     description:
-      "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, RabbitMQ, Kafka, and more.",
+      "Outpost is an open source, self-hostable implementation of Event Destinations, enabling event delivery to user-preferred destinations like Webhooks, Hookdeck, AWS SQS, AWS S3, RabbitMQ, Kafka, and more.",
     generator: "Zudoku",
     applicationName: "Outpost Documentation",
     keywords: [
