@@ -79,6 +79,27 @@ components:
       description: '"*" or an array of enabled topics.'
       example: "*"
 
+    PaginatedResponse:
+      type: object
+      required: [count, data, next, prev]
+      properties:
+        count:
+          type: integer
+          description: Total number of items across all pages
+          example: 42
+        data:
+          type: array
+          items: {} # Will be overridden by specific endpoints
+          description: Array of items for current page
+        next:
+          type: string
+          description: Cursor for next page (empty string if no next page)
+          example: ""
+        prev:
+          type: string
+          description: Cursor for previous page (empty string if no previous page)
+          example: ""
+
     # Destination Type Specific Config/Credentials Schemas
     WebhookConfig:
       type: object
@@ -1930,33 +1951,76 @@ paths:
             type: string
             enum: [success, failed]
           description: Filter events by delivery status.
-        # Add cursor parameters (e.g., 'after', 'limit') when defined
+        - name: next
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for next page of results
+        - name: prev
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for previous page of results
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+          description: Number of items per page (default 100, max 1000)
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Start time filter (RFC3339 format)
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: End time filter (RFC3339 format)
       responses:
         "200":
-          description: A list of events.
+          description: A paginated list of events.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Event"
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Event"
               examples:
                 EventsListExample:
                   value:
-                    - id: "evt_123"
-                      destination_id: "des_456"
-                      topic: "user.created"
-                      time: "2024-01-01T00:00:00Z"
-                      successful_at: "2024-01-01T00:00:05Z"
-                      metadata: { "source": "crm" }
-                      data: { "user_id": "userid", "status": "active" }
-                    - id: "evt_789"
-                      destination_id: "des_456"
-                      topic: "order.shipped"
-                      time: "2024-01-02T10:00:00Z"
-                      successful_at: null
-                      metadata: { "source": "oms" }
-                      data: { "order_id": "orderid", "tracking": "1Z..." }
+                    count: 2
+                    data:
+                      - id: "evt_123"
+                        destination_id: "des_456"
+                        topic: "user.created"
+                        time: "2024-01-01T00:00:00Z"
+                        successful_at: "2024-01-01T00:00:05Z"
+                        metadata: { "source": "crm" }
+                        data: { "user_id": "userid", "status": "active" }
+                      - id: "evt_789"
+                        destination_id: "des_456"
+                        topic: "order.shipped"
+                        time: "2024-01-02T10:00:00Z"
+                        successful_at: null
+                        metadata: { "source": "oms" }
+                        data: { "order_id": "orderid", "tracking": "1Z..." }
+                    next: ""
+                    prev: ""
         "404":
           description: Tenant not found.
         # Add other error responses
@@ -2071,33 +2135,76 @@ paths:
             type: string
             enum: [success, failed]
           description: Filter events by delivery status.
-        # Add cursor parameters
+        - name: next
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for next page of results
+        - name: prev
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Cursor for previous page of results
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+          description: Number of items per page (default 100, max 1000)
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Start time filter (RFC3339 format)
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: End time filter (RFC3339 format)
       responses:
         "200":
-          description: A list of events for the destination.
+          description: A paginated list of events for the destination.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Event"
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Event"
               examples:
                 EventsListExample: # Same as /{tenant_id}/events example
                   value:
-                    - id: "evt_123"
-                      destination_id: "des_456"
-                      topic: "user.created"
-                      time: "2024-01-01T00:00:00Z"
-                      successful_at: "2024-01-01T00:00:05Z"
-                      metadata: { "source": "crm" }
-                      data: { "user_id": "userid", "status": "active" }
-                    - id: "evt_789"
-                      destination_id: "des_456"
-                      topic: "order.shipped"
-                      time: "2024-01-02T10:00:00Z"
-                      successful_at: null
-                      metadata: { "source": "oms" }
-                      data: { "order_id": "orderid", "tracking": "1Z..." }
+                    count: 2
+                    data:
+                      - id: "evt_123"
+                        destination_id: "des_456"
+                        topic: "user.created"
+                        time: "2024-01-01T00:00:00Z"
+                        successful_at: "2024-01-01T00:00:05Z"
+                        metadata: { "source": "crm" }
+                        data: { "user_id": "userid", "status": "active" }
+                      - id: "evt_789"
+                        destination_id: "des_456"
+                        topic: "order.shipped"
+                        time: "2024-01-02T10:00:00Z"
+                        successful_at: null
+                        metadata: { "source": "oms" }
+                        data: { "order_id": "orderid", "tracking": "1Z..." }
+                    next: ""
+                    prev: ""
         "404":
           description: Tenant or Destination not found.
 
