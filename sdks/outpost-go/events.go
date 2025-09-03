@@ -33,13 +33,7 @@ func newEvents(rootSDK *Outpost, sdkConfig config.SDKConfiguration, hooks *hooks
 
 // List Events
 // Retrieves a list of events for the tenant, supporting cursor navigation (details TBD) and filtering.
-func (s *Events) List(ctx context.Context, tenantID *string, destinationID *operations.DestinationID, status *operations.ListTenantEventsStatus, opts ...operations.Option) (*operations.ListTenantEventsResponse, error) {
-	request := operations.ListTenantEventsRequest{
-		TenantID:      tenantID,
-		DestinationID: destinationID,
-		Status:        status,
-	}
-
+func (s *Events) List(ctx context.Context, request operations.ListTenantEventsRequest, opts ...operations.Option) (*operations.ListTenantEventsResponse, error) {
 	globals := operations.ListTenantEventsGlobals{
 		TenantID: s.sdkConfiguration.Globals.TenantID,
 	}
@@ -214,12 +208,12 @@ func (s *Events) List(ctx context.Context, tenantID *string, destinationID *oper
 				return nil, err
 			}
 
-			var out []components.Event
+			var out operations.ListTenantEventsResponseBody
 			if err := utils.UnmarshalJsonFromResponseBody(bytes.NewBuffer(rawBody), &out, ""); err != nil {
 				return nil, err
 			}
 
-			res.Events = out
+			res.Object = &out
 		default:
 			rawBody, err := utils.ConsumeRawBody(httpRes)
 			if err != nil {
@@ -1334,13 +1328,7 @@ func (s *Events) ListDeliveries(ctx context.Context, eventID string, tenantID *s
 
 // ListByDestination - List Events by Destination
 // Retrieves events associated with a specific destination for the tenant.
-func (s *Events) ListByDestination(ctx context.Context, destinationID string, tenantID *string, status *operations.ListTenantEventsByDestinationStatus, opts ...operations.Option) (*operations.ListTenantEventsByDestinationResponse, error) {
-	request := operations.ListTenantEventsByDestinationRequest{
-		TenantID:      tenantID,
-		DestinationID: destinationID,
-		Status:        status,
-	}
-
+func (s *Events) ListByDestination(ctx context.Context, request operations.ListTenantEventsByDestinationRequest, opts ...operations.Option) (*operations.ListTenantEventsByDestinationResponse, error) {
 	globals := operations.ListTenantEventsByDestinationGlobals{
 		TenantID: s.sdkConfiguration.Globals.TenantID,
 	}
@@ -1515,12 +1503,12 @@ func (s *Events) ListByDestination(ctx context.Context, destinationID string, te
 				return nil, err
 			}
 
-			var out []components.Event
+			var out operations.ListTenantEventsByDestinationResponseBody
 			if err := utils.UnmarshalJsonFromResponseBody(bytes.NewBuffer(rawBody), &out, ""); err != nil {
 				return nil, err
 			}
 
-			res.Events = out
+			res.Object = &out
 		default:
 			rawBody, err := utils.ConsumeRawBody(httpRes)
 			if err != nil {

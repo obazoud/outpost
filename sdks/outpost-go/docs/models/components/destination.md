@@ -39,3 +39,9 @@ destination := components.CreateDestinationAwsKinesis(components.DestinationAWSK
 destination := components.CreateDestinationAzureServicebus(components.DestinationAzureServiceBus{/* values here */})
 ```
 
+### DestinationAwss3
+
+```go
+destination := components.CreateDestinationAwsS3(components.DestinationAwss3{/* values here */})
+```
+

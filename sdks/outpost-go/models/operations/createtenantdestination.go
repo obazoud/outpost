@@ -61,6 +61,10 @@ func (o *CreateTenantDestinationRequest) GetDestinationCreateAzureServicebus() *
 	return o.GetDestinationCreate().DestinationCreateAzureServiceBus
 }
 
+func (o *CreateTenantDestinationRequest) GetDestinationCreateAwsS3() *components.DestinationCreateAwss3 {
+	return o.GetDestinationCreate().DestinationCreateAwss3
+}
+
 type CreateTenantDestinationResponse struct {
 	HTTPMeta components.HTTPMetadata `json:"-"`
 	// Destination created successfully.
@@ -119,6 +123,13 @@ func (o *CreateTenantDestinationResponse) GetDestinationAwsKinesis() *components
 func (o *CreateTenantDestinationResponse) GetDestinationAzureServicebus() *components.DestinationAzureServiceBus {
 	if v := o.GetDestination(); v != nil {
 		return v.DestinationAzureServiceBus
+	}
+	return nil
+}
+
+func (o *CreateTenantDestinationResponse) GetDestinationAwsS3() *components.DestinationAwss3 {
+	if v := o.GetDestination(); v != nil {
+		return v.DestinationAwss3
 	}
 	return nil
 }
