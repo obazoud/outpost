@@ -71,6 +71,24 @@ const value: components.DestinationRabbitMQ = {
 };
 ```
 
+### `components.DestinationHookdeck`
+
+```typescript
+const value: components.DestinationHookdeck = {
+  id: "des_hkd_abc",
+  type: "hookdeck",
+  topics: [
+    "*",
+  ],
+  disabledAt: null,
+  createdAt: new Date("2024-04-01T10:00:00Z"),
+  config: {},
+  credentials: {
+    token: "hd_token_...",
+  },
+};
+```
+
 ### `components.DestinationAWSKinesis`
 
 ```typescript
@@ -115,20 +133,24 @@ const value: components.DestinationAzureServiceBus = {
 };
 ```
 
-### `components.DestinationHookdeck`
+### `components.DestinationAwss3`
 
 ```typescript
-const value: components.DestinationHookdeck = {
-  id: "des_hkd_abc",
-  type: "hookdeck",
+const value: components.DestinationAwss3 = {
+  id: "des_s3_789",
+  type: "aws_s3",
   topics: [
     "*",
   ],
   disabledAt: null,
-  createdAt: new Date("2024-04-01T10:00:00Z"),
-  config: {},
+  createdAt: new Date("2024-03-20T12:00:00Z"),
+  config: {
+    bucket: "my-bucket",
+    region: "us-east-1",
+  },
   credentials: {
-    token: "hd_token_...",
+    key: "AKIAIOSFODNN7EXAMPLE",
+    secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
   },
 };
 ```

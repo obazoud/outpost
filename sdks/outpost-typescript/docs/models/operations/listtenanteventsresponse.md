@@ -1,12 +1,17 @@
-# GetDestinationTypeSchemaRequest
+# ListTenantEventsResponse
 
 ## Example Usage
 
 ```typescript
-import { GetDestinationTypeSchemaRequest } from "@hookdeck/outpost-sdk/models/operations";
+import { ListTenantEventsResponse } from "@hookdeck/outpost-sdk/models/operations";
 
-let value: GetDestinationTypeSchemaRequest = {
-  type: "aws_s3",
+let value: ListTenantEventsResponse = {
+  result: {
+    count: 42,
+    data: [],
+    nextCursor: "",
+    prevCursor: "",
+  },
 };
 ```
 
@@ -14,4 +19,4 @@ let value: GetDestinationTypeSchemaRequest = {
 
 | Field                                                                                              | Type                                                                                               | Required                                                                                           | Description                                                                                        |
 | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `type`                                                                                             | [operations.GetDestinationTypeSchemaType](../../models/operations/getdestinationtypeschematype.md) | :heavy_check_mark:                                                                                 | The type of the destination.                                                                       |
+| `result`                                                                                           | [operations.ListTenantEventsResponseBody](../../models/operations/listtenanteventsresponsebody.md) | :heavy_check_mark:                                                                                 | N/A                                                                                                |

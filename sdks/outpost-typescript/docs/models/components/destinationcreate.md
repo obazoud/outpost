@@ -79,6 +79,28 @@ const value: components.DestinationCreateAzureServiceBus = {
 };
 ```
 
+### `components.DestinationCreateAwss3`
+
+```typescript
+const value: components.DestinationCreateAwss3 = {
+  id: "user-provided-id",
+  type: "aws_s3",
+  topics: "*",
+  config: {
+    bucket: "my-bucket",
+    region: "us-east-1",
+    keyTemplate:
+      "join('/', [time.year, time.month, time.day, metadata.`\"event-id\"`, '.json'])",
+    storageClass: "STANDARD",
+  },
+  credentials: {
+    key: "AKIAIOSFODNN7EXAMPLE",
+    secret: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    session: "AQoDYXdzEPT//////////wEXAMPLE...",
+  },
+};
+```
+
 ### `components.DestinationCreateWebhook`
 
 ```typescript
