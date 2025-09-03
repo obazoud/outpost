@@ -8,7 +8,7 @@ dotenv.config();
  * Example usage of the @hookdeck/outpost-sdk SDK
  *
  * To run this example from the examples directory:
- * npm run build && npx tsx healthCheck.ts
+ * npm run build && npx tsx healthCheck.example.ts
  */
 
 import { Outpost } from "@hookdeck/outpost-sdk";

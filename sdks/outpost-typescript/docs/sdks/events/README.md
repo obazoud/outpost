@@ -34,7 +34,9 @@ const outpost = new Outpost({
 async function run() {
   const result = await outpost.events.list({});
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -61,7 +63,9 @@ async function run() {
   const res = await eventsList(outpost, {});
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("eventsList failed:", res.error);
   }
@@ -81,7 +85,7 @@ run();
 
 ### Response
 
-**Promise\<[components.Event[]](../../models/.md)\>**
+**Promise\<[operations.ListTenantEventsResponse](../../models/operations/listtenanteventsresponse.md)\>**
 
 ### Errors
 
@@ -296,7 +300,9 @@ async function run() {
     destinationId: "<id>",
   });
 
-  console.log(result);
+  for await (const page of result) {
+    console.log(page);
+  }
 }
 
 run();
@@ -325,7 +331,9 @@ async function run() {
   });
   if (res.ok) {
     const { value: result } = res;
-    console.log(result);
+    for await (const page of result) {
+    console.log(page);
+  }
   } else {
     console.log("eventsListByDestination failed:", res.error);
   }
@@ -345,7 +353,7 @@ run();
 
 ### Response
 
-**Promise\<[components.Event[]](../../models/.md)\>**
+**Promise\<[operations.ListTenantEventsByDestinationResponse](../../models/operations/listtenanteventsbydestinationresponse.md)\>**
 
 ### Errors
 

@@ -7,10 +7,10 @@ import { CreateTenantDestinationRequest } from "@hookdeck/outpost-sdk/models/ope
 
 let value: CreateTenantDestinationRequest = {
   destinationCreate: {
-    type: "hookdeck",
+    type: "webhook",
     topics: "*",
-    credentials: {
-      token: "hd_token_...",
+    config: {
+      url: "https://example.com/webhooks/user",
     },
   },
 };
