@@ -5,6 +5,10 @@ from .destinationcreateawskinesis import (
     DestinationCreateAWSKinesis,
     DestinationCreateAWSKinesisTypedDict,
 )
+from .destinationcreateawss3 import (
+    DestinationCreateAwss3,
+    DestinationCreateAwss3TypedDict,
+)
 from .destinationcreateawssqs import (
     DestinationCreateAWSSQS,
     DestinationCreateAWSSQSTypedDict,
@@ -40,6 +44,7 @@ DestinationCreateTypedDict = TypeAliasType(
         DestinationCreateHookdeckTypedDict,
         DestinationCreateAWSKinesisTypedDict,
         DestinationCreateAzureServiceBusTypedDict,
+        DestinationCreateAwss3TypedDict,
     ],
 )
 
@@ -52,6 +57,7 @@ DestinationCreate = Annotated[
         Annotated[DestinationCreateHookdeck, Tag("hookdeck")],
         Annotated[DestinationCreateAWSKinesis, Tag("aws_kinesis")],
         Annotated[DestinationCreateAzureServiceBus, Tag("azure_servicebus")],
+        Annotated[DestinationCreateAwss3, Tag("aws_s3")],
     ],
     Discriminator(lambda m: get_discriminator(m, "type", "type")),
 ]

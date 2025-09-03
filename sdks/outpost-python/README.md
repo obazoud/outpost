@@ -25,6 +25,7 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
   * [Authentication](#authentication)
   * [Available Resources and Operations](#available-resources-and-operations)
   * [Global Parameters](#global-parameters)
+  * [Pagination](#pagination)
   * [Retries](#retries)
   * [Error Handling](#error-handling)
   * [Server Selection](#server-selection)
@@ -45,7 +46,15 @@ Outpost API: The Outpost API is a REST-based JSON API for managing tenants, dest
 >
 > Once a Python version reaches its [official end of life date](https://devguide.python.org/versions/), a 3-month grace period is provided for users to upgrade. Following this grace period, the minimum python version supported in the SDK will be updated.
 
-The SDK can be installed with either *pip* or *poetry* package managers.
+The SDK can be installed with *uv*, *pip*, or *poetry* package managers.
+
+### uv
+
+*uv* is a fast Python package installer and resolver, designed as a drop-in replacement for pip and pip-tools. It's recommended for its speed and modern Python tooling capabilities.
+
+```bash
+uv add outpost_sdk
+```
 
 ### PIP
 
@@ -125,7 +134,7 @@ with Outpost() as outpost:
 
 </br>
 
-The same SDK client can also be used to make asychronous requests by importing asyncio.
+The same SDK client can also be used to make asynchronous requests by importing asyncio.
 ```python
 # Asynchronous Example
 import asyncio
@@ -268,6 +277,35 @@ with Outpost(
 
 ```
 <!-- End Global Parameters [global-parameters] -->
+
+<!-- Start Pagination [pagination] -->
+## Pagination
+
+Some of the endpoints in this SDK support pagination. To use pagination, you make your SDK calls as usual, but the
+returned response object will have a `Next` method that can be called to pull down the next group of results. If the
+return value of `Next` is `None`, then there are no more pages to be fetched.
+
+Here's an example of one such pagination call:
+```python
+from outpost_sdk import Outpost, models
+
+
+with Outpost(
+    tenant_id="<id>",
+    security=models.Security(
+        admin_api_key="<YOUR_BEARER_TOKEN_HERE>",
+    ),
+) as outpost:
+
+    res = outpost.events.list(limit=100)
+
+    while res is not None:
+        # Handle items
+
+        res = res.next()
+
+```
+<!-- End Pagination [pagination] -->
 
 <!-- Start Retries [retries] -->
 ## Retries

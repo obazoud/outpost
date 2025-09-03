@@ -2,6 +2,8 @@
 
 from typing import TYPE_CHECKING
 from importlib import import_module
+import builtins
+import sys
 
 if TYPE_CHECKING:
     from .awskinesisconfig import AWSKinesisConfig, AWSKinesisConfigTypedDict
@@ -9,6 +11,8 @@ if TYPE_CHECKING:
         AWSKinesisCredentials,
         AWSKinesisCredentialsTypedDict,
     )
+    from .awss3config import Awss3Config, Awss3ConfigTypedDict
+    from .awss3credentials import Awss3Credentials, Awss3CredentialsTypedDict
     from .awssqsconfig import AWSSQSConfig, AWSSQSConfigTypedDict
     from .awssqscredentials import AWSSQSCredentials, AWSSQSCredentialsTypedDict
     from .azureservicebusconfig import (
@@ -44,6 +48,11 @@ if TYPE_CHECKING:
         DestinationAWSKinesisType,
         DestinationAWSKinesisTypedDict,
     )
+    from .destinationawss3 import (
+        DestinationAwss3,
+        DestinationAwss3Type,
+        DestinationAwss3TypedDict,
+    )
     from .destinationawssqs import (
         DestinationAWSSQS,
         DestinationAWSSQSType,
@@ -59,6 +68,11 @@ if TYPE_CHECKING:
         DestinationCreateAWSKinesis,
         DestinationCreateAWSKinesisType,
         DestinationCreateAWSKinesisTypedDict,
+    )
+    from .destinationcreateawss3 import (
+        DestinationCreateAwss3,
+        DestinationCreateAwss3Type,
+        DestinationCreateAwss3TypedDict,
     )
     from .destinationcreateawssqs import (
         DestinationCreateAWSSQS,
@@ -108,6 +122,10 @@ if TYPE_CHECKING:
     from .destinationupdateawskinesis import (
         DestinationUpdateAWSKinesis,
         DestinationUpdateAWSKinesisTypedDict,
+    )
+    from .destinationupdateawss3 import (
+        DestinationUpdateAwss3,
+        DestinationUpdateAwss3TypedDict,
     )
     from .destinationupdateawssqs import (
         DestinationUpdateAWSSQS,
@@ -222,6 +240,10 @@ if TYPE_CHECKING:
         ListTenantEventsByDestinationGlobalsTypedDict,
         ListTenantEventsByDestinationRequest,
         ListTenantEventsByDestinationRequestTypedDict,
+        ListTenantEventsByDestinationResponse,
+        ListTenantEventsByDestinationResponseBody,
+        ListTenantEventsByDestinationResponseBodyTypedDict,
+        ListTenantEventsByDestinationResponseTypedDict,
         ListTenantEventsByDestinationStatus,
     )
     from .listtenanteventsop import (
@@ -231,6 +253,10 @@ if TYPE_CHECKING:
         ListTenantEventsGlobalsTypedDict,
         ListTenantEventsRequest,
         ListTenantEventsRequestTypedDict,
+        ListTenantEventsResponse,
+        ListTenantEventsResponseBody,
+        ListTenantEventsResponseBodyTypedDict,
+        ListTenantEventsResponseTypedDict,
         ListTenantEventsStatus,
     )
     from .listtenanttopicsop import (
@@ -285,6 +311,10 @@ __all__ = [
     "AWSSQSConfigTypedDict",
     "AWSSQSCredentials",
     "AWSSQSCredentialsTypedDict",
+    "Awss3Config",
+    "Awss3ConfigTypedDict",
+    "Awss3Credentials",
+    "Awss3CredentialsTypedDict",
     "AzureServiceBusConfig",
     "AzureServiceBusConfigTypedDict",
     "AzureServiceBusCredentials",
@@ -310,6 +340,9 @@ __all__ = [
     "DestinationAWSSQS",
     "DestinationAWSSQSType",
     "DestinationAWSSQSTypedDict",
+    "DestinationAwss3",
+    "DestinationAwss3Type",
+    "DestinationAwss3TypedDict",
     "DestinationAzureServiceBus",
     "DestinationAzureServiceBusType",
     "DestinationAzureServiceBusTypedDict",
@@ -320,6 +353,9 @@ __all__ = [
     "DestinationCreateAWSSQS",
     "DestinationCreateAWSSQSType",
     "DestinationCreateAWSSQSTypedDict",
+    "DestinationCreateAwss3",
+    "DestinationCreateAwss3Type",
+    "DestinationCreateAwss3TypedDict",
     "DestinationCreateAzureServiceBus",
     "DestinationCreateAzureServiceBusType",
     "DestinationCreateAzureServiceBusTypedDict",
@@ -352,6 +388,8 @@ __all__ = [
     "DestinationUpdateAWSKinesisTypedDict",
     "DestinationUpdateAWSSQS",
     "DestinationUpdateAWSSQSTypedDict",
+    "DestinationUpdateAwss3",
+    "DestinationUpdateAwss3TypedDict",
     "DestinationUpdateHookdeck",
     "DestinationUpdateHookdeckTypedDict",
     "DestinationUpdateRabbitMQ",
@@ -426,11 +464,19 @@ __all__ = [
     "ListTenantEventsByDestinationGlobalsTypedDict",
     "ListTenantEventsByDestinationRequest",
     "ListTenantEventsByDestinationRequestTypedDict",
+    "ListTenantEventsByDestinationResponse",
+    "ListTenantEventsByDestinationResponseBody",
+    "ListTenantEventsByDestinationResponseBodyTypedDict",
+    "ListTenantEventsByDestinationResponseTypedDict",
     "ListTenantEventsByDestinationStatus",
     "ListTenantEventsGlobals",
     "ListTenantEventsGlobalsTypedDict",
     "ListTenantEventsRequest",
     "ListTenantEventsRequestTypedDict",
+    "ListTenantEventsResponse",
+    "ListTenantEventsResponseBody",
+    "ListTenantEventsResponseBodyTypedDict",
+    "ListTenantEventsResponseTypedDict",
     "ListTenantEventsStatus",
     "ListTenantTopicsGlobals",
     "ListTenantTopicsGlobalsTypedDict",
@@ -489,6 +535,10 @@ _dynamic_imports: dict[str, str] = {
     "AWSKinesisConfigTypedDict": ".awskinesisconfig",
     "AWSKinesisCredentials": ".awskinesiscredentials",
     "AWSKinesisCredentialsTypedDict": ".awskinesiscredentials",
+    "Awss3Config": ".awss3config",
+    "Awss3ConfigTypedDict": ".awss3config",
+    "Awss3Credentials": ".awss3credentials",
+    "Awss3CredentialsTypedDict": ".awss3credentials",
     "AWSSQSConfig": ".awssqsconfig",
     "AWSSQSConfigTypedDict": ".awssqsconfig",
     "AWSSQSCredentials": ".awssqscredentials",
@@ -517,6 +567,9 @@ _dynamic_imports: dict[str, str] = {
     "DestinationAWSKinesis": ".destinationawskinesis",
     "DestinationAWSKinesisType": ".destinationawskinesis",
     "DestinationAWSKinesisTypedDict": ".destinationawskinesis",
+    "DestinationAwss3": ".destinationawss3",
+    "DestinationAwss3Type": ".destinationawss3",
+    "DestinationAwss3TypedDict": ".destinationawss3",
     "DestinationAWSSQS": ".destinationawssqs",
     "DestinationAWSSQSType": ".destinationawssqs",
     "DestinationAWSSQSTypedDict": ".destinationawssqs",
@@ -528,6 +581,9 @@ _dynamic_imports: dict[str, str] = {
     "DestinationCreateAWSKinesis": ".destinationcreateawskinesis",
     "DestinationCreateAWSKinesisType": ".destinationcreateawskinesis",
     "DestinationCreateAWSKinesisTypedDict": ".destinationcreateawskinesis",
+    "DestinationCreateAwss3": ".destinationcreateawss3",
+    "DestinationCreateAwss3Type": ".destinationcreateawss3",
+    "DestinationCreateAwss3TypedDict": ".destinationcreateawss3",
     "DestinationCreateAWSSQS": ".destinationcreateawssqs",
     "DestinationCreateAWSSQSType": ".destinationcreateawssqs",
     "DestinationCreateAWSSQSTypedDict": ".destinationcreateawssqs",
@@ -558,6 +614,8 @@ _dynamic_imports: dict[str, str] = {
     "DestinationUpdateTypedDict": ".destinationupdate",
     "DestinationUpdateAWSKinesis": ".destinationupdateawskinesis",
     "DestinationUpdateAWSKinesisTypedDict": ".destinationupdateawskinesis",
+    "DestinationUpdateAwss3": ".destinationupdateawss3",
+    "DestinationUpdateAwss3TypedDict": ".destinationupdateawss3",
     "DestinationUpdateAWSSQS": ".destinationupdateawssqs",
     "DestinationUpdateAWSSQSTypedDict": ".destinationupdateawssqs",
     "DestinationUpdateHookdeck": ".destinationupdatehookdeck",
@@ -636,6 +694,10 @@ _dynamic_imports: dict[str, str] = {
     "ListTenantEventsByDestinationGlobalsTypedDict": ".listtenanteventsbydestinationop",
     "ListTenantEventsByDestinationRequest": ".listtenanteventsbydestinationop",
     "ListTenantEventsByDestinationRequestTypedDict": ".listtenanteventsbydestinationop",
+    "ListTenantEventsByDestinationResponse": ".listtenanteventsbydestinationop",
+    "ListTenantEventsByDestinationResponseBody": ".listtenanteventsbydestinationop",
+    "ListTenantEventsByDestinationResponseBodyTypedDict": ".listtenanteventsbydestinationop",
+    "ListTenantEventsByDestinationResponseTypedDict": ".listtenanteventsbydestinationop",
     "ListTenantEventsByDestinationStatus": ".listtenanteventsbydestinationop",
     "DestinationID": ".listtenanteventsop",
     "DestinationIDTypedDict": ".listtenanteventsop",
@@ -643,6 +705,10 @@ _dynamic_imports: dict[str, str] = {
     "ListTenantEventsGlobalsTypedDict": ".listtenanteventsop",
     "ListTenantEventsRequest": ".listtenanteventsop",
     "ListTenantEventsRequestTypedDict": ".listtenanteventsop",
+    "ListTenantEventsResponse": ".listtenanteventsop",
+    "ListTenantEventsResponseBody": ".listtenanteventsop",
+    "ListTenantEventsResponseBodyTypedDict": ".listtenanteventsop",
+    "ListTenantEventsResponseTypedDict": ".listtenanteventsop",
     "ListTenantEventsStatus": ".listtenanteventsop",
     "ListTenantTopicsGlobals": ".listtenanttopicsop",
     "ListTenantTopicsGlobalsTypedDict": ".listtenanttopicsop",
@@ -693,6 +759,18 @@ _dynamic_imports: dict[str, str] = {
 }
 
 
+def dynamic_import(modname, retries=3):
+    for attempt in range(retries):
+        try:
+            return import_module(modname, __package__)
+        except KeyError:
+            # Clear any half-initialized module and retry
+            sys.modules.pop(modname, None)
+            if attempt == retries - 1:
+                break
+    raise KeyError(f"Failed to import module '{modname}' after {retries} attempts")
+
+
 def __getattr__(attr_name: str) -> object:
     module_name = _dynamic_imports.get(attr_name)
     if module_name is None:
@@ -701,7 +779,7 @@ def __getattr__(attr_name: str) -> object:
         )
 
     try:
-        module = import_module(module_name, __package__)
+        module = dynamic_import(module_name)
         result = getattr(module, attr_name)
         return result
     except ImportError as e:
@@ -715,5 +793,5 @@ def __getattr__(attr_name: str) -> object:
 
 
 def __dir__():
-    lazy_attrs = list(_dynamic_imports.keys())
-    return sorted(lazy_attrs)
+    lazy_attrs = builtins.list(_dynamic_imports.keys())
+    return builtins.sorted(lazy_attrs)
