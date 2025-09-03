@@ -5,6 +5,7 @@ package components
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hookdeck/outpost/sdks/outpost-go/internal/utils"
 )
 
 // DestinationCreateAzureServiceBusType - Type of the destination. Must be 'azure_servicebus'.
@@ -40,6 +41,17 @@ type DestinationCreateAzureServiceBus struct {
 	Topics      Topics                     `json:"topics"`
 	Config      AzureServiceBusConfig      `json:"config"`
 	Credentials AzureServiceBusCredentials `json:"credentials"`
+}
+
+func (d DestinationCreateAzureServiceBus) MarshalJSON() ([]byte, error) {
+	return utils.MarshalJSON(d, "", false)
+}
+
+func (d *DestinationCreateAzureServiceBus) UnmarshalJSON(data []byte) error {
+	if err := utils.UnmarshalJSON(data, &d, "", false, []string{"type", "topics", "config", "credentials"}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (o *DestinationCreateAzureServiceBus) GetID() *string {

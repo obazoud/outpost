@@ -2,9 +2,24 @@
 
 package components
 
+import (
+	"github.com/hookdeck/outpost/sdks/outpost-go/internal/utils"
+)
+
 type AzureServiceBusCredentials struct {
 	// The connection string for the Azure Service Bus namespace.
 	ConnectionString string `json:"connection_string"`
+}
+
+func (a AzureServiceBusCredentials) MarshalJSON() ([]byte, error) {
+	return utils.MarshalJSON(a, "", false)
+}
+
+func (a *AzureServiceBusCredentials) UnmarshalJSON(data []byte) error {
+	if err := utils.UnmarshalJSON(data, &a, "", false, []string{"connection_string"}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (o *AzureServiceBusCredentials) GetConnectionString() string {

@@ -28,6 +28,7 @@ import(
 	"context"
 	outpostgo "github.com/hookdeck/outpost/sdks/outpost-go"
 	"github.com/hookdeck/outpost/sdks/outpost-go/models/components"
+	"github.com/hookdeck/outpost/sdks/outpost-go/models/operations"
 	"log"
 )
 
@@ -41,11 +42,11 @@ func main() {
         }),
     )
 
-    res, err := s.Events.List(ctx, nil, nil)
+    res, err := s.Events.List(ctx, operations.ListTenantEventsRequest{})
     if err != nil {
         log.Fatal(err)
     }
-    if res.Events != nil {
+    if res.Object != nil {
         // handle response
     }
 }
@@ -53,13 +54,11 @@ func main() {
 
 ### Parameters
 
-| Parameter                                                                               | Type                                                                                    | Required                                                                                | Description                                                                             |
-| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `ctx`                                                                                   | [context.Context](https://pkg.go.dev/context#Context)                                   | :heavy_check_mark:                                                                      | The context to use for the request.                                                     |
-| `tenantID`                                                                              | **string*                                                                               | :heavy_minus_sign:                                                                      | The ID of the tenant. Required when using AdminApiKey authentication.                   |
-| `destinationID`                                                                         | [*operations.DestinationID](../../models/operations/destinationid.md)                   | :heavy_minus_sign:                                                                      | Filter events by destination ID(s).                                                     |
-| `status`                                                                                | [*operations.ListTenantEventsStatus](../../models/operations/listtenanteventsstatus.md) | :heavy_minus_sign:                                                                      | Filter events by delivery status.                                                       |
-| `opts`                                                                                  | [][operations.Option](../../models/operations/option.md)                                | :heavy_minus_sign:                                                                      | The options for this request.                                                           |
+| Parameter                                                                                | Type                                                                                     | Required                                                                                 | Description                                                                              |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `ctx`                                                                                    | [context.Context](https://pkg.go.dev/context#Context)                                    | :heavy_check_mark:                                                                       | The context to use for the request.                                                      |
+| `request`                                                                                | [operations.ListTenantEventsRequest](../../models/operations/listtenanteventsrequest.md) | :heavy_check_mark:                                                                       | The request object to use for the request.                                               |
+| `opts`                                                                                   | [][operations.Option](../../models/operations/option.md)                                 | :heavy_minus_sign:                                                                       | The options for this request.                                                            |
 
 ### Response
 
@@ -224,6 +223,7 @@ import(
 	"context"
 	outpostgo "github.com/hookdeck/outpost/sdks/outpost-go"
 	"github.com/hookdeck/outpost/sdks/outpost-go/models/components"
+	"github.com/hookdeck/outpost/sdks/outpost-go/models/operations"
 	"log"
 )
 
@@ -237,11 +237,13 @@ func main() {
         }),
     )
 
-    res, err := s.Events.ListByDestination(ctx, "<id>", nil)
+    res, err := s.Events.ListByDestination(ctx, operations.ListTenantEventsByDestinationRequest{
+        DestinationID: "<id>",
+    })
     if err != nil {
         log.Fatal(err)
     }
-    if res.Events != nil {
+    if res.Object != nil {
         // handle response
     }
 }
@@ -249,13 +251,11 @@ func main() {
 
 ### Parameters
 
-| Parameter                                                                                                         | Type                                                                                                              | Required                                                                                                          | Description                                                                                                       |
-| ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `ctx`                                                                                                             | [context.Context](https://pkg.go.dev/context#Context)                                                             | :heavy_check_mark:                                                                                                | The context to use for the request.                                                                               |
-| `destinationID`                                                                                                   | *string*                                                                                                          | :heavy_check_mark:                                                                                                | The ID of the destination.                                                                                        |
-| `tenantID`                                                                                                        | **string*                                                                                                         | :heavy_minus_sign:                                                                                                | The ID of the tenant. Required when using AdminApiKey authentication.                                             |
-| `status`                                                                                                          | [*operations.ListTenantEventsByDestinationStatus](../../models/operations/listtenanteventsbydestinationstatus.md) | :heavy_minus_sign:                                                                                                | Filter events by delivery status.                                                                                 |
-| `opts`                                                                                                            | [][operations.Option](../../models/operations/option.md)                                                          | :heavy_minus_sign:                                                                                                | The options for this request.                                                                                     |
+| Parameter                                                                                                          | Type                                                                                                               | Required                                                                                                           | Description                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `ctx`                                                                                                              | [context.Context](https://pkg.go.dev/context#Context)                                                              | :heavy_check_mark:                                                                                                 | The context to use for the request.                                                                                |
+| `request`                                                                                                          | [operations.ListTenantEventsByDestinationRequest](../../models/operations/listtenanteventsbydestinationrequest.md) | :heavy_check_mark:                                                                                                 | The request object to use for the request.                                                                         |
+| `opts`                                                                                                             | [][operations.Option](../../models/operations/option.md)                                                           | :heavy_minus_sign:                                                                                                 | The options for this request.                                                                                      |
 
 ### Response
 

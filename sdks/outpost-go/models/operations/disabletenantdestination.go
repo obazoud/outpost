@@ -99,3 +99,10 @@ func (o *DisableTenantDestinationResponse) GetDestinationAzureServicebus() *comp
 	}
 	return nil
 }
+
+func (o *DisableTenantDestinationResponse) GetDestinationAwsS3() *components.DestinationAwss3 {
+	if v := o.GetDestination(); v != nil {
+		return v.DestinationAwss3
+	}
+	return nil
+}
