@@ -1,21 +1,21 @@
-speakeasyVersion: 1.594.0
+speakeasyVersion: 1.608.0
 sources:
     Outpost API:
         sourceNamespace: outpost-api
-        sourceRevisionDigest: sha256:837897b6e2774d7ba547d9616639367bfce651d53d84190c3ee0cd32cee7e8b1
-        sourceBlobDigest: sha256:3b1cd63370e0cf368a2049eaa26c9f94cd94a929de42592f8488adb5a6a3f182
+        sourceRevisionDigest: sha256:4042dbef541e06289b580460ccfb39d8f444c852e134de2245b13e1ffd43dcf3
+        sourceBlobDigest: sha256:3859f29c380e176f9382eb969cefbb9c8701875d4837ee8a9549b78bf92eebc6
         tags:
             - latest
-            - speakeasy-sdk-regen-1753978509
+            - speakeasy-sdk-regen-1756910957
             - 0.0.1
 targets:
     outpost-go:
         source: Outpost API
         sourceNamespace: outpost-api
-        sourceRevisionDigest: sha256:837897b6e2774d7ba547d9616639367bfce651d53d84190c3ee0cd32cee7e8b1
-        sourceBlobDigest: sha256:3b1cd63370e0cf368a2049eaa26c9f94cd94a929de42592f8488adb5a6a3f182
+        sourceRevisionDigest: sha256:4042dbef541e06289b580460ccfb39d8f444c852e134de2245b13e1ffd43dcf3
+        sourceBlobDigest: sha256:3859f29c380e176f9382eb969cefbb9c8701875d4837ee8a9549b78bf92eebc6
         codeSamplesNamespace: outpost-api-go-code-samples
-        codeSamplesRevisionDigest: sha256:1009c456ca9523b22ee077420e48d3a7dfb1ea14ec10807f78145eab51af6e0a
+        codeSamplesRevisionDigest: sha256:0e3fa3204f6f516dd30a924b7a1c07749873126109ccc30817795cd02c9854d7
     outpost-python:
         source: Outpost API
         sourceNamespace: outpost-api
