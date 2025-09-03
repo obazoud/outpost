@@ -32,10 +32,12 @@ with Outpost(
     ),
 ) as outpost:
 
-    res = outpost.events.list()
+    res = outpost.events.list(limit=100)
 
-    # Handle response
-    print(res)
+    while res is not None:
+        # Handle items
+
+        res = res.next()
 
 ```
 
@@ -46,11 +48,16 @@ with Outpost(
 | `tenant_id`                                                                       | *Optional[str]*                                                                   | :heavy_minus_sign:                                                                | The ID of the tenant. Required when using AdminApiKey authentication.             |
 | `destination_id`                                                                  | [Optional[models.DestinationID]](../../models/destinationid.md)                   | :heavy_minus_sign:                                                                | Filter events by destination ID(s).                                               |
 | `status`                                                                          | [Optional[models.ListTenantEventsStatus]](../../models/listtenanteventsstatus.md) | :heavy_minus_sign:                                                                | Filter events by delivery status.                                                 |
+| `next`                                                                            | *Optional[str]*                                                                   | :heavy_minus_sign:                                                                | Cursor for next page of results                                                   |
+| `prev`                                                                            | *Optional[str]*                                                                   | :heavy_minus_sign:                                                                | Cursor for previous page of results                                               |
+| `limit`                                                                           | *Optional[int]*                                                                   | :heavy_minus_sign:                                                                | Number of items per page (default 100, max 1000)                                  |
+| `start`                                                                           | [date](https://docs.python.org/3/library/datetime.html#date-objects)              | :heavy_minus_sign:                                                                | Start time filter (RFC3339 format)                                                |
+| `end`                                                                             | [date](https://docs.python.org/3/library/datetime.html#date-objects)              | :heavy_minus_sign:                                                                | End time filter (RFC3339 format)                                                  |
 | `retries`                                                                         | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                  | :heavy_minus_sign:                                                                | Configuration to override the default retry behavior of the client.               |
 
 ### Response
 
-**[List[models.Event]](../../models/.md)**
+**[models.ListTenantEventsResponse](../../models/listtenanteventsresponse.md)**
 
 ### Errors
 
@@ -189,10 +196,12 @@ with Outpost(
     ),
 ) as outpost:
 
-    res = outpost.events.list_by_destination(destination_id="<id>")
+    res = outpost.events.list_by_destination(destination_id="<id>", limit=100)
 
-    # Handle response
-    print(res)
+    while res is not None:
+        # Handle items
+
+        res = res.next()
 
 ```
 
@@ -203,11 +212,16 @@ with Outpost(
 | `destination_id`                                                                                            | *str*                                                                                                       | :heavy_check_mark:                                                                                          | The ID of the destination.                                                                                  |
 | `tenant_id`                                                                                                 | *Optional[str]*                                                                                             | :heavy_minus_sign:                                                                                          | The ID of the tenant. Required when using AdminApiKey authentication.                                       |
 | `status`                                                                                                    | [Optional[models.ListTenantEventsByDestinationStatus]](../../models/listtenanteventsbydestinationstatus.md) | :heavy_minus_sign:                                                                                          | Filter events by delivery status.                                                                           |
+| `next`                                                                                                      | *Optional[str]*                                                                                             | :heavy_minus_sign:                                                                                          | Cursor for next page of results                                                                             |
+| `prev`                                                                                                      | *Optional[str]*                                                                                             | :heavy_minus_sign:                                                                                          | Cursor for previous page of results                                                                         |
+| `limit`                                                                                                     | *Optional[int]*                                                                                             | :heavy_minus_sign:                                                                                          | Number of items per page (default 100, max 1000)                                                            |
+| `start`                                                                                                     | [date](https://docs.python.org/3/library/datetime.html#date-objects)                                        | :heavy_minus_sign:                                                                                          | Start time filter (RFC3339 format)                                                                          |
+| `end`                                                                                                       | [date](https://docs.python.org/3/library/datetime.html#date-objects)                                        | :heavy_minus_sign:                                                                                          | End time filter (RFC3339 format)                                                                            |
 | `retries`                                                                                                   | [Optional[utils.RetryConfig]](../../models/utils/retryconfig.md)                                            | :heavy_minus_sign:                                                                                          | Configuration to override the default retry behavior of the client.                                         |
 
 ### Response
 
-**[List[models.Event]](../../models/.md)**
+**[models.ListTenantEventsByDestinationResponse](../../models/listtenanteventsbydestinationresponse.md)**
 
 ### Errors
 

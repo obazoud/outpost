@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from .destinationawskinesis import DestinationAWSKinesis, DestinationAWSKinesisTypedDict
+from .destinationawss3 import DestinationAwss3, DestinationAwss3TypedDict
 from .destinationawssqs import DestinationAWSSQS, DestinationAWSSQSTypedDict
 from .destinationazureservicebus import (
     DestinationAzureServiceBus,
@@ -25,6 +26,7 @@ DestinationTypedDict = TypeAliasType(
         DestinationHookdeckTypedDict,
         DestinationAWSKinesisTypedDict,
         DestinationAzureServiceBusTypedDict,
+        DestinationAwss3TypedDict,
     ],
 )
 
@@ -37,6 +39,7 @@ Destination = Annotated[
         Annotated[DestinationHookdeck, Tag("hookdeck")],
         Annotated[DestinationAWSKinesis, Tag("aws_kinesis")],
         Annotated[DestinationAzureServiceBus, Tag("azure_servicebus")],
+        Annotated[DestinationAwss3, Tag("aws_s3")],
     ],
     Discriminator(lambda m: get_discriminator(m, "type", "type")),
 ]
