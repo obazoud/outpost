@@ -7,10 +7,14 @@ import { CreateTenantDestinationRequest } from "@hookdeck/outpost-sdk/models/ope
 
 let value: CreateTenantDestinationRequest = {
   destinationCreate: {
-    type: "hookdeck",
+    type: "azure_servicebus",
     topics: "*",
+    config: {
+      name: "my-queue-or-topic",
+    },
     credentials: {
-      token: "hd_token_...",
+      connectionString:
+        "Endpoint=sb://namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abc123",
     },
   },
 };

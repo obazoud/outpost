@@ -23,7 +23,7 @@ export class Events extends ClientSDK {
   async list(
     request: operations.ListTenantEventsRequest,
     options?: RequestOptions,
-  ): Promise<Array<components.Event>> {
+  ): Promise<operations.ListTenantEventsResponse> {
     return unwrapAsync(eventsList(
       this,
       request,
@@ -74,7 +74,7 @@ export class Events extends ClientSDK {
   async listByDestination(
     request: operations.ListTenantEventsByDestinationRequest,
     options?: RequestOptions,
-  ): Promise<Array<components.Event>> {
+  ): Promise<operations.ListTenantEventsByDestinationResponse> {
     return unwrapAsync(eventsListByDestination(
       this,
       request,

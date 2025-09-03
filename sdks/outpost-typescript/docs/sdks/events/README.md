@@ -81,7 +81,7 @@ run();
 
 ### Response
 
-**Promise\<[components.Event[]](../../models/.md)\>**
+**Promise\<[operations.ListTenantEventsResponse](../../models/operations/listtenanteventsresponse.md)\>**
 
 ### Errors
 
@@ -345,7 +345,7 @@ run();
 
 ### Response
 
-**Promise\<[components.Event[]](../../models/.md)\>**
+**Promise\<[operations.ListTenantEventsByDestinationResponse](../../models/operations/listtenanteventsbydestinationresponse.md)\>**
 
 ### Errors
 

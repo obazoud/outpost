@@ -13,6 +13,12 @@ import {
   DestinationCreateAWSKinesis$outboundSchema,
 } from "./destinationcreateawskinesis.js";
 import {
+  DestinationCreateAwss3,
+  DestinationCreateAwss3$inboundSchema,
+  DestinationCreateAwss3$Outbound,
+  DestinationCreateAwss3$outboundSchema,
+} from "./destinationcreateawss3.js";
+import {
   DestinationCreateAWSSQS,
   DestinationCreateAWSSQS$inboundSchema,
   DestinationCreateAWSSQS$Outbound,
@@ -48,6 +54,7 @@ export type DestinationCreate =
   | (DestinationCreateRabbitMQ & { type: "rabbitmq" })
   | (DestinationCreateAWSKinesis & { type: "aws_kinesis" })
   | (DestinationCreateAzureServiceBus & { type: "azure_servicebus" })
+  | (DestinationCreateAwss3 & { type: "aws_s3" })
   | (DestinationCreateWebhook & { type: "webhook" })
   | (DestinationCreateHookdeck & { type: "hookdeck" });
 
@@ -77,6 +84,11 @@ export const DestinationCreate$inboundSchema: z.ZodType<
       type: v.type,
     })),
   ),
+  DestinationCreateAwss3$inboundSchema.and(
+    z.object({ type: z.literal("aws_s3") }).transform((v) => ({
+      type: v.type,
+    })),
+  ),
   DestinationCreateWebhook$inboundSchema.and(
     z.object({ type: z.literal("webhook") }).transform((v) => ({
       type: v.type,
@@ -95,6 +107,7 @@ export type DestinationCreate$Outbound =
   | (DestinationCreateRabbitMQ$Outbound & { type: "rabbitmq" })
   | (DestinationCreateAWSKinesis$Outbound & { type: "aws_kinesis" })
   | (DestinationCreateAzureServiceBus$Outbound & { type: "azure_servicebus" })
+  | (DestinationCreateAwss3$Outbound & { type: "aws_s3" })
   | (DestinationCreateWebhook$Outbound & { type: "webhook" })
   | (DestinationCreateHookdeck$Outbound & { type: "hookdeck" });
 
@@ -121,6 +134,11 @@ export const DestinationCreate$outboundSchema: z.ZodType<
   ),
   DestinationCreateAzureServiceBus$outboundSchema.and(
     z.object({ type: z.literal("azure_servicebus") }).transform((v) => ({
+      type: v.type,
+    })),
+  ),
+  DestinationCreateAwss3$outboundSchema.and(
+    z.object({ type: z.literal("aws_s3") }).transform((v) => ({
       type: v.type,
     })),
   ),

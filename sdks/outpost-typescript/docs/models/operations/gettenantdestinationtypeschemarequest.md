@@ -6,7 +6,7 @@
 import { GetTenantDestinationTypeSchemaRequest } from "@hookdeck/outpost-sdk/models/operations";
 
 let value: GetTenantDestinationTypeSchemaRequest = {
-  type: "hookdeck",
+  type: "aws_kinesis",
 };
 ```
 
