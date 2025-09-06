@@ -1,6 +1,8 @@
 # Stage 0
 # Build the binary
 FROM golang:1.23-alpine
+COPY go.mod go.sum ./
+RUN go mod download
 WORKDIR /app
 COPY . .
 
